@@ -1,5 +1,8 @@
 ﻿﻿0.6.1.0
 
+CHANGE: Clean up command line option language, added another example with AM/PM vs 24 hour time format
+CHANGE: Add root key name to top of output since its always the same
+CHANGE: Strip root key name from output so output is more succinct.
 CHANGE: General output formatting clean up ('value' vs 'values' when one result found, etc.)
 CHANGE: Added subkey info (# of subkeys and basic subkey details) when dumping a key via --KeyName
 CHANGE: Updated Registry back end to tweak formatting of output when dumping values via --ValueName

@@ -31,7 +31,7 @@ namespace RECmd
 
             p.Setup(arg => arg.RecoverDeleted)
                 .As("Recover")
-                .WithDescription("\tIf true, recover deleted keys/values");
+                .WithDescription("\tIf present, recover deleted keys/values");
 
             p.Setup(arg => arg.Recursive)
                 .As("Recursive")
@@ -108,7 +108,8 @@ namespace RECmd
             var footer = @"Example: RECmd.exe --Hive ""C:\Temp\UsrClass 1.dat"" --sk URL --Recover" + "\r\n\t " +
                          @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""11/13/2014 15:35:01"" " + "\r\n\t " +
                          @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --nv ""(App|Display)Name"" " + "\r\n\t " +
-                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""05/20/2014 19:00:00"" --EndDate ""05/20/2014 23:59:59"" ";
+                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""05/20/2014 19:00:00"" --EndDate ""05/20/2014 23:59:59"" " + "\r\n\t " +
+                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""05/20/2014 07:00:00 AM"" --EndDate ""05/20/2014 07:59:59 PM"" ";
 
             p.SetupHelp("?", "help").WithHeader(header).Callback(text => _logger.Info(text + "\r\n" + footer));
 
@@ -204,6 +205,9 @@ namespace RECmd
                     }
 
                     _sw.Stop();
+
+                    DumpRootKeyName(reg);
+
                     DumpKey(key, p.Object.Recursive);
 
                     DumpStopWatchInfo();
@@ -218,10 +222,12 @@ namespace RECmd
                         hits = hits.OrderBy(t => t.Value.ValueDataRaw.Length).ToList();
                     }
 
+                    DumpRootKeyName(reg);
+
                     foreach (var valueBySizeInfo in hits)
                     {
                         _logger.Info(
-                            $"Key: {valueBySizeInfo.StripRootKeyNameFromKeyPath()}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
+                            $"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
                     }
                     _logger.Info("");
                     var plural = "s";
@@ -277,6 +283,8 @@ namespace RECmd
                     {
                         hits = hits.OrderBy(t => t.Key.LastWriteTime ?? new DateTimeOffset()).ToList();
                     }
+
+                    DumpRootKeyName(reg);
 
                     foreach (var searchHit in hits)
                     {
@@ -372,6 +380,8 @@ namespace RECmd
                     }
 
                     _sw.Stop();
+                    
+                    DumpRootKeyName(reg);
 
                     foreach (var searchHit in hits)
                     {
@@ -382,21 +392,21 @@ namespace RECmd
                             if (p.Object.SuppressData)
                             {
                                 _logger.Info(
-                                    $"Key: {searchHit.Key.KeyPath}, Value: {searchHit.Value.ValueName}");
+                                    $"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}");
                             }
                             else
                             {
                                 _logger.Info(
-                                    $"Key: {searchHit.Key.KeyPath}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}");
+                                    $"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}");
                             }
                         }
                         else if (p.Object.SimpleSearchKey.Length > 0 || p.Object.RegexSearchKey.Length > 0)
                         {
-                            _logger.Info($"Key: {searchHit.Key.KeyPath}");
+                            _logger.Info($"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}");
                         }
                         else if (p.Object.SimpleSearchValue.Length > 0 || p.Object.RegexSearchValue.Length > 0)
                         {
-                            _logger.Info($"Key: {searchHit.Key.KeyPath}, Value: {searchHit.Value.ValueName}");
+                            _logger.Info($"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}");
                         }
                     }
 
@@ -442,6 +452,12 @@ namespace RECmd
             }
         }
 
+        private static void DumpRootKeyName(RegistryHive reg)
+        {
+            _logger.Info($"Root key name: {reg.Root.KeyName}");
+            _logger.Info("");
+        }
+
         private static void DumpKey(RegistryKey key, bool recursive)
         {
             if (recursive)
@@ -450,7 +466,7 @@ namespace RECmd
             }
             else
             {
-                _logger.Info($"Key: {key.KeyPath}");
+                _logger.Info($"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}");
                 _logger.Info($"Last write time: {key.LastWriteTime}");
                 _logger.Info($"Number of Values: {key.Values.Count:N0}");
                 _logger.Info($"Number of Subkeys: {key.SubKeys.Count:N0}");
