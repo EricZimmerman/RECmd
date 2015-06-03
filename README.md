@@ -1,4 +1,7 @@
 # RECmd
+
+Get the latest binary at http://binaryforay.blogspot.com/p/software.html
+
 Command line Registry access:
 	
 	λ .\RECmd.exe
