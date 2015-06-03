@@ -1,0 +1,5 @@
+﻿﻿0.6.1.0
+
+CHANGE: General output formatting clean up ('value' vs 'values' when one result found, etc.)
+CHANGE: Added subkey info (# of subkeys and basic subkey details) when dumping a key via --KeyName
+CHANGE: Updated Registry back end to tweak formatting of output when dumping values via --ValueName
