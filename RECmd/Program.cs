@@ -60,7 +60,7 @@ namespace RECmd
 
             p.Setup(arg => arg.SaveToName)
                 .As("SaveToName")
-                .WithDescription("Saves ValueName valuedata in binary form to file\r\n");
+                .WithDescription("Saves ValueName value data in binary form to file\r\n");
 
             p.Setup(arg => arg.StartDate)
                 .As("StartDate")
@@ -74,7 +74,7 @@ namespace RECmd
 
             p.Setup(arg => arg.MinimumSize)
                 .As("MinSize")
-                .WithDescription("\tFind values with data size >= MinValueSize. This should be specified in bytes");
+                .WithDescription("\tFind values with data size >= MinSize. This should be specified in bytes");
 
             p.Setup(arg => arg.SimpleSearchKey)
                 .As("sk")
@@ -86,7 +86,7 @@ namespace RECmd
 
             p.Setup(arg => arg.SimpleSearchValueData)
                 .As("sd")
-                .WithDescription("\tSearch for <string> in value record's valuedata");
+                .WithDescription("\tSearch for <string> in value record's value data");
 
             p.Setup(arg => arg.RegexSearchKey)
                 .As("nk")
@@ -98,7 +98,7 @@ namespace RECmd
 
             p.Setup(arg => arg.RegexSearchValueData)
                 .As("nd")
-                .WithDescription("\tSearch for <regex> in value record's valuedata");
+                .WithDescription("\tSearch for <regex> in value record's value data");
 
             var header =
                 $"RECmd version {Assembly.GetExecutingAssembly().GetName().Version}" +
