@@ -29,6 +29,10 @@ namespace RECmd
                 .WithDescription("\tHive to search.").Required();
             // If this option is not specified, the live Registry will be used
 
+            p.Setup(arg => arg.Literal)
+    .As("Literal")
+    .WithDescription("\tIf present, --sd and --ss search value will not be interpreted as ASCII or Unicode byte strings");
+
             p.Setup(arg => arg.RecoverDeleted)
                 .As("Recover")
                 .WithDescription("\tIf present, recover deleted keys/values");
@@ -88,6 +92,10 @@ namespace RECmd
                 .As("sd")
                 .WithDescription("\tSearch for <string> in value record's value data");
 
+            p.Setup(arg => arg.SimpleSearchValueSlack)
+    .As("ss")
+    .WithDescription("\tSearch for <string> in value record's value slack");
+
             p.Setup(arg => arg.RegexSearchKey)
                 .As("nk")
                 .WithDescription("\tSearch for <regex> in key names");
@@ -99,6 +107,10 @@ namespace RECmd
             p.Setup(arg => arg.RegexSearchValueData)
                 .As("nd")
                 .WithDescription("\tSearch for <regex> in value record's value data");
+
+            p.Setup(arg => arg.RegexSearchValueSlack)
+    .As("ns")
+    .WithDescription("\tSearch for <regex> in value record's value slack");
 
             var header =
                 $"RECmd version {Assembly.GetExecutingAssembly().GetName().Version}" +
@@ -318,8 +330,8 @@ namespace RECmd
                     DumpStopWatchInfo();
                 }
                 else if (p.Object.SimpleSearchKey.Length > 0 || p.Object.SimpleSearchValue.Length > 0 ||
-                         p.Object.SimpleSearchValueData.Length > 0 || p.Object.RegexSearchKey.Length > 0 ||
-                         p.Object.RegexSearchValue.Length > 0 || p.Object.RegexSearchValueData.Length > 0)
+                         p.Object.SimpleSearchValueData.Length > 0 || p.Object.SimpleSearchValueSlack.Length > 0 || p.Object.RegexSearchKey.Length > 0 ||
+                         p.Object.RegexSearchValue.Length > 0 || p.Object.RegexSearchValueData.Length > 0 || p.Object.RegexSearchValueSlack.Length > 0)
                 {
                     List<SearchHit> hits = null;
 
@@ -341,7 +353,15 @@ namespace RECmd
                     }
                     else if (p.Object.SimpleSearchValueData.Length > 0)
                     {
-                        hits = reg.FindInValueData(p.Object.SimpleSearchValueData).ToList();
+                        hits = reg.FindInValueData(p.Object.SimpleSearchValueData, false, p.Object.Literal).ToList();
+                        if (p.Object.Sort)
+                        {
+                            hits = hits.OrderBy(t => t.Value.ValueData).ToList();
+                        }
+                    }
+                    else if (p.Object.SimpleSearchValueSlack.Length > 0)
+                    {
+                        hits = reg.FindInValueDataSlack(p.Object.SimpleSearchValueSlack,false,p.Object.Literal).ToList();
                         if (p.Object.Sort)
                         {
                             hits = hits.OrderBy(t => t.Value.ValueData).ToList();
@@ -371,6 +391,14 @@ namespace RECmd
                             hits = hits.OrderBy(t => t.Value.ValueData).ToList();
                         }
                     }
+                    else if (p.Object.RegexSearchValueSlack.Length > 0)
+                    {
+                        hits = reg.FindInValueDataSlack(p.Object.RegexSearchValueData, true).ToList();
+                        if (p.Object.Sort)
+                        {
+                            hits = hits.OrderBy(t => t.Value.ValueData).ToList();
+                        }
+                    }
 
                     if (hits == null)
                     {
@@ -387,7 +415,7 @@ namespace RECmd
                     {
                         searchHit.StripRootKeyName = true;
 
-                        if (p.Object.RegexSearchValueData.Length > 0 || p.Object.SimpleSearchValueData.Length > 0)
+                        if (p.Object.RegexSearchValueData.Length > 0 || p.Object.SimpleSearchValueData.Length > 0 || p.Object.RegexSearchValueSlack.Length > 0 || p.Object.SimpleSearchValueSlack.Length > 0)
                         {
                             if (p.Object.SuppressData)
                             {
@@ -396,8 +424,18 @@ namespace RECmd
                             }
                             else
                             {
-                                _logger.Info(
-                                    $"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}");
+                                if (p.Object.RegexSearchValueSlack.Length > 0 ||
+                                    p.Object.SimpleSearchValueSlack.Length > 0)
+                                {
+                                    _logger.Info(
+                                    $"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Slack: {searchHit.Value.ValueSlack}");
+                                }
+                                else
+                                {
+                                    _logger.Info(
+                                        $"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}");
+                                }
+                                
                             }
                         }
                         else if (p.Object.SimpleSearchKey.Length > 0 || p.Object.RegexSearchKey.Length > 0)
@@ -419,9 +457,13 @@ namespace RECmd
                         plural = "";
                     }
 
-                    if (p.Object.RegexSearchValueData.Length > 0 || p.Object.SimpleSearchValueData.Length > 0)
+                    if (p.Object.RegexSearchValueData.Length > 0 || p.Object.SimpleSearchValueData.Length > 0 )
                     {
                         suffix = $"value data hit{plural}";
+                    }
+                    else if (p.Object.RegexSearchValueSlack.Length > 0 || p.Object.SimpleSearchValueSlack.Length > 0)
+                    {
+                        suffix = $"value slack hit{plural}";
                     }
                     else if (p.Object.SimpleSearchKey.Length > 0 || p.Object.RegexSearchKey.Length > 0)
                     {
@@ -521,13 +563,16 @@ namespace RECmd
         public string SimpleSearchKey { get; set; } = string.Empty;
         public string SimpleSearchValue { get; set; } = string.Empty;
         public string SimpleSearchValueData { get; set; } = string.Empty;
+        public string SimpleSearchValueSlack { get; set; } = string.Empty;
         public string RegexSearchKey { get; set; } = string.Empty;
         public string RegexSearchValue { get; set; } = string.Empty;
         public string RegexSearchValueData { get; set; } = string.Empty;
+        public string RegexSearchValueSlack { get; set; } = string.Empty;
         public int MinimumSize { get; set; }
         public string StartDate { get; set; }
         public string EndDate { get; set; }
         public bool Sort { get; set; }
+        public bool Literal { get; set; }
         public bool SuppressData { get; set; }
     }
 }
