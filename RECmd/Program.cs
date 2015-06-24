@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Fclp;
 using NLog;
+using NLog.Targets;
 using Registry;
 using Registry.Abstractions;
 
@@ -415,7 +417,8 @@ namespace RECmd
                     {
                         searchHit.StripRootKeyName = true;
 
-                        if (p.Object.RegexSearchValueData.Length > 0 || p.Object.SimpleSearchValueData.Length > 0 || p.Object.RegexSearchValueSlack.Length > 0 || p.Object.SimpleSearchValueSlack.Length > 0)
+                        if (p.Object.RegexSearchValueData.Length > 0 || p.Object.SimpleSearchValueData.Length > 0 || 
+                            p.Object.RegexSearchValueSlack.Length > 0 || p.Object.SimpleSearchValueSlack.Length > 0)
                         {
                             if (p.Object.SuppressData)
                             {
@@ -424,14 +427,60 @@ namespace RECmd
                             }
                             else
                             {
-                                if (p.Object.RegexSearchValueSlack.Length > 0 ||
-                                    p.Object.SimpleSearchValueSlack.Length > 0)
+                                if (p.Object.RegexSearchValueSlack.Length > 0 || p.Object.SimpleSearchValueSlack.Length > 0)
                                 {
+                                    var words = new List<string>();
+                                    if (p.Object.SimpleSearchValueSlack.Length > 0)
+                                    {
+                                        var w = p.Object.SimpleSearchValueSlack;
+                                        var hex = Encoding.ASCII.GetBytes(w);
+
+                                        var asAscii = BitConverter.ToString(hex);
+
+                                        hex = Encoding.Unicode.GetBytes(w);
+                                        var asUnicode = BitConverter.ToString(hex);
+
+                                        words.Add(p.Object.SimpleSearchValueSlack);
+                                        words.Add(asAscii);
+                                        words.Add(asUnicode);
+                                    }
+                                    else
+                                    {
+                                        words.Add(p.Object.RegexSearchValueSlack);
+                                    }
+                                 
+                                    AddHighlightingRules(words, p.Object.RegexSearchValueSlack.Length > 0);
+
                                     _logger.Info(
                                     $"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Slack: {searchHit.Value.ValueSlack}");
                                 }
                                 else
                                 {
+                                    var words = new List<string>();
+
+                                    if (p.Object.SimpleSearchValueData.Length > 0)
+                                    {
+                                        var w = p.Object.SimpleSearchValueData;
+                                        var hex = Encoding.ASCII.GetBytes(w);
+
+                                        var asAscii = BitConverter.ToString(hex);
+
+                                        hex = Encoding.Unicode.GetBytes(w);
+                                        var asUnicode = BitConverter.ToString(hex);
+
+                                        words.Add(p.Object.SimpleSearchValueData);
+                                        words.Add(asAscii);
+                                        words.Add(asUnicode);
+                                    }
+                                    else
+                                    {
+                                        words.Add(p.Object.RegexSearchValueData);
+                                    }
+                                    
+                                        
+
+                                    AddHighlightingRules(words, p.Object.RegexSearchValueData.Length > 0);
+
                                     _logger.Info(
                                         $"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}");
                                 }
@@ -440,10 +489,34 @@ namespace RECmd
                         }
                         else if (p.Object.SimpleSearchKey.Length > 0 || p.Object.RegexSearchKey.Length > 0)
                         {
+                            var words = new List<string>();
+                            if (p.Object.SimpleSearchKey.Length > 0)
+                            {
+                                words.Add(p.Object.SimpleSearchKey);
+                            }
+                            else
+                            {
+                                words.Add(p.Object.RegexSearchKey);
+                            }
+                                
+                            AddHighlightingRules(words, p.Object.RegexSearchKey.Length > 0);
+
                             _logger.Info($"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}");
                         }
                         else if (p.Object.SimpleSearchValue.Length > 0 || p.Object.RegexSearchValue.Length > 0)
                         {
+                            var words = new List<string>();
+                            if (p.Object.SimpleSearchValue.Length > 0)
+                            {
+                                words.Add(p.Object.SimpleSearchValue);
+                            }
+                            else
+                            {
+                                words.Add(p.Object.RegexSearchValue);
+                            }
+
+                            AddHighlightingRules(words, p.Object.RegexSearchValue.Length > 0);
+
                             _logger.Info($"Key: {Registry.Other.Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}");
                         }
                     }
@@ -491,6 +564,42 @@ namespace RECmd
             catch (Exception ex)
             {
                 _logger.Error($"There was an error: {ex.Message}");
+            }
+        }
+
+        private static void AddHighlightingRules(List<string> words, bool isRegEx = false)
+        {
+            var target = (ColoredConsoleTarget)LogManager.Configuration.FindTargetByName("console");
+            var rule = target.WordHighlightingRules.FirstOrDefault();
+
+            var bgColor = ConsoleOutputColor.Green;
+            var fgColor = ConsoleOutputColor.White;
+
+            if (rule != null)
+            {
+                bgColor = rule.BackgroundColor;
+                fgColor = rule.ForegroundColor;
+            }
+
+            target.WordHighlightingRules.Clear();
+
+            foreach (var word in words)
+            {
+                var r = new ConsoleWordHighlightingRule();
+                r.IgnoreCase = true;
+                if (isRegEx)
+                {
+                    r.Regex = word;
+                }
+                else
+                {
+                    r.Text = word;
+                }
+                r.ForegroundColor = fgColor;
+                r.BackgroundColor = bgColor;
+               
+                r.WholeWords = false;
+                target.WordHighlightingRules.Add(r);
             }
         }
 
