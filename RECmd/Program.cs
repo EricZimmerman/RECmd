@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using Fclp;
 using NLog;
+using NLog.Config;
 using NLog.Targets;
 using Registry;
 using Registry.Abstractions;
@@ -23,10 +24,41 @@ namespace RECmd
         {
             //TODO Live Registry support
 
+            var dumpWarning = false;
+
+            var nlogPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "nlog.config");
+
+            if (File.Exists(nlogPath) == false)
+            {
+                var config = new LoggingConfiguration();
+                var loglevel = LogLevel.Info;
+
+                var layout = @"${message}";
+
+                var consoleTarget = new ColoredConsoleTarget();
+
+                config.AddTarget("console", consoleTarget);
+
+                consoleTarget.Layout = layout;
+
+                var rule1 = new LoggingRule("*", loglevel, consoleTarget);
+                config.LoggingRules.Add(rule1);
+
+                LogManager.Configuration = config;
+                dumpWarning = true;
+            }
+
             _logger = LogManager.GetCurrentClassLogger();
 
-            var p = new FluentCommandLineParser<ApplicationArguments>();
-            p.IsCaseSensitive = false;
+            if (dumpWarning)
+            {
+                _logger.Warn("Nlog.config missing! Using default values...");
+            }
+
+            var p = new FluentCommandLineParser<ApplicationArguments>
+            {
+                IsCaseSensitive = false
+            };
 
             p.Setup(arg => arg.HiveFile)
                 .As("Hive")
@@ -60,7 +92,7 @@ namespace RECmd
             p.Setup(arg => arg.SuppressData)
                 .As("SuppressData")
                 .WithDescription(
-                    "If present, do not show data when using --sd or --nd\r\n").SetDefault(false);
+                    "If present, do not show data when using --sd or --ss\r\n").SetDefault(false);
 
             p.Setup(arg => arg.KeyName)
                 .As("KeyName")
@@ -527,7 +559,7 @@ namespace RECmd
             var rule = target.WordHighlightingRules.FirstOrDefault();
 
             var bgColor = ConsoleOutputColor.Green;
-            var fgColor = ConsoleOutputColor.White;
+            var fgColor = ConsoleOutputColor.Red;
 
             if (rule != null)
             {
