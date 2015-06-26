@@ -410,61 +410,43 @@ namespace RECmd
                     DumpRootKeyName(reg);
 
                     //set up highlighting
-                    var words = new List<string>();
 
-                    if (p.Object.SimpleSearchKey.Length > 0)
+                    var words = new HashSet<string>();
+                    foreach (var searchHit in hits)
                     {
-                        words.Add(p.Object.SimpleSearchKey);
-                    }
-                    else if (p.Object.SimpleSearchValue.Length > 0)
-                    {
-                        words.Add(p.Object.SimpleSearchValue);
-                    }
-                    else if (p.Object.SimpleSearchValueData.Length > 0)
-                    {
-                        //TODO REFACTOR TO REMOVE DUPE CODE
-                        if (p.Object.RegEx)
+                        if (p.Object.SimpleSearchKey.Length > 0)
                         {
-                            words.Add(p.Object.SimpleSearchValueData);
+                            words.Add(p.Object.SimpleSearchKey);
                         }
-                        else
+                        else if (p.Object.SimpleSearchValue.Length > 0)
                         {
-                            var w = p.Object.SimpleSearchValueData;
-                            var hex = Encoding.ASCII.GetBytes(w);
-
-                            var asAscii = BitConverter.ToString(hex);
-
-                            hex = Encoding.Unicode.GetBytes(w);
-                            var asUnicode = BitConverter.ToString(hex);
-
-                            words.Add(p.Object.SimpleSearchValueData);
-                            words.Add(asAscii);
-                            words.Add(asUnicode);
+                            words.Add(p.Object.SimpleSearchValue);
                         }
-                    }
-                    else if (p.Object.SimpleSearchValueSlack.Length > 0)
-                    {
-                        if (p.Object.RegEx)
+                        else if (p.Object.SimpleSearchValueData.Length > 0)
                         {
-                            words.Add(p.Object.SimpleSearchValueSlack);
+                            if (p.Object.RegEx)
+                            {
+                                words.Add(p.Object.SimpleSearchValueData);
+                            }
+                            else
+                            {
+                                words.Add(searchHit.HitString);
+                            }
                         }
-                        else
+                        else if (p.Object.SimpleSearchValueSlack.Length > 0)
                         {
-                            var w = p.Object.SimpleSearchValueSlack;
-                            var hex = Encoding.ASCII.GetBytes(w);
-
-                            var asAscii = BitConverter.ToString(hex);
-
-                            hex = Encoding.Unicode.GetBytes(w);
-                            var asUnicode = BitConverter.ToString(hex);
-
-                            words.Add(p.Object.SimpleSearchValueSlack);
-                            words.Add(asAscii);
-                            words.Add(asUnicode);
+                            if (p.Object.RegEx)
+                            {
+                                words.Add(p.Object.SimpleSearchValueSlack);
+                            }
+                            else
+                            {
+                                words.Add(searchHit.HitString);
+                            }
                         }
                     }
 
-                    AddHighlightingRules(words, p.Object.RegEx);
+                    AddHighlightingRules(words.ToList(), p.Object.RegEx);
 
                     foreach (var searchHit in hits)
                     {
