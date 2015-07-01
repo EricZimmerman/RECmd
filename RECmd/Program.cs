@@ -484,6 +484,9 @@ namespace RECmd
                         }
                     }
 
+                    var target = (ColoredConsoleTarget)LogManager.Configuration.FindTargetByName("console");
+                    target.WordHighlightingRules.Clear();
+
                     var suffix = string.Empty;
                     var withRegex = string.Empty;
 
