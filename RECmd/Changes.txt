@@ -1,7 +1,2 @@
-﻿﻿0.7.0.0
+﻿﻿0.8.0.0
 
-NEW: Search terms are now highlighted in search results. Edit nlog.config to adjust colors for foreground and background
-NEW: Added --RegEx switch. When present, treat <string> in --sk, --sv, --sd, and --ss as a regular expression
-
-CHANGE: Switches are NOT case sensitive any more
-CHANGE: Remove RegEx specific switches (See --RegEx above)
