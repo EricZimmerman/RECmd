@@ -1,2 +1,4 @@
-﻿﻿0.8.0.0
+﻿0.7.1.0
+
+New: Added --Dir switch. This recursively searches for hives in a given directory and searches each of them
 
