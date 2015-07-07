@@ -65,7 +65,7 @@ namespace RECmd
 
             p.Setup(arg => arg.Directory)
                 .As("Dir")
-                .WithDescription("\tDirectory to look for hives. --Hive or --Dir is required.");
+                .WithDescription("\tDirectory to look for hives (recursively) --Hive or --Dir is required.");
 
             p.Setup(arg => arg.Literal)
                 .As("Literal")
