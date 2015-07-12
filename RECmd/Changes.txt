@@ -1,1 +1,4 @@
 ﻿0.7.1.0
+
+
+FIX: When searching recursively, show the total search time vs the last one in the footer

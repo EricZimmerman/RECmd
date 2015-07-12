@@ -605,7 +605,7 @@ namespace RECmd
                 _logger.Info($"Directory: {p.Object.Directory}");
                 _logger.Info(
                   $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
-                _logger.Info($"Total search time: {_sw.Elapsed.TotalSeconds:N3} seconds");
+                _logger.Info($"Total search time: {totalSeconds:N3} seconds");
                 _logger.Info("");
             }
         }
