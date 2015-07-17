@@ -65,7 +65,7 @@ namespace RECmd
 
             p.Setup(arg => arg.Directory)
                 .As("Dir")
-                .WithDescription("\tDirectory to look for hives (recursively) --Hive or --Dir is required.");
+                .WithDescription("\tDirectory to look for hives (recursively). --Hive or --Dir is required.");
 
             p.Setup(arg => arg.Literal)
                 .As("Literal")
@@ -183,11 +183,6 @@ namespace RECmd
                 {
                     _logger.Error($"Directory '{p.Object.Directory}' does not exist.");
                     return;
-                }
-
-                if (p.Object.Directory.EndsWith("\\"))
-                    {
-                    p.Object.Directory = p.Object.Directory.TrimEnd('\\');
                 }
 
                 var files = Directory.GetFiles(p.Object.Directory, "*", SearchOption.AllDirectories);
