@@ -163,6 +163,9 @@ namespace RECmd
 
             if (result.HasErrors)
             {
+                _logger.Error("");
+                _logger.Error(result.ErrorText);
+
                 p.HelpOption.ShowHelp(p.Options);
 
                 return;
@@ -176,6 +179,17 @@ namespace RECmd
             }
             else if (p.Object.Directory?.Length > 0)
             {
+                if (Directory.Exists(p.Object.Directory) == false)
+                {
+                    _logger.Error($"Directory '{p.Object.Directory}' does not exist.");
+                    return;
+                }
+
+                if (p.Object.Directory.EndsWith("\\"))
+                    {
+                    p.Object.Directory = p.Object.Directory.TrimEnd('\\');
+                }
+
                 var files = Directory.GetFiles(p.Object.Directory, "*", SearchOption.AllDirectories);
                 hivesToProcess.AddRange(files);
             }
