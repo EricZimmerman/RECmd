@@ -19,6 +19,16 @@ namespace RECmd
         private static Stopwatch _sw;
         private static Logger _logger;
 
+        private static bool CheckForDotnet46()
+        {
+            using (var ndpKey = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry32).OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
+            {
+                int releaseKey = Convert.ToInt32(ndpKey.GetValue("Release"));
+
+                return (releaseKey >= 393295);
+            }
+        }
+
         private static void Main(string[] args)
         {
             //TODO Live Registry support
@@ -52,6 +62,12 @@ namespace RECmd
             if (dumpWarning)
             {
                 _logger.Warn("Nlog.config missing! Using default values...");
+            }
+
+            if (!CheckForDotnet46())
+            {
+                _logger.Warn(".net 4.6 not detected. Please install .net 4.6 and try again.");
+                return;
             }
 
             var p = new FluentCommandLineParser<ApplicationArguments>
@@ -169,7 +185,8 @@ namespace RECmd
                 if (result.ErrorText.Contains("--dir"))
                 {
                     _logger.Error("Remove the trailing backslash from the --dir argument and try again");
-                }               
+                }              
+ 
 
                 p.HelpOption.ShowHelp(p.Options);
 
