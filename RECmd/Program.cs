@@ -65,7 +65,7 @@ namespace RECmd
 
             p.Setup(arg => arg.Directory)
                 .As("Dir")
-                .WithDescription("\tDirectory to look for hives (recursively). --Hive or --Dir is required.");
+                .WithDescription("\tDirectory to look for hives (recursively). --Hive or --Dir is required. NOTE: Do NOT put a trailing back slash on the directory name!");
 
             p.Setup(arg => arg.Literal)
                 .As("Literal")
@@ -165,6 +165,11 @@ namespace RECmd
             {
                 _logger.Error("");
                 _logger.Error(result.ErrorText);
+
+                if (result.ErrorText.Contains("--dir"))
+                {
+                    _logger.Error("Remove the trailing backslash from the --dir argument and try again");
+                }               
 
                 p.HelpOption.ShowHelp(p.Options);
 
