@@ -11,6 +11,8 @@ using NLog.Targets;
 using Registry;
 using Registry.Abstractions;
 using Registry.Other;
+using ServiceStack;
+using ServiceStack.Text;
 
 namespace RECmd
 {
@@ -91,6 +93,14 @@ namespace RECmd
             p.Setup(arg => arg.RecoverDeleted)
                 .As("Recover")
                 .WithDescription("\tIf present, recover deleted keys/values");
+
+            p.Setup(arg => arg.DumpKey)
+    .As("DumpKey")
+    .WithDescription("\tDump given key (and all subkeys) and values as json");
+
+            p.Setup(arg => arg.DumpDir)
+    .As("DumpDir")
+    .WithDescription("\tDirectory to save json output");
 
             p.Setup(arg => arg.Recursive)
                 .As("Recursive")
@@ -187,7 +197,6 @@ namespace RECmd
                     _logger.Error("Remove the trailing backslash from the --dir argument and try again");
                 }              
  
-
                 p.HelpOption.ShowHelp(p.Options);
 
                 return;
@@ -258,7 +267,52 @@ namespace RECmd
 
                     _logger.Info("");
 
-                    if (p.Object.KeyName.Length > 0)
+                    if (p.Object.DumpKey.Length > 0 && p.Object.DumpDir.Length > 0)
+                    {
+                        if (Directory.Exists(p.Object.DumpDir) == false)
+                        {
+                            try
+                            {
+                                Directory.CreateDirectory(p.Object.DumpDir);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error($"Error creating DumpDir '{p.Object.DumpDir}': {ex.Message}. Exiting");
+                                return;
+                            }
+                        }
+
+                        var key = reg.GetKey(p.Object.DumpKey);
+
+                        if (key == null)
+                        {
+                            _logger.Warn($"Key not found: {p.Object.DumpKey}. Exiting");
+                            return;
+                        }
+                        
+                        var nout = $"{key.KeyName}_dump.json";
+                        var fout = Path.Combine(p.Object.DumpDir, nout);
+
+                        _logger.Info("Found key. Dumping data. Be patient as this can take a while...");
+
+                        var jsons = new JsonSerializer<RegistryKey>();
+
+                        //TODO need a way to get a simple representation of things here, like
+                        //name, path, date, etc vs EVERYTHING
+                        
+
+                        using (var sw = new StreamWriter(fout))
+                        {
+                            sw.AutoFlush = true;
+                            jsons.SerializeToWriter(key,sw);
+                        }
+                        
+                        
+
+                        _logger.Info($"'{p.Object.DumpKey}' saved to '{fout}'");
+
+                    }
+                    else if (p.Object.KeyName.Length > 0)
                     {
                         var key = reg.GetKey(p.Object.KeyName);
 
@@ -747,6 +801,8 @@ namespace RECmd
         public string SaveToName { get; set; } = string.Empty;
         public bool Recursive { get; set; } = false;
         public string SimpleSearchKey { get; set; } = string.Empty;
+        public string DumpKey { get; set; } = string.Empty;
+        public string DumpDir { get; set; } = string.Empty;
         public string SimpleSearchValue { get; set; } = string.Empty;
         public string SimpleSearchValueData { get; set; } = string.Empty;
         public string SimpleSearchValueSlack { get; set; } = string.Empty;
