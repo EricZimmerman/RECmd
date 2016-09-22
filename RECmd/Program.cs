@@ -300,17 +300,13 @@ namespace RECmd
                         //TODO need a way to get a simple representation of things here, like
                         //name, path, date, etc vs EVERYTHING
                         
-
                         using (var sw = new StreamWriter(fout))
                         {
                             sw.AutoFlush = true;
                             jsons.SerializeToWriter(key,sw);
                         }
                         
-                        
-
                         _logger.Info($"'{p.Object.DumpKey}' saved to '{fout}'");
-
                     }
                     else if (p.Object.KeyName.Length > 0)
                     {
