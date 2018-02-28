@@ -1013,6 +1013,7 @@
           <xs:element name="source" minOccurs="0" maxOccurs="1" type="Layout" />
           <xs:element name="onOverflow" minOccurs="0" maxOccurs="1" type="NLog.Targets.EventLogTargetOverflowAction" />
           <xs:element name="entryType" minOccurs="0" maxOccurs="1" type="Layout" />
+          <xs:element name="maxKilobytes" minOccurs="0" maxOccurs="1" type="xs:long" />
           <xs:element name="maxMessageLength" minOccurs="0" maxOccurs="1" type="xs:integer" />
           <xs:element name="optimizeBufferReuse" minOccurs="0" maxOccurs="1" type="xs:boolean" />
         </xs:choice>
@@ -1059,6 +1060,11 @@
         <xs:attribute name="entryType" type="SimpleLayoutAttribute">
           <xs:annotation>
             <xs:documentation>Optional entrytype. When not set, or when not convertable to  then determined by </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="maxKilobytes" type="xs:long">
+          <xs:annotation>
+            <xs:documentation>Maximum Event log size in kilobytes. If null, the value won't be set. Default is 512 Kilobytes as specified by Eventlog API</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="maxMessageLength" type="xs:integer">
@@ -2701,8 +2707,10 @@
           <xs:element name="attribute" minOccurs="0" maxOccurs="unbounded" type="NLog.Layouts.JsonAttribute" />
           <xs:element name="excludeProperties" minOccurs="0" maxOccurs="1" type="xs:string" />
           <xs:element name="includeAllProperties" minOccurs="0" maxOccurs="1" type="xs:boolean" />
+          <xs:element name="includeMdc" minOccurs="0" maxOccurs="1" type="xs:boolean" />
           <xs:element name="renderEmptyObject" minOccurs="0" maxOccurs="1" type="xs:boolean" />
           <xs:element name="suppressSpaces" minOccurs="0" maxOccurs="1" type="xs:boolean" />
+          <xs:element name="includeMdlc" minOccurs="0" maxOccurs="1" type="xs:boolean" />
         </xs:choice>
         <xs:attribute name="excludeProperties" type="xs:string">
           <xs:annotation>
@@ -2714,6 +2722,11 @@
             <xs:documentation>Option to include all properties from the log events</xs:documentation>
           </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="includeMdc" type="xs:boolean">
+          <xs:annotation>
+            <xs:documentation>Indicates whether to include contents of the  dictionary.</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="renderEmptyObject" type="xs:boolean">
           <xs:annotation>
             <xs:documentation>Option to render the empty object value {}</xs:documentation>
@@ -2722,6 +2735,11 @@
         <xs:attribute name="suppressSpaces" type="xs:boolean">
           <xs:annotation>
             <xs:documentation>Option to suppress the extra spaces in the output json</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="includeMdlc" type="xs:boolean">
+          <xs:annotation>
+            <xs:documentation>Indicates whether to include contents of the  dictionary.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
       </xs:extension>
