@@ -5,14 +5,15 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Fclp;
+using Microsoft.Win32;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using Registry;
 using Registry.Abstractions;
 using Registry.Other;
-using ServiceStack;
 using ServiceStack.Text;
+using RegistryHive = Registry.RegistryHive;
+using RegistryKey = Registry.Abstractions.RegistryKey;
 
 namespace RECmd
 {
@@ -23,11 +24,13 @@ namespace RECmd
 
         private static bool CheckForDotnet46()
         {
-            using (var ndpKey = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry32).OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
+            using (var ndpKey = Microsoft.Win32.RegistryKey
+                .OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, RegistryView.Registry32)
+                .OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
             {
-                int releaseKey = Convert.ToInt32(ndpKey.GetValue("Release"));
+                var releaseKey = Convert.ToInt32(ndpKey?.GetValue("Release"));
 
-                return (releaseKey >= 393295);
+                return releaseKey >= 393295;
             }
         }
 
@@ -37,7 +40,7 @@ namespace RECmd
 
             var dumpWarning = false;
 
-            var nlogPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "nlog.config");
+            var nlogPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? throw new InvalidOperationException(), "nlog.config");
 
             if (File.Exists(nlogPath) == false)
             {
@@ -83,7 +86,8 @@ namespace RECmd
 
             p.Setup(arg => arg.Directory)
                 .As("Dir")
-                .WithDescription("\tDirectory to look for hives (recursively). --Hive or --Dir is required. NOTE: Do NOT put a trailing back slash on the directory name!");
+                .WithDescription(
+                    "\tDirectory to look for hives (recursively). --Hive or --Dir is required. NOTE: Do NOT put a trailing back slash on the directory name!");
 
             p.Setup(arg => arg.Literal)
                 .As("Literal")
@@ -95,12 +99,12 @@ namespace RECmd
                 .WithDescription("\tIf present, recover deleted keys/values");
 
             p.Setup(arg => arg.DumpKey)
-    .As("DumpKey")
-    .WithDescription("\tDump given key (and all subkeys) and values as json");
+                .As("DumpKey")
+                .WithDescription("\tDump given key (and all subkeys) and values as json");
 
             p.Setup(arg => arg.DumpDir)
-    .As("DumpDir")
-    .WithDescription("\tDirectory to save json output");
+                .As("DumpDir")
+                .WithDescription("\tDirectory to save json output");
 
             p.Setup(arg => arg.Recursive)
                 .As("Recursive")
@@ -172,8 +176,10 @@ namespace RECmd
                 "\r\nhttps://github.com/EricZimmerman/RECmd\r\n\r\nNote: Enclose all strings containing spaces (and all RegEx) with double quotes";
 
             var footer = @"Example: RECmd.exe --Hive ""C:\Temp\UsrClass 1.dat"" --sk URL --Recover" + "\r\n\t " +
-                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""11/13/2014 15:35:01"" " + "\r\n\t " +
-                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --RegEx --sv ""(App|Display)Name"" " + "\r\n\t " +
+                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""11/13/2014 15:35:01"" " +
+                         "\r\n\t " +
+                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --RegEx --sv ""(App|Display)Name"" " +
+                         "\r\n\t " +
                          @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""05/20/2014 19:00:00"" --EndDate ""05/20/2014 23:59:59"" " +
                          "\r\n\t " +
                          @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""05/20/2014 07:00:00 AM"" --EndDate ""05/20/2014 07:59:59 PM"" ";
@@ -195,8 +201,8 @@ namespace RECmd
                 if (result.ErrorText.Contains("--dir"))
                 {
                     _logger.Error("Remove the trailing backslash from the --dir argument and try again");
-                }              
- 
+                }
+
                 p.HelpOption.ShowHelp(p.Options);
 
                 return;
@@ -289,7 +295,7 @@ namespace RECmd
                             _logger.Warn($"Key not found: {p.Object.DumpKey}. Exiting");
                             return;
                         }
-                        
+
                         var nout = $"{key.KeyName}_dump.json";
                         var fout = Path.Combine(p.Object.DumpDir, nout);
 
@@ -299,13 +305,13 @@ namespace RECmd
 
                         //TODO need a way to get a simple representation of things here, like
                         //name, path, date, etc vs EVERYTHING
-                        
+
                         using (var sw = new StreamWriter(fout))
                         {
                             sw.AutoFlush = true;
-                            jsons.SerializeToWriter(key,sw);
+                            jsons.SerializeToWriter(key, sw);
                         }
-                        
+
                         _logger.Info($"'{p.Object.DumpKey}' saved to '{fout}'");
                     }
                     else if (p.Object.KeyName.Length > 0)
@@ -393,20 +399,19 @@ namespace RECmd
                         _logger.Info("");
 
                         var plural = "s";
-                        if (hits.Count() == 1)
+                        if (hits.Count == 1)
                         {
                             plural = "";
                         }
+
                         _logger.Info(
-                            $"Found {hits.Count():N0} value{plural} with size greater or equal to {p.Object.MinimumSize:N0} bytes");
+                            $"Found {hits.Count:N0} value{plural} with size greater or equal to {p.Object.MinimumSize:N0} bytes");
                         DumpStopWatchInfo();
                     }
                     else if (p.Object.StartDate != null || p.Object.EndDate != null)
                     {
-                        DateTimeOffset start;
-                        DateTimeOffset end;
-                        var startOk = DateTimeOffset.TryParse(p.Object.StartDate + "-0", out start);
-                        var endOk = DateTimeOffset.TryParse(p.Object.EndDate + "-0", out end);
+                        var startOk = DateTimeOffset.TryParse(p.Object.StartDate + "-0", out var start);
+                        var endOk = DateTimeOffset.TryParse(p.Object.EndDate + "-0", out var end);
 
                         DateTimeOffset? startGood = null;
                         DateTimeOffset? endGood = null;
@@ -416,6 +421,7 @@ namespace RECmd
                         {
                             throw new InvalidCastException("'StartDate' is not a valid datetime value");
                         }
+
                         if (!endOk && p.Object.EndDate != null)
                         {
                             throw new InvalidCastException("'EndDate' is not a valid datetime value");
@@ -464,6 +470,7 @@ namespace RECmd
                         {
                             suffix = $"between {startGood} and {endGood}";
                         }
+
                         if (startGood != null && endGood == null)
                         {
                             suffix = $"after {startGood}";
@@ -476,11 +483,12 @@ namespace RECmd
                         _logger.Info("");
 
                         var plural = "s";
-                        if (hits.Count() == 1)
+                        if (hits.Count == 1)
                         {
                             plural = "";
                         }
-                        _logger.Info($"Found {hits.Count():N0} key{plural} with last write {suffix}");
+
+                        _logger.Info($"Found {hits.Count:N0} key{plural} with last write {suffix}");
 
                         DumpStopWatchInfo();
                     }
@@ -519,7 +527,7 @@ namespace RECmd
                         {
                             hits =
                                 reg.FindInValueDataSlack(p.Object.SimpleSearchValueSlack, p.Object.RegEx,
-                                    p.Object.Literal)
+                                        p.Object.Literal)
                                     .ToList();
                             if (p.Object.Sort)
                             {
@@ -623,7 +631,7 @@ namespace RECmd
                         var withRegex = string.Empty;
 
                         var plural = "s";
-                        if (hits.Count() == 1)
+                        if (hits.Count == 1)
                         {
                             plural = "";
                         }
@@ -650,13 +658,11 @@ namespace RECmd
                             withRegex = " (via RegEx)";
                         }
 
-                       _logger.Info("");
+                        _logger.Info("");
 
-                        _logger.Info($"Found {hits.Count():N0} {suffix}{withRegex}");
+                        _logger.Info($"Found {hits.Count:N0} {suffix}{withRegex}");
 
                         DumpStopWatchInfo();
-
-                        
                     }
                     else
                     {
@@ -685,7 +691,7 @@ namespace RECmd
                 _logger.Info("---------------------------------------------");
                 _logger.Info($"Directory: {p.Object.Directory}");
                 _logger.Info(
-                  $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
+                    $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
                 _logger.Info("");
             }
@@ -709,8 +715,10 @@ namespace RECmd
 
             foreach (var word in words)
             {
-                var r = new ConsoleWordHighlightingRule();
-                r.IgnoreCase = true;
+                var r = new ConsoleWordHighlightingRule
+                {
+                    IgnoreCase = true
+                };
                 if (isRegEx)
                 {
                     r.Regex = word;
@@ -719,6 +727,7 @@ namespace RECmd
                 {
                     r.Text = word;
                 }
+
                 r.ForegroundColor = fgColor;
                 r.BackgroundColor = bgColor;
 
@@ -770,6 +779,7 @@ namespace RECmd
                     {
                         slack = $"(Slack: {keyValue.ValueSlack})";
                     }
+
                     _logger.Info($"Data: {keyValue.ValueData} {slack}");
 
                     i += 1;
@@ -782,8 +792,6 @@ namespace RECmd
             _sw.Stop();
             _logger.Info("");
             _logger.Info($"Search took {_sw.Elapsed.TotalSeconds:N3} seconds");
-
-            
         }
     }
 
