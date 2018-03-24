@@ -1,4 +1,4 @@
-﻿0.7.1.0
-
-
-FIX: When searching recursively, show the total search time vs the last one in the footer
+﻿libz add --libz Other.libz --include *.dll --move
+libz inject-libz -assembly .\RECmd.exe --libz .\Other.libz --move
+libz instrument --assembly .\RECmd.exe --libz-resources
+(sign exe)

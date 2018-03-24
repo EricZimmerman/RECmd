@@ -269,6 +269,20 @@ namespace RECmd
                     _sw = new Stopwatch();
                     _sw.Start();
 
+
+                    if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+                    {
+                        var logFiles = Directory.GetFiles(Path.GetDirectoryName(hiveToProcess), "*.LOG*");
+
+                        if (logFiles.Length == 0)
+                        {
+                            _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory! Aborting!!");
+                            throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                        }
+
+                        reg.ProcessTransactionLogs(logFiles.ToList(),true);
+                    }
+
                     reg.ParseHive();
 
                     _logger.Info("");
@@ -673,7 +687,7 @@ namespace RECmd
                 }
                 catch (Exception ex)
                 {
-                    if (!ex.Message.Contains("bad signature"))
+                    if (!ex.Message.Contains("bad signature") && !ex.Message.Contains("Sequence numbers do not match and transaction logs were not found in the same directory "))
                     {
                         _logger.Error($"There was an error: {ex.Message}");
                     }
