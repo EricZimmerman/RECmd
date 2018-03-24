@@ -272,11 +272,15 @@ namespace RECmd
 
                     if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
                     {
-                        var logFiles = Directory.GetFiles(Path.GetDirectoryName(hiveToProcess), "*.LOG*");
+                        var hiveBase = Path.GetFileName(hiveToProcess);
+
+                        var logFiles = Directory.GetFiles(Path.GetDirectoryName(hiveToProcess), $"{hiveBase}.LOG*");
 
                         if (logFiles.Length == 0)
                         {
-                            _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory! Aborting!!");
+                            var log = LogManager.GetCurrentClassLogger();
+
+                            log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
                             throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
                         }
 
