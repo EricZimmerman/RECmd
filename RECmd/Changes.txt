@@ -1,4 +1,1 @@
-﻿libz add --libz Other.libz --include *.dll --move
-libz inject-libz -assembly .\RECmd.exe --libz .\Other.libz --move
-libz instrument --assembly .\RECmd.exe --libz-resources
-(sign exe)
+﻿
