@@ -274,7 +274,14 @@ namespace RECmd
                     {
                         var hiveBase = Path.GetFileName(hiveToProcess);
 
-                        var logFiles = Directory.GetFiles(Path.GetDirectoryName(hiveToProcess), $"{hiveBase}.LOG*");
+                        var dirname = Path.GetDirectoryName(hiveToProcess);
+
+                        if (string.IsNullOrEmpty(dirname))
+                        {
+                            dirname = ".";
+                        }
+
+                        var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG*");
 
                         if (logFiles.Length == 0)
                         {
