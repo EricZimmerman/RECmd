@@ -19,61 +19,38 @@ namespace RECmd
 {
     internal class Program
     {
+
         private static Stopwatch _sw;
         private static Logger _logger;
 
-        private static bool CheckForDotnet46()
+        private static void SetupNLog()
         {
-            using (var ndpKey = Microsoft.Win32.RegistryKey
-                .OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, RegistryView.Registry32)
-                .OpenSubKey("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full\\"))
-            {
-                var releaseKey = Convert.ToInt32(ndpKey?.GetValue("Release"));
+            var config = new LoggingConfiguration();
+            var loglevel = LogLevel.Info;
 
-                return releaseKey >= 393295;
-            }
+            var layout = @"${message}";
+
+            var consoleTarget = new ColoredConsoleTarget();
+
+            var whr = new ConsoleWordHighlightingRule("this will be replaced with search term",ConsoleOutputColor.Red,ConsoleOutputColor.Green);
+            consoleTarget.WordHighlightingRules.Add(whr);
+
+            config.AddTarget("console", consoleTarget);
+
+            consoleTarget.Layout = layout;
+
+            var rule1 = new LoggingRule("*", loglevel, consoleTarget);
+            config.LoggingRules.Add(rule1);
+
+            LogManager.Configuration = config;
         }
 
         private static void Main(string[] args)
         {
             //TODO Live Registry support
-
-            var dumpWarning = false;
-
-            var nlogPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? throw new InvalidOperationException(), "nlog.config");
-
-            if (File.Exists(nlogPath) == false)
-            {
-                var config = new LoggingConfiguration();
-                var loglevel = LogLevel.Info;
-
-                var layout = @"${message}";
-
-                var consoleTarget = new ColoredConsoleTarget();
-
-                config.AddTarget("console", consoleTarget);
-
-                consoleTarget.Layout = layout;
-
-                var rule1 = new LoggingRule("*", loglevel, consoleTarget);
-                config.LoggingRules.Add(rule1);
-
-                LogManager.Configuration = config;
-                dumpWarning = true;
-            }
+            SetupNLog();
 
             _logger = LogManager.GetCurrentClassLogger();
-
-            if (dumpWarning)
-            {
-                _logger.Warn("Nlog.config missing! Using default values...");
-            }
-
-            if (!CheckForDotnet46())
-            {
-                _logger.Warn(".net 4.6 not detected. Please install .net 4.6 and try again.");
-                return;
-            }
 
             var p = new FluentCommandLineParser<ApplicationArguments>
             {
@@ -98,13 +75,13 @@ namespace RECmd
                 .As("Recover")
                 .WithDescription("\tIf present, recover deleted keys/values");
 
-            p.Setup(arg => arg.DumpKey)
-                .As("DumpKey")
-                .WithDescription("\tDump given key (and all subkeys) and values as json");
-
-            p.Setup(arg => arg.DumpDir)
-                .As("DumpDir")
-                .WithDescription("\tDirectory to save json output");
+//            p.Setup(arg => arg.DumpKey)
+//                .As("DumpKey")
+//                .WithDescription("\tDump given key (and all subkeys) and values as json");
+//
+//            p.Setup(arg => arg.DumpDir)
+//                .As("DumpDir")
+//                .WithDescription("\tDirectory to save json output");
 
             p.Setup(arg => arg.Recursive)
                 .As("Recursive")
@@ -169,6 +146,11 @@ namespace RECmd
             p.Setup(arg => arg.SimpleSearchValueSlack)
                 .As("ss")
                 .WithDescription("\tSearch for <string> in value record's value slack");
+
+            p.Setup(arg => arg.NoTransLogs)
+                .As("nl")
+                .WithDescription(
+                    "\tWhen true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
 
             var header =
                 $"RECmd version {Assembly.GetExecutingAssembly().GetName().Version}" +
@@ -270,7 +252,7 @@ namespace RECmd
                     _sw.Start();
 
 
-                    if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+                    if (p.Object.NoTransLogs == false && reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
                     {
                         var hiveBase = Path.GetFileName(hiveToProcess);
 
@@ -320,6 +302,8 @@ namespace RECmd
                             _logger.Warn($"Key not found: {p.Object.DumpKey}. Exiting");
                             return;
                         }
+
+                        key.Parent = null;
 
                         var nout = $"{key.KeyName}_dump.json";
                         var fout = Path.Combine(p.Object.DumpDir, nout);
@@ -842,5 +826,6 @@ namespace RECmd
         public bool RegEx { get; set; }
         public bool Literal { get; set; }
         public bool SuppressData { get; set; }
+        public bool NoTransLogs { get; set; } = false;
     }
 }
