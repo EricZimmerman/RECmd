@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using Alphaleonis.Win32.Filesystem;
 using Fclp;
 using Microsoft.Win32;
 using NLog;
@@ -13,6 +15,10 @@ using NLog.Targets;
 using Registry.Abstractions;
 using Registry.Other;
 using ServiceStack.Text;
+using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 using RegistryHive = Registry.RegistryHive;
 using RegistryKey = Registry.Abstractions.RegistryKey;
 
@@ -59,13 +65,13 @@ namespace RECmd
             };
 
             p.Setup(arg => arg.HiveFile)
-                .As("Hive")
-                .WithDescription("\tHive to search. --Hive or --Dir is required.");
+                .As('f')
+                .WithDescription("\tHive to search. -f or -d is required.");
 
             p.Setup(arg => arg.Directory)
-                .As("Dir")
+                .As('d')
                 .WithDescription(
-                    "\tDirectory to look for hives (recursively). --Hive or --Dir is required. NOTE: Do NOT put a trailing back slash on the directory name!");
+                    "\tDirectory to look for hives (recursively). -f or -d is required. NOTE: Do NOT put a trailing back slash on the directory name!");
 
             p.Setup(arg => arg.Literal)
                 .As("Literal")
@@ -73,7 +79,7 @@ namespace RECmd
                     "\tIf present, --sd and --ss search value will not be interpreted as ASCII or Unicode byte strings");
 
             p.Setup(arg => arg.RecoverDeleted)
-                .As("Recover")
+                .As("recover")
                 .WithDescription("\tIf present, recover deleted keys/values");
 
 //            p.Setup(arg => arg.DumpKey)
@@ -85,37 +91,37 @@ namespace RECmd
 //                .WithDescription("\tDirectory to save json output");
 
             p.Setup(arg => arg.Recursive)
-                .As("Recursive")
+                .As("rec")
                 .WithDescription(
                     "Dump keys/values recursively (ignored if --ValueName used). This option provides FULL details about keys and values");
 
             p.Setup(arg => arg.RegEx)
-                .As("RegEx")
+                .As("regex")
                 .WithDescription("\tIf present, treat <string> in --sk, --sv, --sd, and --ss as a regular expression")
                 .SetDefault(false);
 
             p.Setup(arg => arg.Sort)
-                .As("Sort")
+                .As("sort")
                 .WithDescription(
                     "\tIf present, sort the output").SetDefault(false);
 
             p.Setup(arg => arg.SuppressData)
-                .As("SuppressData")
+                .As("suppress")
                 .WithDescription(
                     "If present, do not show data when using --sd or --ss\r\n").SetDefault(false);
 
             p.Setup(arg => arg.KeyName)
-                .As("KeyName")
+                .As("kn")
                 .WithDescription(
                     "\tKey name. All values under this key will be dumped");
 
             p.Setup(arg => arg.ValueName)
-                .As("ValueName")
+                .As("vn")
                 .WithDescription(
                     "Value name. Only this value will be dumped");
 
             p.Setup(arg => arg.SaveToName)
-                .As("SaveToName")
+                .As("SaveTo")
                 .WithDescription("Saves ValueName value data in binary form to file\r\n");
 
             p.Setup(arg => arg.StartDate)
@@ -152,7 +158,7 @@ namespace RECmd
                 .As("nl")
                 .WithDescription(
                     "\tWhen true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
-            CodeThrowExceptionStatement 
+             
             var header =
                 $"RECmd version {Assembly.GetExecutingAssembly().GetName().Version}" +
                 "\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
@@ -205,8 +211,58 @@ namespace RECmd
                     return;
                 }
 
-                var files = Directory.GetFiles(p.Object.Directory, "*", SearchOption.AllDirectories);
-                hivesToProcess.AddRange(files);
+                var f = new DirectoryEnumerationFilters();
+                f.InclusionFilter = fsei =>
+                {
+                    if (fsei.Extension.ToUpperInvariant() == ".LOG1" || fsei.Extension.ToUpperInvariant() == ".LOG2" || fsei.Extension.ToUpperInvariant() == ".DLL" ||
+                        fsei.Extension.ToUpperInvariant() == ".TXT" || fsei.Extension.ToUpperInvariant() == ".INI")
+                    {
+                        return false;
+                    }
+                    var fi = new FileInfo(fsei.FullPath);
+
+                    if (fi.Length < 4)
+                    {
+                        return false;
+                    }
+
+                    using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
+                    {
+                        using (var br = new BinaryReader(fs, new ASCIIEncoding()))
+                        {
+                            try
+                            {
+                                var chunk = br.ReadBytes(4);
+
+                                var sig = BitConverter.ToInt32(chunk, 0);
+
+                                if (sig != 0x66676572)
+                                {
+                                    return false;
+                                }
+                            }
+                            catch
+                            {
+                                return false;
+
+                            }
+                        }
+                    } 
+
+                    return true;
+                };
+
+                f.RecursionFilter = entryInfo => !entryInfo.IsMountPoint && !entryInfo.IsSymbolicLink;
+
+                f.ErrorFilter = (errorCode, errorMessage, pathProcessed) => true;
+
+                var dirEnumOptions =
+                    DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive |
+                    DirectoryEnumerationOptions.SkipReparsePoints | DirectoryEnumerationOptions.ContinueOnException | DirectoryEnumerationOptions.BasicSearch;
+
+                var files2 = Directory.EnumerateFileSystemEntries(p.Object.Directory,dirEnumOptions, f);
+
+                hivesToProcess.AddRange(files2);
             }
             else
             {
@@ -253,10 +309,10 @@ namespace RECmd
                     _sw.Start();
 
 
-                    if (p.Object.NoTransLogs == false && reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+                    if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
                     {
                         var hiveBase = Path.GetFileName(hiveToProcess);
-
+                
                         var dirname = Path.GetDirectoryName(hiveToProcess);
 
                         if (string.IsNullOrEmpty(dirname))
@@ -264,22 +320,35 @@ namespace RECmd
                             dirname = ".";
                         }
 
-                        var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG*");
+                        var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
 
                         if (logFiles.Length == 0)
                         {
                             var log = LogManager.GetCurrentClassLogger();
 
-                            log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
-                            throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
-                        }
+                            if (p.Object.NoTransLogs == false)
+                            {
+                                log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
+                                throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                            }
 
-                        reg.ProcessTransactionLogs(logFiles.ToList(),true);
+                            log.Warn("Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
+
+                        }
+                        else
+                        {
+                            reg.ProcessTransactionLogs(logFiles.ToList(),true);
+                        }
                     }
 
                     reg.ParseHive();
 
                     _logger.Info("");
+
+
+
+                    _logger.Warn("WORK STARTS HERE");
+                    continue;
 
                     if (p.Object.DumpKey.Length > 0 && p.Object.DumpDir.Length > 0)
                     {
@@ -827,6 +896,8 @@ namespace RECmd
         public bool RegEx { get; set; }
         public bool Literal { get; set; }
         public bool SuppressData { get; set; }
-        public bool NoTransLogs { get; set; } = false;
+        public bool NoTransLogs { get; set; }
+        public bool Quiet { get; set; }
+        public bool VeryQuiet { get; set; }
     }
 }
