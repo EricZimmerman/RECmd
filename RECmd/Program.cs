@@ -345,417 +345,287 @@ namespace RECmd
 
                     _logger.Info("");
 
+                    List<SearchHit> hits = new List<SearchHit>();
 
+                    if (p.Object.SimpleSearchKey.Length > 0)
+                    {
+                        var results = DoKeySearch(reg, p.Object.SimpleSearchKey,p.Object.RegEx);
+                        if (results != null)
+                        {
+                            hits.AddRange(results ); 
+                        }
+                       
+                    }
+
+                    if (p.Object.SimpleSearchValue.Length > 0)
+                    {
+                        var results = DoValueSearch(reg, p.Object.SimpleSearchValue,p.Object.RegEx);
+                        if (results != null)
+                        {
+                            hits.AddRange(results ); 
+                        }
+                    }
+
+                    if (p.Object.SimpleSearchValueData.Length > 0)
+                    {
+                        var results = DoValueDataSearch(reg, p.Object.SimpleSearchValueData,p.Object.RegEx,p.Object.Literal);
+                        if (results != null)
+                        {
+                            hits.AddRange(results ); 
+                        }
+                    } 
+
+                    if(p.Object.SimpleSearchValueSlack.Length > 0)
+                    {
+                        var results = DoValueSlackSearch(reg, p.Object.SimpleSearchValueSlack,p.Object.RegEx,p.Object.Literal);
+                        if (results != null)
+                        {
+                            hits.AddRange(results ); 
+                        }
+                    }
+
+                    if (p.Object.Sort)
+                    {
+                        hits = hits.OrderBy(t => t.Key.KeyName).ToList();
+                    }
+
+
+                    _logger.Info($"Found '{hits.Count:N0}' hits");
 
                     _logger.Warn("WORK STARTS HERE");
                     continue;
 
-                    if (p.Object.DumpKey.Length > 0 && p.Object.DumpDir.Length > 0)
-                    {
-                        if (Directory.Exists(p.Object.DumpDir) == false)
-                        {
-                            try
-                            {
-                                Directory.CreateDirectory(p.Object.DumpDir);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.Error($"Error creating DumpDir '{p.Object.DumpDir}': {ex.Message}. Exiting");
-                                return;
-                            }
-                        }
-
-                        var key = reg.GetKey(p.Object.DumpKey);
-
-                        if (key == null)
-                        {
-                            _logger.Warn($"Key not found: {p.Object.DumpKey}. Exiting");
-                            return;
-                        }
-
-                        key.Parent = null;
-
-                        var nout = $"{key.KeyName}_dump.json";
-                        var fout = Path.Combine(p.Object.DumpDir, nout);
-
-                        _logger.Info("Found key. Dumping data. Be patient as this can take a while...");
-
-                        var jsons = new JsonSerializer<RegistryKey>();
-
-                        //TODO need a way to get a simple representation of things here, like
-                        //name, path, date, etc vs EVERYTHING
-
-                        using (var sw = new StreamWriter(fout))
-                        {
-                            sw.AutoFlush = true;
-                            jsons.SerializeToWriter(key, sw);
-                        }
-
-                        _logger.Info($"'{p.Object.DumpKey}' saved to '{fout}'");
-                    }
-                    else if (p.Object.KeyName.Length > 0)
-                    {
-                        var key = reg.GetKey(p.Object.KeyName);
-
-                        if (key == null)
-                        {
-                            _logger.Warn($"Key '{p.Object.KeyName}' not found.");
-                            DumpStopWatchInfo();
-                            continue;
-                        }
-
-                        if (p.Object.ValueName.Length > 0)
-                        {
-                            var val = key.Values.SingleOrDefault(c => c.ValueName == p.Object.ValueName);
-
-                            if (val == null)
-                            {
-                                _logger.Warn($"Value '{p.Object.ValueName}' not found for key '{p.Object.KeyName}'.");
-
-                                DumpStopWatchInfo();
-                                continue;
-                            }
-
-                            _sw.Stop();
-                            totalSeconds += _sw.Elapsed.TotalSeconds;
-
-                            _logger.Info(val);
-
-                            hivesWithHits += 1;
-                            totalHits += 1;
-
-                            if (p.Object.SaveToName.Length > 0)
-                            {
-                                var baseDir = Path.GetDirectoryName(p.Object.SaveToName);
-                                if (Directory.Exists(baseDir) == false)
-                                {
-                                    Directory.CreateDirectory(baseDir);
-                                }
-
-                                _logger.Info($"Saving contents of '{val.ValueName}' to '{p.Object.SaveToName}'");
-                                File.WriteAllBytes(p.Object.SaveToName, val.ValueDataRaw);
-                            }
-
-                            DumpStopWatchInfo();
-
-                            continue;
-                        }
-
-                        hivesWithHits += 1;
-                        totalHits += 1;
-
-                        _sw.Stop();
-                        totalSeconds += _sw.Elapsed.TotalSeconds;
-
-                        DumpRootKeyName(reg);
-
-                        DumpKey(key, p.Object.Recursive);
-
-                        DumpStopWatchInfo();
-                    }
-                    else if (p.Object.MinimumSize > 0)
-                    {
-                        var hits = reg.FindByValueSize(p.Object.MinimumSize).ToList();
-                        _sw.Stop();
-                        totalSeconds += _sw.Elapsed.TotalSeconds;
-
-                        if (p.Object.Sort)
-                        {
-                            hits = hits.OrderBy(t => t.Value.ValueDataRaw.Length).ToList();
-                        }
-
-                        DumpRootKeyName(reg);
-
-                        hivesWithHits += 1;
-                        totalHits += hits.Count;
-
-                        foreach (var valueBySizeInfo in hits)
-                        {
-                            _logger.Info(
-                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
-                        }
-
-                        _logger.Info("");
-
-                        var plural = "s";
-                        if (hits.Count == 1)
-                        {
-                            plural = "";
-                        }
-
-                        _logger.Info(
-                            $"Found {hits.Count:N0} value{plural} with size greater or equal to {p.Object.MinimumSize:N0} bytes");
-                        DumpStopWatchInfo();
-                    }
-                    else if (p.Object.StartDate != null || p.Object.EndDate != null)
-                    {
-                        var startOk = DateTimeOffset.TryParse(p.Object.StartDate + "-0", out var start);
-                        var endOk = DateTimeOffset.TryParse(p.Object.EndDate + "-0", out var end);
-
-                        DateTimeOffset? startGood = null;
-                        DateTimeOffset? endGood = null;
-                        var hits = new List<SearchHit>();
-
-                        if (!startOk && p.Object.StartDate != null)
-                        {
-                            throw new InvalidCastException("'StartDate' is not a valid datetime value");
-                        }
-
-                        if (!endOk && p.Object.EndDate != null)
-                        {
-                            throw new InvalidCastException("'EndDate' is not a valid datetime value");
-                        }
-
-                        if (startOk && endOk)
-                        {
-                            startGood = start;
-                            endGood = end;
-                            hits = reg.FindByLastWriteTime(startGood, endGood).ToList();
-                        }
-                        else if (startOk)
-                        {
-                            startGood = start;
-
-                            hits = reg.FindByLastWriteTime(startGood, null).ToList();
-                        }
-                        else if (endOk)
-                        {
-                            endGood = end;
-                            hits = reg.FindByLastWriteTime(null, endGood).ToList();
-                        }
-
-                        _sw.Stop();
-                        totalSeconds += _sw.Elapsed.TotalSeconds;
-
-                        if (p.Object.Sort)
-                        {
-                            hits = hits.OrderBy(t => t.Key.LastWriteTime ?? new DateTimeOffset()).ToList();
-                        }
-
-                        DumpRootKeyName(reg);
-
-                        hivesWithHits += 1;
-                        totalHits += hits.Count;
-
-                        foreach (var searchHit in hits)
-                        {
-                            searchHit.StripRootKeyName = true;
-                            _logger.Info($"Last write: {searchHit.Key.LastWriteTime}  Key: {searchHit}");
-                        }
-
-                        var suffix = string.Empty;
-
-                        if (startGood != null || endGood != null)
-                        {
-                            suffix = $"between {startGood} and {endGood}";
-                        }
-
-                        if (startGood != null && endGood == null)
-                        {
-                            suffix = $"after {startGood}";
-                        }
-                        else if (endGood != null && startGood == null)
-                        {
-                            suffix = $"before {endGood}";
-                        }
-
-                        _logger.Info("");
-
-                        var plural = "s";
-                        if (hits.Count == 1)
-                        {
-                            plural = "";
-                        }
-
-                        _logger.Info($"Found {hits.Count:N0} key{plural} with last write {suffix}");
-
-                        DumpStopWatchInfo();
-                    }
-                    else if (p.Object.SimpleSearchKey.Length > 0 || p.Object.SimpleSearchValue.Length > 0 ||
-                             p.Object.SimpleSearchValueData.Length > 0 || p.Object.SimpleSearchValueSlack.Length > 0)
-                    {
-                        List<SearchHit> hits = null;
-
-                        if (p.Object.SimpleSearchKey.Length > 0)
-                        {
-                            hits = reg.FindInKeyName(p.Object.SimpleSearchKey, p.Object.RegEx).ToList();
-                            if (p.Object.Sort)
-                            {
-                                hits = hits.OrderBy(t => t.Key.KeyName).ToList();
-                            }
-                        }
-                        else if (p.Object.SimpleSearchValue.Length > 0)
-                        {
-                            hits = reg.FindInValueName(p.Object.SimpleSearchValue, p.Object.RegEx).ToList();
-                            if (p.Object.Sort)
-                            {
-                                hits = hits.OrderBy(t => t.Value.ValueName).ToList();
-                            }
-                        }
-                        else if (p.Object.SimpleSearchValueData.Length > 0)
-                        {
-                            hits =
-                                reg.FindInValueData(p.Object.SimpleSearchValueData, p.Object.RegEx, p.Object.Literal)
-                                    .ToList();
-                            if (p.Object.Sort)
-                            {
-                                hits = hits.OrderBy(t => t.Value.ValueData).ToList();
-                            }
-                        }
-                        else if (p.Object.SimpleSearchValueSlack.Length > 0)
-                        {
-                            hits =
-                                reg.FindInValueDataSlack(p.Object.SimpleSearchValueSlack, p.Object.RegEx,
-                                        p.Object.Literal)
-                                    .ToList();
-                            if (p.Object.Sort)
-                            {
-                                hits = hits.OrderBy(t => t.Value.ValueData).ToList();
-                            }
-                        }
-
-                        if (hits == null)
-                        {
-                            _logger.Warn("No search results found");
-                            DumpStopWatchInfo();
-                            continue;
-                        }
-
-                        _sw.Stop();
-                        totalSeconds += _sw.Elapsed.TotalSeconds;
-
-                        DumpRootKeyName(reg);
-
-                        //set up highlighting
-                        var words = new HashSet<string>();
-                        foreach (var searchHit in hits)
-                        {
-                            if (p.Object.SimpleSearchKey.Length > 0)
-                            {
-                                words.Add(p.Object.SimpleSearchKey);
-                            }
-                            else if (p.Object.SimpleSearchValue.Length > 0)
-                            {
-                                words.Add(p.Object.SimpleSearchValue);
-                            }
-                            else if (p.Object.SimpleSearchValueData.Length > 0)
-                            {
-                                if (p.Object.RegEx)
-                                {
-                                    words.Add(p.Object.SimpleSearchValueData);
-                                }
-                                else
-                                {
-                                    words.Add(searchHit.HitString);
-                                }
-                            }
-                            else if (p.Object.SimpleSearchValueSlack.Length > 0)
-                            {
-                                if (p.Object.RegEx)
-                                {
-                                    words.Add(p.Object.SimpleSearchValueSlack);
-                                }
-                                else
-                                {
-                                    words.Add(searchHit.HitString);
-                                }
-                            }
-                        }
-
-                        AddHighlightingRules(words.ToList(), p.Object.RegEx);
-
-                        hivesWithHits += 1;
-                        totalHits += hits.Count;
-
-                        foreach (var searchHit in hits)
-                        {
-                            searchHit.StripRootKeyName = true;
-
-                            if (p.Object.SimpleSearchValueData.Length > 0 || p.Object.SimpleSearchValueSlack.Length > 0)
-                            {
-                                if (p.Object.SuppressData)
-                                {
-                                    _logger.Info(
-                                        $"Key: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}");
-                                }
-                                else
-                                {
-                                    if (p.Object.SimpleSearchValueSlack.Length > 0)
-                                    {
-                                        _logger.Info(
-                                            $"Key: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Slack: {searchHit.Value.ValueSlack}");
-                                    }
-                                    else
-                                    {
-                                        _logger.Info(
-                                            $"Key: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}");
-                                    }
-                                }
-                            }
-                            else if (p.Object.SimpleSearchKey.Length > 0)
-                            {
-                                _logger.Info($"Key: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}");
-                            }
-                            else if (p.Object.SimpleSearchValue.Length > 0)
-                            {
-                                _logger.Info(
-                                    $"Key: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}");
-                            }
-                        }
-
-                        var target = (ColoredConsoleTarget) LogManager.Configuration.FindTargetByName("console");
-                        target.WordHighlightingRules.Clear();
-
-                        var suffix = string.Empty;
-                        var withRegex = string.Empty;
-
-                        var plural = "s";
-                        if (hits.Count == 1)
-                        {
-                            plural = "";
-                        }
-
-                        if (p.Object.SimpleSearchValueData.Length > 0)
-                        {
-                            suffix = $"value data hit{plural}";
-                        }
-                        else if (p.Object.SimpleSearchValueSlack.Length > 0)
-                        {
-                            suffix = $"value slack hit{plural}";
-                        }
-                        else if (p.Object.SimpleSearchKey.Length > 0)
-                        {
-                            suffix = $"key{plural}";
-                        }
-                        else if (p.Object.SimpleSearchValue.Length > 0)
-                        {
-                            suffix = $"value{plural}";
-                        }
-
-                        if (p.Object.RegEx)
-                        {
-                            withRegex = " (via RegEx)";
-                        }
-
-                        _logger.Info("");
-
-                        _logger.Info($"Found {hits.Count:N0} {suffix}{withRegex}");
-
-                        DumpStopWatchInfo();
-                    }
-                    else
-                    {
-                        _logger.Warn("Nothing to do! =(");
-                    }
-
-                    //TODO search deleted?? should only need to look in reg.UnassociatedRegistryValues
+//                    if (p.Object.DumpKey.Length > 0 && p.Object.DumpDir.Length > 0)
+//                    {
+//                        if (Directory.Exists(p.Object.DumpDir) == false)
+//                        {
+//                            try
+//                            {
+//                                Directory.CreateDirectory(p.Object.DumpDir);
+//                            }
+//                            catch (Exception ex)
+//                            {
+//                                _logger.Error($"Error creating DumpDir '{p.Object.DumpDir}': {ex.Message}. Exiting");
+//                                return;
+//                            }
+//                        }
+//
+//                        var key = reg.GetKey(p.Object.DumpKey);
+//
+//                        if (key == null)
+//                        {
+//                            _logger.Warn($"Key not found: {p.Object.DumpKey}. Exiting");
+//                            return;
+//                        }
+//
+//                        key.Parent = null;
+//
+//                        var nout = $"{key.KeyName}_dump.json";
+//                        var fout = Path.Combine(p.Object.DumpDir, nout);
+//
+//                        _logger.Info("Found key. Dumping data. Be patient as this can take a while...");
+//
+//                        var jsons = new JsonSerializer<RegistryKey>();
+//
+//                        //TODO need a way to get a simple representation of things here, like
+//                        //name, path, date, etc vs EVERYTHING
+//
+//                        using (var sw = new StreamWriter(fout))
+//                        {
+//                            sw.AutoFlush = true;
+//                            jsons.SerializeToWriter(key, sw);
+//                        }
+//
+//                        _logger.Info($"'{p.Object.DumpKey}' saved to '{fout}'");
+//                    }
+//                    else if (p.Object.KeyName.Length > 0)
+//                    {
+//                        var key = reg.GetKey(p.Object.KeyName);
+//
+//                        if (key == null)
+//                        {
+//                            _logger.Warn($"Key '{p.Object.KeyName}' not found.");
+//                            DumpStopWatchInfo();
+//                            continue;
+//                        }
+//
+//                        if (p.Object.ValueName.Length > 0)
+//                        {
+//                            var val = key.Values.SingleOrDefault(c => c.ValueName == p.Object.ValueName);
+//
+//                            if (val == null)
+//                            {
+//                                _logger.Warn($"Value '{p.Object.ValueName}' not found for key '{p.Object.KeyName}'.");
+//
+//                                DumpStopWatchInfo();
+//                                continue;
+//                            }
+//
+//                            _sw.Stop();
+//                            totalSeconds += _sw.Elapsed.TotalSeconds;
+//
+//                            _logger.Info(val);
+//
+//                            hivesWithHits += 1;
+//                            totalHits += 1;
+//
+//                            if (p.Object.SaveToName.Length > 0)
+//                            {
+//                                var baseDir = Path.GetDirectoryName(p.Object.SaveToName);
+//                                if (Directory.Exists(baseDir) == false)
+//                                {
+//                                    Directory.CreateDirectory(baseDir);
+//                                }
+//
+//                                _logger.Info($"Saving contents of '{val.ValueName}' to '{p.Object.SaveToName}'");
+//                                File.WriteAllBytes(p.Object.SaveToName, val.ValueDataRaw);
+//                            }
+//
+//                            DumpStopWatchInfo();
+//
+//                            continue;
+//                        }
+//
+//                        hivesWithHits += 1;
+//                        totalHits += 1;
+//
+//                        _sw.Stop();
+//                        totalSeconds += _sw.Elapsed.TotalSeconds;
+//
+//                        DumpRootKeyName(reg);
+//
+//                        DumpKey(key, p.Object.Recursive);
+//
+//                        DumpStopWatchInfo();
+//                    }
+//                    else if (p.Object.MinimumSize > 0)
+//                    {
+//                        var hits = reg.FindByValueSize(p.Object.MinimumSize).ToList();
+//                        _sw.Stop();
+//                        totalSeconds += _sw.Elapsed.TotalSeconds;
+//
+//                        if (p.Object.Sort)
+//                        {
+//                            hits = hits.OrderBy(t => t.Value.ValueDataRaw.Length).ToList();
+//                        }
+//
+//                        DumpRootKeyName(reg);
+//
+//                        hivesWithHits += 1;
+//                        totalHits += hits.Count;
+//
+//                        foreach (var valueBySizeInfo in hits)
+//                        {
+//                            _logger.Info(
+//                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
+//                        }
+//
+//                        _logger.Info("");
+//
+//                        var plural = "s";
+//                        if (hits.Count == 1)
+//                        {
+//                            plural = "";
+//                        }
+//
+//                        _logger.Info(
+//                            $"Found {hits.Count:N0} value{plural} with size greater or equal to {p.Object.MinimumSize:N0} bytes");
+//                        DumpStopWatchInfo();
+//                    }
+//                    else if (p.Object.StartDate != null || p.Object.EndDate != null)
+//                    {
+//                        var startOk = DateTimeOffset.TryParse(p.Object.StartDate + "-0", out var start);
+//                        var endOk = DateTimeOffset.TryParse(p.Object.EndDate + "-0", out var end);
+//
+//                        DateTimeOffset? startGood = null;
+//                        DateTimeOffset? endGood = null;
+//                        var hits = new List<SearchHit>();
+//
+//                        if (!startOk && p.Object.StartDate != null)
+//                        {
+//                            throw new InvalidCastException("'StartDate' is not a valid datetime value");
+//                        }
+//
+//                        if (!endOk && p.Object.EndDate != null)
+//                        {
+//                            throw new InvalidCastException("'EndDate' is not a valid datetime value");
+//                        }
+//
+//                        if (startOk && endOk)
+//                        {
+//                            startGood = start;
+//                            endGood = end;
+//                            hits = reg.FindByLastWriteTime(startGood, endGood).ToList();
+//                        }
+//                        else if (startOk)
+//                        {
+//                            startGood = start;
+//
+//                            hits = reg.FindByLastWriteTime(startGood, null).ToList();
+//                        }
+//                        else if (endOk)
+//                        {
+//                            endGood = end;
+//                            hits = reg.FindByLastWriteTime(null, endGood).ToList();
+//                        }
+//
+//                        _sw.Stop();
+//                        totalSeconds += _sw.Elapsed.TotalSeconds;
+//
+//                        if (p.Object.Sort)
+//                        {
+//                            hits = hits.OrderBy(t => t.Key.LastWriteTime ?? new DateTimeOffset()).ToList();
+//                        }
+//
+//                        DumpRootKeyName(reg);
+//
+//                        hivesWithHits += 1;
+//                        totalHits += hits.Count;
+//
+//                        foreach (var searchHit in hits)
+//                        {
+//                            searchHit.StripRootKeyName = true;
+//                            _logger.Info($"Last write: {searchHit.Key.LastWriteTime}  Key: {searchHit}");
+//                        }
+//
+//                        var suffix = string.Empty;
+//
+//                        if (startGood != null || endGood != null)
+//                        {
+//                            suffix = $"between {startGood} and {endGood}";
+//                        }
+//
+//                        if (startGood != null && endGood == null)
+//                        {
+//                            suffix = $"after {startGood}";
+//                        }
+//                        else if (endGood != null && startGood == null)
+//                        {
+//                            suffix = $"before {endGood}";
+//                        }
+//
+//                        _logger.Info("");
+//
+//                        var plural = "s";
+//                        if (hits.Count == 1)
+//                        {
+//                            plural = "";
+//                        }
+//
+//                        _logger.Info($"Found {hits.Count:N0} key{plural} with last write {suffix}");
+//
+//                        DumpStopWatchInfo();
+//                    }
+//                    else
+//                    {
+//                        _logger.Warn("Nothing to do! =(");
+//                    }
+//
+//                    //TODO search deleted?? should only need to look in reg.UnassociatedRegistryValues
                 }
                 catch (Exception ex)
                 {
-                    if (!ex.Message.Contains("bad signature") && !ex.Message.Contains("Sequence numbers do not match and transaction logs were not found in the same directory "))
-                    {
                         _logger.Error($"There was an error: {ex.Message}");
-                    }
                 }
             }
 
@@ -774,6 +644,30 @@ namespace RECmd
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
                 _logger.Info("");
             }
+        }
+
+        private static IEnumerable<SearchHit> DoValueSlackSearch(RegistryHive reg, string simpleSearchValueSlack, bool isRegEx, bool isLiteral)
+        {
+            var  hits = reg.FindInValueData(simpleSearchValueSlack, isRegEx,isLiteral).ToList();
+            return hits;
+        }
+
+        private static IEnumerable<SearchHit> DoValueDataSearch(RegistryHive reg, string simpleSearchValueData, bool isRegEx, bool isLiteral)
+        {
+            var  hits = reg.FindInValueDataSlack(simpleSearchValueData, isRegEx, isLiteral).ToList();
+            return hits;
+        }
+
+        private static IEnumerable<SearchHit> DoValueSearch(RegistryHive reg, string simpleSearchValue, bool isRegEx)
+        {
+            var  hits = reg.FindInValueName(simpleSearchValue, isRegEx).ToList();
+            return hits;
+        }
+
+        private static IEnumerable<SearchHit> DoKeySearch(RegistryHive reg, string simpleSearchKey, bool isRegEx)
+        {
+          var  hits = reg.FindInKeyName(simpleSearchKey, isRegEx).ToList();
+           return hits;
         }
 
         private static void AddHighlightingRules(List<string> words, bool isRegEx = false)
@@ -884,8 +778,8 @@ namespace RECmd
         public string SaveToName { get; set; } = string.Empty;
         public bool Recursive { get; set; } = false;
         public string SimpleSearchKey { get; set; } = string.Empty;
-        public string DumpKey { get; set; } = string.Empty;
-        public string DumpDir { get; set; } = string.Empty;
+//        public string DumpKey { get; set; } = string.Empty;
+//        public string DumpDir { get; set; } = string.Empty;
         public string SimpleSearchValue { get; set; } = string.Empty;
         public string SimpleSearchValueData { get; set; } = string.Empty;
         public string SimpleSearchValueSlack { get; set; } = string.Empty;
