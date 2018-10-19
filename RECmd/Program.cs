@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -151,7 +152,7 @@ namespace RECmd
                 .As("nl")
                 .WithDescription(
                     "\tWhen true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
-
+            CodeThrowExceptionStatement 
             var header =
                 $"RECmd version {Assembly.GetExecutingAssembly().GetName().Version}" +
                 "\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
