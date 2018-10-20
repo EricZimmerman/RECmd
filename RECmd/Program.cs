@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,27 +7,26 @@ using System.Reflection;
 using System.Text;
 using Alphaleonis.Win32.Filesystem;
 using Fclp;
-using Microsoft.Win32;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using Registry;
 using Registry.Abstractions;
+using Registry.Cells;
 using Registry.Other;
-using ServiceStack.Text;
+using ServiceStack;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-using RegistryHive = Registry.RegistryHive;
-using RegistryKey = Registry.Abstractions.RegistryKey;
 
 namespace RECmd
 {
     internal class Program
     {
-
         private static Stopwatch _sw;
         private static Logger _logger;
+        private static FluentCommandLineParser<ApplicationArguments> _fluentCommandLineParser;
 
         private static void SetupNLog()
         {
@@ -39,7 +37,8 @@ namespace RECmd
 
             var consoleTarget = new ColoredConsoleTarget();
 
-            var whr = new ConsoleWordHighlightingRule("this will be replaced with search term",ConsoleOutputColor.Red,ConsoleOutputColor.Green);
+            var whr = new ConsoleWordHighlightingRule("this will be replaced with search term", ConsoleOutputColor.Red,
+                ConsoleOutputColor.Green);
             consoleTarget.WordHighlightingRules.Add(whr);
 
             config.AddTarget("console", consoleTarget);
@@ -59,123 +58,108 @@ namespace RECmd
 
             _logger = LogManager.GetCurrentClassLogger();
 
-            var p = new FluentCommandLineParser<ApplicationArguments>
+            _fluentCommandLineParser = new FluentCommandLineParser<ApplicationArguments>
             {
                 IsCaseSensitive = false
             };
 
-            p.Setup(arg => arg.HiveFile)
-                .As('f')
-                .WithDescription("\tHive to search. -f or -d is required.");
-
-            p.Setup(arg => arg.Directory)
+            _fluentCommandLineParser.Setup(arg => arg.Directory)
                 .As('d')
                 .WithDescription(
-                    "\tDirectory to look for hives (recursively). -f or -d is required. NOTE: Do NOT put a trailing back slash on the directory name!");
+                    "Directory to look for hives (recursively). -f or -d is required.");
+            _fluentCommandLineParser.Setup(arg => arg.HiveFile)
+                .As('f')
+                .WithDescription("Hive to search. -f or -d is required.\r\n");
 
-            p.Setup(arg => arg.Literal)
-                .As("Literal")
-                .WithDescription(
-                    "\tIf present, --sd and --ss search value will not be interpreted as ASCII or Unicode byte strings");
-
-            p.Setup(arg => arg.RecoverDeleted)
-                .As("recover")
-                .WithDescription("\tIf present, recover deleted keys/values");
-
-//            p.Setup(arg => arg.DumpKey)
-//                .As("DumpKey")
-//                .WithDescription("\tDump given key (and all subkeys) and values as json");
-//
-//            p.Setup(arg => arg.DumpDir)
-//                .As("DumpDir")
-//                .WithDescription("\tDirectory to save json output");
-
-            p.Setup(arg => arg.Recursive)
-                .As("rec")
-                .WithDescription(
-                    "Dump keys/values recursively (ignored if --ValueName used). This option provides FULL details about keys and values");
-
-            p.Setup(arg => arg.RegEx)
-                .As("regex")
-                .WithDescription("\tIf present, treat <string> in --sk, --sv, --sd, and --ss as a regular expression")
-                .SetDefault(false);
-
-            p.Setup(arg => arg.Sort)
-                .As("sort")
-                .WithDescription(
-                    "\tIf present, sort the output").SetDefault(false);
-
-            p.Setup(arg => arg.SuppressData)
-                .As("suppress")
-                .WithDescription(
-                    "If present, do not show data when using --sd or --ss\r\n").SetDefault(false);
-
-            p.Setup(arg => arg.KeyName)
+            _fluentCommandLineParser.Setup(arg => arg.KeyName)
                 .As("kn")
                 .WithDescription(
-                    "\tKey name. All values under this key will be dumped");
+                    "Key name. All values under this key will be dumped");
 
-            p.Setup(arg => arg.ValueName)
+            _fluentCommandLineParser.Setup(arg => arg.ValueName)
                 .As("vn")
                 .WithDescription(
                     "Value name. Only this value will be dumped");
 
-            p.Setup(arg => arg.SaveToName)
-                .As("SaveTo")
-                .WithDescription("Saves ValueName value data in binary form to file\r\n");
+            _fluentCommandLineParser.Setup(arg => arg.SaveToName)
+                .As("saveTo")
+                .WithDescription("Saves --vn value data in binary form to file. Expects path to a FILE");
 
-            p.Setup(arg => arg.StartDate)
-                .As("StartDate")
+//            _fluentCommandLineParser.Setup(arg => arg.Recursive)
+//                .As("recurse")
+//                .WithDescription(
+//                    "Display keys/values recursively (ignored if --vn used). Default is FALSE").SetDefault(false);
+
+            _fluentCommandLineParser.Setup(arg => arg.Detailed)
+                .As("details")
                 .WithDescription(
-                    "Start date to look for last write timestamps (UTC). If EndDate is not supplied, last writes AFTER this date will be returned");
+                    "Show more details when displaying results. Default is FALSE\r\n").SetDefault(false);
 
-            p.Setup(arg => arg.EndDate)
-                .As("EndDate")
-                .WithDescription(
-                    "\tEnd date to look for last write timestamps (UTC). If StartDate is not supplied, last writes BEFORE this date will be returned");
-
-            p.Setup(arg => arg.MinimumSize)
+            _fluentCommandLineParser.Setup(arg => arg. Base64)
+                .As("Base64")
+                .WithDescription("Find Base64 encoded values with size >= Base64 (specified in bytes)");
+            _fluentCommandLineParser.Setup(arg => arg.MinimumSize)
                 .As("MinSize")
-                .WithDescription("\tFind values with data size >= MinSize (specified in bytes)");
+                .WithDescription("Find values with data size >= MinSize (specified in bytes)\r\n");
 
-            p.Setup(arg => arg.SimpleSearchKey)
+            _fluentCommandLineParser.Setup(arg => arg.SimpleSearchKey)
                 .As("sk")
-                .WithDescription("\tSearch for <string> in key names.");
+                .WithDescription("Search for <string> in key names.");
 
-            p.Setup(arg => arg.SimpleSearchValue)
+            _fluentCommandLineParser.Setup(arg => arg.SimpleSearchValue)
                 .As("sv")
-                .WithDescription("\tSearch for <string> in value names");
+                .WithDescription("Search for <string> in value names");
 
-            p.Setup(arg => arg.SimpleSearchValueData)
+            _fluentCommandLineParser.Setup(arg => arg.SimpleSearchValueData)
                 .As("sd")
-                .WithDescription("\tSearch for <string> in value record's value data");
+                .WithDescription("Search for <string> in value record's value data");
 
-            p.Setup(arg => arg.SimpleSearchValueSlack)
+            _fluentCommandLineParser.Setup(arg => arg.SimpleSearchValueSlack)
                 .As("ss")
-                .WithDescription("\tSearch for <string> in value record's value slack");
+                .WithDescription("Search for <string> in value record's value slack");
 
-            p.Setup(arg => arg.NoTransLogs)
+
+            _fluentCommandLineParser.Setup(arg => arg.Literal)
+                .As("literal")
+                .WithDescription(
+                    "If true, --sd and --ss search value will not be interpreted as ASCII or Unicode byte strings")
+                .SetDefault(false);
+
+            _fluentCommandLineParser.Setup(arg => arg.SuppressData)
+                .As("nd")
+                .WithDescription(
+                    "If true, do not show data when using --sd or --ss. Default is FALSE").SetDefault(false);
+
+            _fluentCommandLineParser.Setup(arg => arg.RegEx)
+                .As("regex")
+                .WithDescription(
+                    "If present, treat <string> in --sk, --sv, --sd, and --ss as a regular expression. Default is FALSE\r\n")
+                .SetDefault(false);
+
+
+            _fluentCommandLineParser.Setup(arg => arg.NoTransLogs)
                 .As("nl")
                 .WithDescription(
-                    "\tWhen true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
-             
+                    "When true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
+
+            _fluentCommandLineParser.Setup(arg => arg.RecoverDeleted)
+                .As("recover")
+                .WithDescription("If true, recover deleted keys/values. Default is TRUE").SetDefault(true);
+
             var header =
                 $"RECmd version {Assembly.GetExecutingAssembly().GetName().Version}" +
                 "\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
                 "\r\nhttps://github.com/EricZimmerman/RECmd\r\n\r\nNote: Enclose all strings containing spaces (and all RegEx) with double quotes";
 
-            var footer = @"Example: RECmd.exe --Hive ""C:\Temp\UsrClass 1.dat"" --sk URL --Recover" + "\r\n\t " +
-                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""11/13/2014 15:35:01"" " +
+            var footer = @"Example: RECmd.exe --f ""C:\Temp\UsrClass 1.dat"" --sk URL --recover" + "\r\n\t " +
+                         @"RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --StartDate ""11/13/2014 15:35:01"" " +
                          "\r\n\t " +
-                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --RegEx --sv ""(App|Display)Name"" " +
-                         "\r\n\t " +
-                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""05/20/2014 19:00:00"" --EndDate ""05/20/2014 23:59:59"" " +
-                         "\r\n\t " +
-                         @"RECmd.exe --Hive ""D:\temp\UsrClass 1.dat"" --StartDate ""05/20/2014 07:00:00 AM"" --EndDate ""05/20/2014 07:59:59 PM"" ";
+                         @"RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --RegEx --sv ""(App|Display)Name"" " + "\r\n";
 
-            p.SetupHelp("?", "help").WithHeader(header).Callback(text => _logger.Info(text + "\r\n" + footer));
+            _fluentCommandLineParser.SetupHelp("?", "help").WithHeader(header)
+                .Callback(text => _logger.Info(text + "\r\n" + footer));
 
-            var result = p.Parse(args);
+            var result = _fluentCommandLineParser.Parse(args);
 
             if (result.HelpCalled)
             {
@@ -187,38 +171,43 @@ namespace RECmd
                 _logger.Error("");
                 _logger.Error(result.ErrorText);
 
-                if (result.ErrorText.Contains("--dir"))
-                {
-                    _logger.Error("Remove the trailing backslash from the --dir argument and try again");
-                }
 
-                p.HelpOption.ShowHelp(p.Options);
+                _fluentCommandLineParser.HelpOption.ShowHelp(_fluentCommandLineParser.Options);
 
                 return;
             }
 
             var hivesToProcess = new List<string>();
 
-            if (p.Object.HiveFile?.Length > 0)
+            if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
             {
-                hivesToProcess.Add(p.Object.HiveFile);
-            }
-            else if (p.Object.Directory?.Length > 0)
-            {
-                if (Directory.Exists(p.Object.Directory) == false)
+                if (File.Exists(_fluentCommandLineParser.Object.HiveFile) == false)
                 {
-                    _logger.Error($"Directory '{p.Object.Directory}' does not exist.");
+                    _logger.Error($"File '{_fluentCommandLineParser.Object.HiveFile}' does not exist.");
                     return;
                 }
+
+                hivesToProcess.Add(_fluentCommandLineParser.Object.HiveFile);
+            }
+            else if (_fluentCommandLineParser.Object.Directory?.Length > 0)
+            {
+                if (Directory.Exists(_fluentCommandLineParser.Object.Directory) == false)
+                {
+                    _logger.Error($"Directory '{_fluentCommandLineParser.Object.Directory}' does not exist.");
+                    return;
+                }
+
 
                 var f = new DirectoryEnumerationFilters();
                 f.InclusionFilter = fsei =>
                 {
-                    if (fsei.Extension.ToUpperInvariant() == ".LOG1" || fsei.Extension.ToUpperInvariant() == ".LOG2" || fsei.Extension.ToUpperInvariant() == ".DLL" ||
+                    if (fsei.Extension.ToUpperInvariant() == ".LOG1" || fsei.Extension.ToUpperInvariant() == ".LOG2" ||
+                        fsei.Extension.ToUpperInvariant() == ".DLL" ||
                         fsei.Extension.ToUpperInvariant() == ".TXT" || fsei.Extension.ToUpperInvariant() == ".INI")
                     {
                         return false;
                     }
+
                     var fi = new FileInfo(fsei.FullPath);
 
                     if (fi.Length < 4)
@@ -244,10 +233,9 @@ namespace RECmd
                             catch
                             {
                                 return false;
-
                             }
                         }
-                    } 
+                    }
 
                     return true;
                 };
@@ -258,15 +246,17 @@ namespace RECmd
 
                 var dirEnumOptions =
                     DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive |
-                    DirectoryEnumerationOptions.SkipReparsePoints | DirectoryEnumerationOptions.ContinueOnException | DirectoryEnumerationOptions.BasicSearch;
+                    DirectoryEnumerationOptions.SkipReparsePoints | DirectoryEnumerationOptions.ContinueOnException |
+                    DirectoryEnumerationOptions.BasicSearch;
 
-                var files2 = Directory.EnumerateFileSystemEntries(p.Object.Directory,dirEnumOptions, f);
+                var files2 =
+                    Directory.EnumerateFileSystemEntries(_fluentCommandLineParser.Object.Directory, dirEnumOptions, f);
 
                 hivesToProcess.AddRange(files2);
             }
             else
             {
-                p.HelpOption.ShowHelp(p.Options);
+                _fluentCommandLineParser.HelpOption.ShowHelp(_fluentCommandLineParser.Options);
                 return;
             }
 
@@ -280,9 +270,11 @@ namespace RECmd
                 return;
             }
 
+
             var totalHits = 0;
             var hivesWithHits = 0;
             double totalSeconds = 0;
+            var searchUsed = false;
 
             foreach (var hiveToProcess in hivesToProcess)
             {
@@ -302,17 +294,16 @@ namespace RECmd
                 {
                     var reg = new RegistryHive(hiveToProcess)
                     {
-                        RecoverDeleted = p.Object.RecoverDeleted
+                        RecoverDeleted = _fluentCommandLineParser.Object.RecoverDeleted
                     };
 
                     _sw = new Stopwatch();
                     _sw.Start();
 
-
                     if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
                     {
                         var hiveBase = Path.GetFileName(hiveToProcess);
-                
+
                         var dirname = Path.GetDirectoryName(hiveToProcess);
 
                         if (string.IsNullOrEmpty(dirname))
@@ -326,18 +317,20 @@ namespace RECmd
                         {
                             var log = LogManager.GetCurrentClassLogger();
 
-                            if (p.Object.NoTransLogs == false)
+                            if (_fluentCommandLineParser.Object.NoTransLogs == false)
                             {
-                                log.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
-                                throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                                log.Warn(
+                                    "Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
+                                throw new Exception(
+                                    "Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
                             }
 
-                            log.Warn("Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
-
+                            log.Warn(
+                                "Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
                         }
                         else
                         {
-                            reg.ProcessTransactionLogs(logFiles.ToList(),true);
+                            reg.ProcessTransactionLogs(logFiles.ToList(), true);
                         }
                     }
 
@@ -345,291 +338,330 @@ namespace RECmd
 
                     _logger.Info("");
 
-                    List<SearchHit> hits = new List<SearchHit>();
+                    //hive is ready for searching/interaction
 
-                    if (p.Object.SimpleSearchKey.Length > 0)
+                    if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0 ||
+                        _fluentCommandLineParser.Object.SimpleSearchValue.Length > 0 ||
+                        _fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0 ||
+                        _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                     {
-                        var results = DoKeySearch(reg, p.Object.SimpleSearchKey,p.Object.RegEx);
-                        if (results != null)
+                        searchUsed = true;
+
+                        var hits = new List<SearchHit>();
+
+                        if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
                         {
-                            hits.AddRange(results ); 
+                            var results = DoKeySearch(reg, _fluentCommandLineParser.Object.SimpleSearchKey,
+                                _fluentCommandLineParser.Object.RegEx);
+                            if (results != null)
+                            {
+                                hits.AddRange(results);
+                            }
                         }
-                       
-                    }
 
-                    if (p.Object.SimpleSearchValue.Length > 0)
-                    {
-                        var results = DoValueSearch(reg, p.Object.SimpleSearchValue,p.Object.RegEx);
-                        if (results != null)
+                        if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
                         {
-                            hits.AddRange(results ); 
+                            var results = DoValueSearch(reg, _fluentCommandLineParser.Object.SimpleSearchValue,
+                                _fluentCommandLineParser.Object.RegEx);
+                            if (results != null)
+                            {
+                                hits.AddRange(results);
+                            }
                         }
-                    }
 
-                    if (p.Object.SimpleSearchValueData.Length > 0)
-                    {
-                        var results = DoValueDataSearch(reg, p.Object.SimpleSearchValueData,p.Object.RegEx,p.Object.Literal);
-                        if (results != null)
+                        if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
                         {
-                            hits.AddRange(results ); 
+                            var results = DoValueDataSearch(reg, _fluentCommandLineParser.Object.SimpleSearchValueData,
+                                _fluentCommandLineParser.Object.RegEx, _fluentCommandLineParser.Object.Literal);
+                            if (results != null)
+                            {
+                                hits.AddRange(results);
+                            }
                         }
-                    } 
 
-                    if(p.Object.SimpleSearchValueSlack.Length > 0)
-                    {
-                        var results = DoValueSlackSearch(reg, p.Object.SimpleSearchValueSlack,p.Object.RegEx,p.Object.Literal);
-                        if (results != null)
+                        if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                         {
-                            hits.AddRange(results ); 
+                            var results = DoValueSlackSearch(reg,
+                                _fluentCommandLineParser.Object.SimpleSearchValueSlack,
+                                _fluentCommandLineParser.Object.RegEx, _fluentCommandLineParser.Object.Literal);
+                            if (results != null)
+                            {
+                                hits.AddRange(results);
+                            }
                         }
-                    }
+                     
+                        if (hits.Count > 0)
+                        {
+                            var suffix2 = hits.Count == 1 ? "" : "s";
+                            _logger.Fatal($"Found {hits.Count:N0} search hit{suffix2} in '{hiveToProcess}'");
 
-                    if (p.Object.Sort)
-                    {
-                        hits = hits.OrderBy(t => t.Key.KeyName).ToList();
-                    }
+                            hivesWithHits += 1;
+                            totalHits += hits.Count;
+                        }
+                        else
+                        {
+                            _logger.Info("Nothing found");
+                        }
 
+                        var words = new HashSet<string>();
+                        foreach (var searchHit in hits)
+                        {
+                            if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
+                            {
+                                words.Add(_fluentCommandLineParser.Object.SimpleSearchKey);
+                            }
+                            else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
+                            {
+                                words.Add(_fluentCommandLineParser.Object.SimpleSearchValue);
+                            }
+                            else if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
+                            {
+                                if (_fluentCommandLineParser.Object.RegEx)
+                                {
+                                    words.Add(_fluentCommandLineParser.Object.SimpleSearchValueData);
+                                }
+                                else
+                                {
+                                    if (searchHit.Value.VkRecord.DataType == VkCellRecord.DataTypeEnum.RegBinary)
+                                    {
+                                        words.Add(searchHit.HitString);
+                                    }
+                                    else
+                                    {
+                                        words.Add(_fluentCommandLineParser.Object.SimpleSearchValueData);
+                                    }
+                                }
+                            }
+                            else if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                            {
+                                if (_fluentCommandLineParser.Object.RegEx)
+                                {
+                                    words.Add(_fluentCommandLineParser.Object.SimpleSearchValueSlack);
+                                }
+                                else
+                                {
+                                    words.Add(searchHit.HitString);
+                                }
+                            }
+                        }
 
-                    _logger.Info($"Found '{hits.Count:N0}' hits");
+                        AddHighlightingRules(words.ToList(), _fluentCommandLineParser.Object.RegEx);
 
-                    _logger.Warn("WORK STARTS HERE");
-                    continue;
+                        foreach (var searchHit in hits)
+                        {
+                            searchHit.StripRootKeyName = true;
 
-//                    if (p.Object.DumpKey.Length > 0 && p.Object.DumpDir.Length > 0)
-//                    {
-//                        if (Directory.Exists(p.Object.DumpDir) == false)
-//                        {
-//                            try
-//                            {
-//                                Directory.CreateDirectory(p.Object.DumpDir);
-//                            }
-//                            catch (Exception ex)
-//                            {
-//                                _logger.Error($"Error creating DumpDir '{p.Object.DumpDir}': {ex.Message}. Exiting");
-//                                return;
-//                            }
-//                        }
-//
-//                        var key = reg.GetKey(p.Object.DumpKey);
-//
-//                        if (key == null)
-//                        {
-//                            _logger.Warn($"Key not found: {p.Object.DumpKey}. Exiting");
-//                            return;
-//                        }
-//
-//                        key.Parent = null;
-//
-//                        var nout = $"{key.KeyName}_dump.json";
-//                        var fout = Path.Combine(p.Object.DumpDir, nout);
-//
-//                        _logger.Info("Found key. Dumping data. Be patient as this can take a while...");
-//
-//                        var jsons = new JsonSerializer<RegistryKey>();
-//
-//                        //TODO need a way to get a simple representation of things here, like
-//                        //name, path, date, etc vs EVERYTHING
-//
-//                        using (var sw = new StreamWriter(fout))
-//                        {
-//                            sw.AutoFlush = true;
-//                            jsons.SerializeToWriter(key, sw);
-//                        }
-//
-//                        _logger.Info($"'{p.Object.DumpKey}' saved to '{fout}'");
-//                    }
-//                    else if (p.Object.KeyName.Length > 0)
-//                    {
-//                        var key = reg.GetKey(p.Object.KeyName);
-//
-//                        if (key == null)
-//                        {
-//                            _logger.Warn($"Key '{p.Object.KeyName}' not found.");
-//                            DumpStopWatchInfo();
-//                            continue;
-//                        }
-//
-//                        if (p.Object.ValueName.Length > 0)
-//                        {
-//                            var val = key.Values.SingleOrDefault(c => c.ValueName == p.Object.ValueName);
-//
-//                            if (val == null)
-//                            {
-//                                _logger.Warn($"Value '{p.Object.ValueName}' not found for key '{p.Object.KeyName}'.");
-//
-//                                DumpStopWatchInfo();
-//                                continue;
-//                            }
-//
-//                            _sw.Stop();
-//                            totalSeconds += _sw.Elapsed.TotalSeconds;
-//
-//                            _logger.Info(val);
-//
-//                            hivesWithHits += 1;
-//                            totalHits += 1;
-//
-//                            if (p.Object.SaveToName.Length > 0)
-//                            {
-//                                var baseDir = Path.GetDirectoryName(p.Object.SaveToName);
-//                                if (Directory.Exists(baseDir) == false)
-//                                {
-//                                    Directory.CreateDirectory(baseDir);
-//                                }
-//
-//                                _logger.Info($"Saving contents of '{val.ValueName}' to '{p.Object.SaveToName}'");
-//                                File.WriteAllBytes(p.Object.SaveToName, val.ValueDataRaw);
-//                            }
-//
-//                            DumpStopWatchInfo();
-//
-//                            continue;
-//                        }
-//
-//                        hivesWithHits += 1;
-//                        totalHits += 1;
-//
-//                        _sw.Stop();
-//                        totalSeconds += _sw.Elapsed.TotalSeconds;
-//
-//                        DumpRootKeyName(reg);
-//
-//                        DumpKey(key, p.Object.Recursive);
-//
-//                        DumpStopWatchInfo();
-//                    }
-//                    else if (p.Object.MinimumSize > 0)
-//                    {
-//                        var hits = reg.FindByValueSize(p.Object.MinimumSize).ToList();
-//                        _sw.Stop();
-//                        totalSeconds += _sw.Elapsed.TotalSeconds;
-//
-//                        if (p.Object.Sort)
-//                        {
-//                            hits = hits.OrderBy(t => t.Value.ValueDataRaw.Length).ToList();
-//                        }
-//
-//                        DumpRootKeyName(reg);
-//
-//                        hivesWithHits += 1;
-//                        totalHits += hits.Count;
-//
-//                        foreach (var valueBySizeInfo in hits)
-//                        {
-//                            _logger.Info(
-//                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
-//                        }
-//
-//                        _logger.Info("");
-//
-//                        var plural = "s";
-//                        if (hits.Count == 1)
-//                        {
-//                            plural = "";
-//                        }
-//
-//                        _logger.Info(
-//                            $"Found {hits.Count:N0} value{plural} with size greater or equal to {p.Object.MinimumSize:N0} bytes");
-//                        DumpStopWatchInfo();
-//                    }
-//                    else if (p.Object.StartDate != null || p.Object.EndDate != null)
-//                    {
-//                        var startOk = DateTimeOffset.TryParse(p.Object.StartDate + "-0", out var start);
-//                        var endOk = DateTimeOffset.TryParse(p.Object.EndDate + "-0", out var end);
-//
-//                        DateTimeOffset? startGood = null;
-//                        DateTimeOffset? endGood = null;
-//                        var hits = new List<SearchHit>();
-//
-//                        if (!startOk && p.Object.StartDate != null)
-//                        {
-//                            throw new InvalidCastException("'StartDate' is not a valid datetime value");
-//                        }
-//
-//                        if (!endOk && p.Object.EndDate != null)
-//                        {
-//                            throw new InvalidCastException("'EndDate' is not a valid datetime value");
-//                        }
-//
-//                        if (startOk && endOk)
-//                        {
-//                            startGood = start;
-//                            endGood = end;
-//                            hits = reg.FindByLastWriteTime(startGood, endGood).ToList();
-//                        }
-//                        else if (startOk)
-//                        {
-//                            startGood = start;
-//
-//                            hits = reg.FindByLastWriteTime(startGood, null).ToList();
-//                        }
-//                        else if (endOk)
-//                        {
-//                            endGood = end;
-//                            hits = reg.FindByLastWriteTime(null, endGood).ToList();
-//                        }
-//
-//                        _sw.Stop();
-//                        totalSeconds += _sw.Elapsed.TotalSeconds;
-//
-//                        if (p.Object.Sort)
-//                        {
-//                            hits = hits.OrderBy(t => t.Key.LastWriteTime ?? new DateTimeOffset()).ToList();
-//                        }
-//
-//                        DumpRootKeyName(reg);
-//
-//                        hivesWithHits += 1;
-//                        totalHits += hits.Count;
-//
-//                        foreach (var searchHit in hits)
-//                        {
-//                            searchHit.StripRootKeyName = true;
-//                            _logger.Info($"Last write: {searchHit.Key.LastWriteTime}  Key: {searchHit}");
-//                        }
-//
-//                        var suffix = string.Empty;
-//
-//                        if (startGood != null || endGood != null)
-//                        {
-//                            suffix = $"between {startGood} and {endGood}";
-//                        }
-//
-//                        if (startGood != null && endGood == null)
-//                        {
-//                            suffix = $"after {startGood}";
-//                        }
-//                        else if (endGood != null && startGood == null)
-//                        {
-//                            suffix = $"before {endGood}";
-//                        }
-//
-//                        _logger.Info("");
-//
-//                        var plural = "s";
-//                        if (hits.Count == 1)
-//                        {
-//                            plural = "";
-//                        }
-//
-//                        _logger.Info($"Found {hits.Count:N0} key{plural} with last write {suffix}");
-//
-//                        DumpStopWatchInfo();
-//                    }
-//                    else
-//                    {
-//                        _logger.Warn("Nothing to do! =(");
-//                    }
-//
+                            if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0 ||
+                                _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                            {
+                                if (_fluentCommandLineParser.Object.SuppressData)
+                                {
+                                    _logger.Info(
+                                        $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'");
+                                }
+                                else
+                                {
+                                    if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                                    {
+                                        _logger.Info(
+                                            $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'");
+                                    }
+                                    else
+                                    {
+                                        _logger.Info(
+                                            $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'");
+                                    }
+                                }
+                            }
+                            else if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
+                            {
+                                _logger.Info($"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'");
+                            }
+                            else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
+                            {
+                                _logger.Info(
+                                    $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'");
+                            }
+                        }
+
+                        var target = (ColoredConsoleTarget) LogManager.Configuration.FindTargetByName("console");
+                        target.WordHighlightingRules.Clear();
+
 //                    //TODO search deleted?? should only need to look in reg.UnassociatedRegistryValues
+                    } //End s* options
+
+                    else if (_fluentCommandLineParser.Object.KeyName.IsNullOrEmpty() == false)
+                    {
+                        //dumping key and/or values
+                        searchUsed = true;
+                     
+                        var key = reg.GetKey(_fluentCommandLineParser.Object.KeyName);
+                        KeyValue val = null;
+
+                        if (key == null)
+                        {
+                            _logger.Warn($"Key '{_fluentCommandLineParser.Object.KeyName}' not found.");
+                            
+                            continue;
+                        }
+
+                        if (_fluentCommandLineParser.Object.ValueName.Length > 0)
+                        {
+                             val = key.Values.SingleOrDefault(c => c.ValueName == _fluentCommandLineParser.Object.ValueName);
+
+                            if (val == null)
+                            {
+                                _logger.Warn($"Value '{_fluentCommandLineParser.Object.ValueName}' not found for key '{_fluentCommandLineParser.Object.KeyName}'.");
+                              
+                                continue;
+                            }
+
+                            if (_fluentCommandLineParser.Object.SaveToName.Length > 0)
+                            {
+                                var baseDir = Path.GetDirectoryName(_fluentCommandLineParser.Object.SaveToName);
+                                if (Directory.Exists(baseDir) == false)
+                                {
+                                    Directory.CreateDirectory(baseDir);
+                                }
+
+                                _logger.Warn($"Saving contents of '{val.ValueName}' to '{_fluentCommandLineParser.Object.SaveToName}\r\n'");
+                                try
+                                {
+                                    File.WriteAllBytes(_fluentCommandLineParser.Object.SaveToName, val.ValueDataRaw);
+                                }
+                                catch (Exception ex)
+                                {
+                                   _logger.Error($"Save failed to '{_fluentCommandLineParser.Object.SaveToName}'. Error: {ex.Message}");
+                                }
+                            }
+                        }
+
+                        //dump key here
+                        if (_fluentCommandLineParser.Object.ValueName.IsNullOrEmpty())
+                        {
+                            //key info only
+                            _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
+                            _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                            _logger.Info($"Subkey count: {key.SubKeys.Count:N0}");
+                            _logger.Info($"Values count: {key.Values.Count:N0}");
+
+                            var i = 0;
+
+                            foreach (var sk in key.SubKeys)
+                            {
+                                _logger.Info($"------------ Subkey #{i:N0} ------------");
+                                _logger.Info($"Name: {sk.KeyName} (Last write: {sk.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff})");
+                                i += 1;
+                            }
+
+                            i = 0;
+                            _logger.Info("");
+
+                            foreach (var keyValue in key.Values)
+                            {
+                                _logger.Info($"------------ Value #{i:N0} ------------");
+                                _logger.Info($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
+
+                                var slack = "";
+
+                                if (keyValue.ValueSlack.Length > 0)
+                                {
+                                    slack = $"(Slack: {keyValue.ValueSlack})";
+                                }
+
+                                _logger.Info($"Data: {keyValue.ValueData} {slack}");
+
+                                i += 1;
+                            }
+                            
+                        }
+                        else
+                        {
+                            //value only
+                            _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
+                            _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                            _logger.Info("");
+
+                            _logger.Info($"Value name: '{val.ValueName}' ({val.ValueType})");
+                            var slack = "";
+                            if (val.ValueSlack.Length > 0)
+                            {
+                                slack = $"(Slack: {val.ValueSlack})";
+                            }
+
+                            _logger.Info($"Value data: {val.ValueData} {slack}");
+                        
+                        }
+                        _logger.Info("");
+
+                    } //end kn options
+                    else if (_fluentCommandLineParser.Object.MinimumSize > 0)
+                    {
+                        searchUsed = true;
+                        var hits = reg.FindByValueSize(_fluentCommandLineParser.Object.MinimumSize).ToList();
+                       
+                        if (hits.Count > 0)
+                        {
+                            var suffix2 = hits.Count == 1 ? "" : "s";
+                            _logger.Fatal($"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.MinimumSize:N0} bytes in '{hiveToProcess}'");
+
+                            hivesWithHits += 1;
+                            totalHits += hits.Count;
+                        }
+                        else
+                        {
+                            _logger.Info("Nothing found");
+                        }
+
+                        foreach (var valueBySizeInfo in hits)
+                        {
+                            _logger.Info(
+                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
+                        }
+
+                        _logger.Info("");
+                    }//end min size option
+                    else if (_fluentCommandLineParser.Object.Base64 > 0)
+                    {
+                        searchUsed = true;
+                        var hits = reg.FindBase64(_fluentCommandLineParser.Object.Base64).ToList();
+                       
+                        if (hits.Count > 0)
+                        {
+                            var suffix2 = hits.Count == 1 ? "" : "s";
+                            _logger.Fatal($"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.Base64:N0} bytes in '{hiveToProcess}'");
+
+                            hivesWithHits += 1;
+                            totalHits += hits.Count;
+                        }
+                        else
+                        {
+                            _logger.Info("Nothing found");
+                        }
+
+                        foreach (var valueBySizeInfo in hits)
+                        {
+                            _logger.Info(
+                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
+                        }
+
+                        _logger.Info("");
+                    }//end min size option
+
                 }
                 catch (Exception ex)
                 {
+                    if (ex.Message.Contains("Sequence numbers do not match and transaction") == false)
+                    {
                         _logger.Error($"There was an error: {ex.Message}");
+                    }
                 }
             }
 
-            if (p.Object.Directory?.Length > 0)
+            _sw.Stop();
+            totalSeconds += _sw.Elapsed.TotalSeconds;
+
+            if (searchUsed && _fluentCommandLineParser.Object.Directory?.Length > 0)
             {
                 _logger.Info("");
 
@@ -638,7 +670,7 @@ namespace RECmd
                 var suffix4 = hivesToProcess.Count == 1 ? "" : "s";
 
                 _logger.Info("---------------------------------------------");
-                _logger.Info($"Directory: {p.Object.Directory}");
+                _logger.Info($"Directory: {_fluentCommandLineParser.Object.Directory}");
                 _logger.Info(
                     $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
@@ -646,28 +678,30 @@ namespace RECmd
             }
         }
 
-        private static IEnumerable<SearchHit> DoValueSlackSearch(RegistryHive reg, string simpleSearchValueSlack, bool isRegEx, bool isLiteral)
+        private static IEnumerable<SearchHit> DoValueSlackSearch(RegistryHive reg, string simpleSearchValueSlack,
+            bool isRegEx, bool isLiteral)
         {
-            var  hits = reg.FindInValueData(simpleSearchValueSlack, isRegEx,isLiteral).ToList();
+            var hits = reg.FindInValueDataSlack(simpleSearchValueSlack, isRegEx, isLiteral).ToList();
             return hits;
         }
 
-        private static IEnumerable<SearchHit> DoValueDataSearch(RegistryHive reg, string simpleSearchValueData, bool isRegEx, bool isLiteral)
+        private static IEnumerable<SearchHit> DoValueDataSearch(RegistryHive reg, string simpleSearchValueData,
+            bool isRegEx, bool isLiteral)
         {
-            var  hits = reg.FindInValueDataSlack(simpleSearchValueData, isRegEx, isLiteral).ToList();
+            var hits = reg.FindInValueData(simpleSearchValueData, isRegEx, isLiteral).ToList();
             return hits;
         }
 
         private static IEnumerable<SearchHit> DoValueSearch(RegistryHive reg, string simpleSearchValue, bool isRegEx)
         {
-            var  hits = reg.FindInValueName(simpleSearchValue, isRegEx).ToList();
+            var hits = reg.FindInValueName(simpleSearchValue, isRegEx).ToList();
             return hits;
         }
 
         private static IEnumerable<SearchHit> DoKeySearch(RegistryHive reg, string simpleSearchKey, bool isRegEx)
         {
-          var  hits = reg.FindInKeyName(simpleSearchKey, isRegEx).ToList();
-           return hits;
+            var hits = reg.FindInKeyName(simpleSearchKey, isRegEx).ToList();
+            return hits;
         }
 
         private static void AddHighlightingRules(List<string> words, bool isRegEx = false)
@@ -776,22 +810,29 @@ namespace RECmd
         public string KeyName { get; set; } = string.Empty;
         public string ValueName { get; set; } = string.Empty;
         public string SaveToName { get; set; } = string.Empty;
-        public bool Recursive { get; set; } = false;
+  //      public bool Recursive { get; set; } = false;
+        public bool Detailed { get; set; } = false;
+
         public string SimpleSearchKey { get; set; } = string.Empty;
+
 //        public string DumpKey { get; set; } = string.Empty;
 //        public string DumpDir { get; set; } = string.Empty;
         public string SimpleSearchValue { get; set; } = string.Empty;
         public string SimpleSearchValueData { get; set; } = string.Empty;
         public string SimpleSearchValueSlack { get; set; } = string.Empty;
         public int MinimumSize { get; set; }
+        public int Base64 { get; set; }
         public string StartDate { get; set; }
+
         public string EndDate { get; set; }
-        public bool Sort { get; set; }
+
+        //     public bool Sort { get; set; }
         public bool RegEx { get; set; }
         public bool Literal { get; set; }
         public bool SuppressData { get; set; }
+
         public bool NoTransLogs { get; set; }
-        public bool Quiet { get; set; }
-        public bool VeryQuiet { get; set; }
+//        public bool Quiet { get; set; }
+//        public bool VeryQuiet { get; set; }
     }
 }
