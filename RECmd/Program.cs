@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Alphaleonis.Win32.Filesystem;
 using Fclp;
 using NLog;
@@ -74,7 +75,7 @@ namespace RECmd
             _fluentCommandLineParser.Setup(arg => arg.KeyName)
                 .As("kn")
                 .WithDescription(
-                    "Key name. All values under this key will be dumped");
+                    "Display details for key name. Includes subkeys and values");
 
             _fluentCommandLineParser.Setup(arg => arg.ValueName)
                 .As("vn")
@@ -84,18 +85,17 @@ namespace RECmd
             _fluentCommandLineParser.Setup(arg => arg.SaveToName)
                 .As("saveTo")
                 .WithDescription("Saves --vn value data in binary form to file. Expects path to a FILE");
-
-//            _fluentCommandLineParser.Setup(arg => arg.Recursive)
-//                .As("recurse")
-//                .WithDescription(
-//                    "Display keys/values recursively (ignored if --vn used). Default is FALSE").SetDefault(false);
-
+            _fluentCommandLineParser.Setup(arg => arg.Json)
+                .As("json")
+                .WithDescription(
+                    "Export --kn to directory specified by --json. Ignored when --vn is specified");
+          
             _fluentCommandLineParser.Setup(arg => arg.Detailed)
                 .As("details")
                 .WithDescription(
                     "Show more details when displaying results. Default is FALSE\r\n").SetDefault(false);
 
-            _fluentCommandLineParser.Setup(arg => arg. Base64)
+            _fluentCommandLineParser.Setup(arg => arg.Base64)
                 .As("Base64")
                 .WithDescription("Find Base64 encoded values with size >= Base64 (specified in bytes)");
             _fluentCommandLineParser.Setup(arg => arg.MinimumSize)
@@ -197,7 +197,6 @@ namespace RECmd
                     return;
                 }
 
-
                 var f = new DirectoryEnumerationFilters();
                 f.InclusionFilter = fsei =>
                 {
@@ -269,7 +268,6 @@ namespace RECmd
 
                 return;
             }
-
 
             var totalHits = 0;
             var hivesWithHits = 0;
@@ -389,7 +387,7 @@ namespace RECmd
                                 hits.AddRange(results);
                             }
                         }
-                     
+
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
@@ -494,25 +492,27 @@ namespace RECmd
                     {
                         //dumping key and/or values
                         searchUsed = true;
-                     
+
                         var key = reg.GetKey(_fluentCommandLineParser.Object.KeyName);
                         KeyValue val = null;
 
                         if (key == null)
                         {
                             _logger.Warn($"Key '{_fluentCommandLineParser.Object.KeyName}' not found.");
-                            
+
                             continue;
                         }
 
                         if (_fluentCommandLineParser.Object.ValueName.Length > 0)
                         {
-                             val = key.Values.SingleOrDefault(c => c.ValueName == _fluentCommandLineParser.Object.ValueName);
+                            val = key.Values.SingleOrDefault(c =>
+                                c.ValueName == _fluentCommandLineParser.Object.ValueName);
 
                             if (val == null)
                             {
-                                _logger.Warn($"Value '{_fluentCommandLineParser.Object.ValueName}' not found for key '{_fluentCommandLineParser.Object.KeyName}'.");
-                              
+                                _logger.Warn(
+                                    $"Value '{_fluentCommandLineParser.Object.ValueName}' not found for key '{_fluentCommandLineParser.Object.KeyName}'.");
+
                                 continue;
                             }
 
@@ -524,14 +524,16 @@ namespace RECmd
                                     Directory.CreateDirectory(baseDir);
                                 }
 
-                                _logger.Warn($"Saving contents of '{val.ValueName}' to '{_fluentCommandLineParser.Object.SaveToName}\r\n'");
+                                _logger.Warn(
+                                    $"Saving contents of '{val.ValueName}' to '{_fluentCommandLineParser.Object.SaveToName}\r\n'");
                                 try
                                 {
                                     File.WriteAllBytes(_fluentCommandLineParser.Object.SaveToName, val.ValueDataRaw);
                                 }
                                 catch (Exception ex)
                                 {
-                                   _logger.Error($"Save failed to '{_fluentCommandLineParser.Object.SaveToName}'. Error: {ex.Message}");
+                                    _logger.Error(
+                                        $"Save failed to '{_fluentCommandLineParser.Object.SaveToName}'. Error: {ex.Message}");
                                 }
                             }
                         }
@@ -539,41 +541,74 @@ namespace RECmd
                         //dump key here
                         if (_fluentCommandLineParser.Object.ValueName.IsNullOrEmpty())
                         {
-                            //key info only
-                            _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
-                            _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
-                            _logger.Info($"Subkey count: {key.SubKeys.Count:N0}");
-                            _logger.Info($"Values count: {key.Values.Count:N0}");
-
-                            var i = 0;
-
-                            foreach (var sk in key.SubKeys)
+                            if (_fluentCommandLineParser.Object.Json.IsNullOrEmpty() == false)
                             {
-                                _logger.Info($"------------ Subkey #{i:N0} ------------");
-                                _logger.Info($"Name: {sk.KeyName} (Last write: {sk.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff})");
-                                i += 1;
-                            }
-
-                            i = 0;
-                            _logger.Info("");
-
-                            foreach (var keyValue in key.Values)
-                            {
-                                _logger.Info($"------------ Value #{i:N0} ------------");
-                                _logger.Info($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
-
-                                var slack = "";
-
-                                if (keyValue.ValueSlack.Length > 0)
+                                //export to json
+                                if (Directory.Exists(_fluentCommandLineParser.Object.Json) == false)
                                 {
-                                    slack = $"(Slack: {keyValue.ValueSlack})";
+                                    Directory.CreateDirectory(_fluentCommandLineParser.Object.Json);
                                 }
 
-                                _logger.Info($"Data: {keyValue.ValueData} {slack}");
+                                var jso = BuildJson(key);
 
-                                i += 1;
+                                try
+                                {
+                                    var outFile = Path.Combine(_fluentCommandLineParser.Object.Json,
+                                        $"{StripInvalidCharsFromFileName(key.KeyName,"_")}.json");
+
+                                    _logger.Warn($"Saving key to json file '{outFile}'\r\n");
+                                    File.WriteAllText(outFile,jso.ToJson());
+                                }
+                                catch (Exception e)
+                                {
+                                    _logger.Error($"Error saving key '{key.KeyPath}' to directory '{_fluentCommandLineParser.Object.Json}': {e.Message}");
+                                }
+
+
                             }
-                            
+                            if (_fluentCommandLineParser.Object.Detailed)
+                            {
+                                _logger.Info(key);
+                            }
+                            else
+                            {
+                                //key info only
+                                _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
+                                _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                                _logger.Info($"Subkey count: {key.SubKeys.Count:N0}");
+                                _logger.Info($"Values count: {key.Values.Count:N0}");
+
+                                var i = 0;
+
+                                foreach (var sk in key.SubKeys)
+                                {
+                                    _logger.Info($"------------ Subkey #{i:N0} ------------");
+                                    _logger.Info(
+                                        $"Name: {sk.KeyName} (Last write: {sk.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {sk.Values.Count:N0}");
+                                    i += 1;
+                                }
+
+                                i = 0;
+                                _logger.Info("");
+
+                                foreach (var keyValue in key.Values)
+                                {
+                                    _logger.Info($"------------ Value #{i:N0} ------------");
+                                    _logger.Info($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
+
+                                    var slack = "";
+
+                                    if (keyValue.ValueSlack.Length > 0)
+                                    {
+                                        slack = $"(Slack: {keyValue.ValueSlack})";
+                                    }
+
+                                    _logger.Info($"Data: {keyValue.ValueData} {slack}");
+
+                                    i += 1;
+                                }
+                            }
+                          
                         }
                         else
                         {
@@ -590,20 +625,20 @@ namespace RECmd
                             }
 
                             _logger.Info($"Value data: {val.ValueData} {slack}");
-                        
                         }
-                        _logger.Info("");
 
+                        _logger.Info("");
                     } //end kn options
                     else if (_fluentCommandLineParser.Object.MinimumSize > 0)
                     {
                         searchUsed = true;
                         var hits = reg.FindByValueSize(_fluentCommandLineParser.Object.MinimumSize).ToList();
-                       
+
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
-                            _logger.Fatal($"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.MinimumSize:N0} bytes in '{hiveToProcess}'");
+                            _logger.Fatal(
+                                $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.MinimumSize:N0} bytes in '{hiveToProcess}'");
 
                             hivesWithHits += 1;
                             totalHits += hits.Count;
@@ -620,16 +655,17 @@ namespace RECmd
                         }
 
                         _logger.Info("");
-                    }//end min size option
+                    } //end min size option
                     else if (_fluentCommandLineParser.Object.Base64 > 0)
                     {
                         searchUsed = true;
                         var hits = reg.FindBase64(_fluentCommandLineParser.Object.Base64).ToList();
-                       
+
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
-                            _logger.Fatal($"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.Base64:N0} bytes in '{hiveToProcess}'");
+                            _logger.Fatal(
+                                $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.Base64:N0} bytes in '{hiveToProcess}'");
 
                             hivesWithHits += 1;
                             totalHits += hits.Count;
@@ -646,8 +682,7 @@ namespace RECmd
                         }
 
                         _logger.Info("");
-                    }//end min size option
-
+                    } //end min size option
                 }
                 catch (Exception ex)
                 {
@@ -676,6 +711,45 @@ namespace RECmd
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
                 _logger.Info("");
             }
+        }
+
+        private static SimpleKey BuildJson(RegistryKey key)
+        {
+            var sk = new SimpleKey();
+            sk.KeyName = key.KeyName;
+            sk.KeyPath = key.KeyPath;
+            sk.LastWriteTimestamp = key.LastWriteTime.Value;
+            foreach (var keyValue in key.Values)
+            {
+                var sv = new SimpleValue();
+                sv.ValueType = keyValue.ValueType;
+                sv.ValueData = keyValue.ValueData;
+                sv.ValueName = keyValue.ValueName;
+                sv.DataRaw = keyValue.ValueDataRaw;
+                sv.Slack = keyValue.ValueSlackRaw;
+                sk.Values.Add(sv);
+            }
+
+            foreach (var registryKey in key.SubKeys)
+            {
+                var skk = BuildJson(registryKey);
+                sk.SubKeys.Add(skk);
+            }
+
+            return sk;
+        }
+
+        private static string StripInvalidCharsFromFileName(string initialFileName, string substituteWith)
+        {
+            string regex = $"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]";
+            var removeInvalidChars = new Regex(regex,
+                RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+            var newpath = removeInvalidChars.Replace(initialFileName, substituteWith);
+
+            newpath = newpath.Trim('\0');
+
+            return newpath.Replace("%", "");
         }
 
         private static IEnumerable<SearchHit> DoValueSlackSearch(RegistryHive reg, string simpleSearchValueSlack,
@@ -742,64 +816,6 @@ namespace RECmd
                 target.WordHighlightingRules.Add(r);
             }
         }
-
-        private static void DumpRootKeyName(RegistryHive reg)
-        {
-            _logger.Info($"Root key name: {reg.Root.KeyName}");
-            _logger.Info("");
-        }
-
-        private static void DumpKey(RegistryKey key, bool recursive)
-        {
-            if (recursive)
-            {
-                _logger.Info(key);
-            }
-            else
-            {
-                _logger.Info($"Key: {Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}");
-                _logger.Info($"Last write time: {key.LastWriteTime}");
-                _logger.Info($"Number of Values: {key.Values.Count:N0}");
-                _logger.Info($"Number of Subkeys: {key.SubKeys.Count:N0}");
-                _logger.Info("");
-
-                var i = 0;
-
-                foreach (var sk in key.SubKeys)
-                {
-                    _logger.Info($"------------ Subkey #{i:N0} ------------");
-                    _logger.Info($"Name: {sk.KeyName} (Last write: {sk.LastWriteTime})");
-                    i += 1;
-                }
-
-                i = 0;
-                _logger.Info("");
-
-                foreach (var keyValue in key.Values)
-                {
-                    _logger.Info($"------------ Value #{i:N0} ------------");
-                    _logger.Info($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
-
-                    var slack = "";
-
-                    if (keyValue.ValueSlack.Length > 0)
-                    {
-                        slack = $"(Slack: {keyValue.ValueSlack})";
-                    }
-
-                    _logger.Info($"Data: {keyValue.ValueData} {slack}");
-
-                    i += 1;
-                }
-            }
-        }
-
-        private static void DumpStopWatchInfo()
-        {
-            _sw.Stop();
-            _logger.Info("");
-            _logger.Info($"Search took {_sw.Elapsed.TotalSeconds:N3} seconds");
-        }
     }
 
     internal class ApplicationArguments
@@ -809,30 +825,26 @@ namespace RECmd
         public bool RecoverDeleted { get; set; } = false;
         public string KeyName { get; set; } = string.Empty;
         public string ValueName { get; set; } = string.Empty;
+
         public string SaveToName { get; set; } = string.Empty;
-  //      public bool Recursive { get; set; } = false;
+
         public bool Detailed { get; set; } = false;
 
         public string SimpleSearchKey { get; set; } = string.Empty;
 
-//        public string DumpKey { get; set; } = string.Empty;
-//        public string DumpDir { get; set; } = string.Empty;
         public string SimpleSearchValue { get; set; } = string.Empty;
         public string SimpleSearchValueData { get; set; } = string.Empty;
         public string SimpleSearchValueSlack { get; set; } = string.Empty;
         public int MinimumSize { get; set; }
         public int Base64 { get; set; }
-        public string StartDate { get; set; }
+        public string Json { get; set; }
 
         public string EndDate { get; set; }
 
-        //     public bool Sort { get; set; }
         public bool RegEx { get; set; }
         public bool Literal { get; set; }
         public bool SuppressData { get; set; }
 
         public bool NoTransLogs { get; set; }
-//        public bool Quiet { get; set; }
-//        public bool VeryQuiet { get; set; }
     }
 }
