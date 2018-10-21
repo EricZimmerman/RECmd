@@ -449,36 +449,89 @@ namespace RECmd
                         {
                             searchHit.StripRootKeyName = true;
 
-                            if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0 ||
-                                _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                            var keyIsDeleted = ((searchHit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                                RegistryKey.KeyFlagsEnum.Deleted);
                             {
-                                if (_fluentCommandLineParser.Object.SuppressData)
+
+                                if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0 ||
+                                    _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                                 {
-                                    _logger.Info(
-                                        $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'");
-                                }
-                                else
-                                {
-                                    if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                                    if (_fluentCommandLineParser.Object.SuppressData)
                                     {
-                                        _logger.Info(
-                                            $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'");
+                                        var display =
+                                            $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+                                        if (keyIsDeleted)
+                                        {
+                                            _logger.Fatal(display);
+                                        }
+                                        else
+                                        {
+                                            _logger.Info(display);
+                                        }
+
                                     }
                                     else
                                     {
-                                        _logger.Info(
-                                            $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'");
+                                        if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                                        {
+                                            var display =
+                                                $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
+
+                                            if (keyIsDeleted)
+                                            {
+                                                _logger.Fatal(display);
+                                            }
+                                            else
+                                            {
+                                                _logger.Info(display);
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            var display =
+                                                $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
+                                            if (keyIsDeleted)
+                                            {
+                                                _logger.Fatal(display);
+                                            }
+                                            else
+                                            {
+                                                _logger.Info(display);
+                                            }
+
+                                        }
                                     }
                                 }
-                            }
-                            else if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
-                            {
-                                _logger.Info($"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'");
-                            }
-                            else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
-                            {
-                                _logger.Info(
-                                    $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'");
+                                else if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
+                                {
+                                    var display =
+                                        $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
+
+                                    if (keyIsDeleted)
+                                    {
+                                        _logger.Fatal(display);
+                                    }
+                                    else
+                                    {
+                                        _logger.Info(display);
+                                    }
+
+                                }
+                                else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
+                                {
+                                    var display =
+                                        $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+
+                                    if (keyIsDeleted)
+                                    {
+                                        _logger.Fatal(display);
+                                    }
+                                    else
+                                    {
+                                        _logger.Info(display);
+                                    }
+                                }
                             }
                         }
 
@@ -538,6 +591,9 @@ namespace RECmd
                             }
                         }
 
+                        var keyIsDeleted = ((key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                            RegistryKey.KeyFlagsEnum.Deleted);
+
                         //dump key here
                         if (_fluentCommandLineParser.Object.ValueName.IsNullOrEmpty())
                         {
@@ -575,16 +631,35 @@ namespace RECmd
                                 //key info only
                                 _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
                                 _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                                if (keyIsDeleted)
+                                {
+                                    _logger.Fatal("Deleted: TRUE");
+                                }
+                                _logger.Info("");
+
                                 _logger.Info($"Subkey count: {key.SubKeys.Count:N0}");
                                 _logger.Info($"Values count: {key.Values.Count:N0}");
+                                _logger.Info("");
 
                                 var i = 0;
 
                                 foreach (var sk in key.SubKeys)
                                 {
-                                    _logger.Info($"------------ Subkey #{i:N0} ------------");
-                                    _logger.Info(
-                                        $"Name: {sk.KeyName} (Last write: {sk.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {sk.Values.Count:N0}");
+                                    var skeyIsDeleted = ((sk.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                                        RegistryKey.KeyFlagsEnum.Deleted);
+                                    if (skeyIsDeleted)
+                                    {
+                                        _logger.Fatal($"------------ Subkey #{i:N0} (DELETED) ------------");
+                                        _logger.Fatal(
+                                            $"Name: {sk.KeyName} (Last write: {sk.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {sk.Values.Count:N0}");
+                                    }
+                                    else
+                                    {
+                                        _logger.Info($"------------ Subkey #{i:N0} ------------");
+                                        _logger.Info(
+                                            $"Name: {sk.KeyName} (Last write: {sk.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {sk.Values.Count:N0}");
+                                    }
+                                  
                                     i += 1;
                                 }
 
@@ -593,18 +668,38 @@ namespace RECmd
 
                                 foreach (var keyValue in key.Values)
                                 {
-                                    _logger.Info($"------------ Value #{i:N0} ------------");
-                                    _logger.Info($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
-
-                                    var slack = "";
-
-                                    if (keyValue.ValueSlack.Length > 0)
+                                    if (keyIsDeleted)
                                     {
-                                        slack = $"(Slack: {keyValue.ValueSlack})";
+                                        _logger.Fatal($"------------ Value #{i:N0} (DELETED) ------------");
+                                        _logger.Fatal($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
+
+                                        var slack = "";
+
+                                        if (keyValue.ValueSlack.Length > 0)
+                                        {
+                                            slack = $"(Slack: {keyValue.ValueSlack})";
+                                        }
+
+                                        _logger.Fatal($"Data: {keyValue.ValueData} {slack}");
+
                                     }
+                                    else
+                                    {
+                                        
+                                        _logger.Info($"------------ Value #{i:N0} ------------");
+                                        _logger.Info($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
 
-                                    _logger.Info($"Data: {keyValue.ValueData} {slack}");
+                                        var slack = "";
 
+                                        if (keyValue.ValueSlack.Length > 0)
+                                        {
+                                            slack = $"(Slack: {keyValue.ValueSlack})";
+                                        }
+
+                                        _logger.Info($"Data: {keyValue.ValueData} {slack}");
+
+                                    }
+                                    
                                     i += 1;
                                 }
                             }
@@ -613,31 +708,57 @@ namespace RECmd
                         else
                         {
                             //value only
-                            _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
-                            _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
-                            _logger.Info("");
-
-                            _logger.Info($"Value name: '{val.ValueName}' ({val.ValueType})");
-                            var slack = "";
-                            if (val.ValueSlack.Length > 0)
+                            
+                            if (keyIsDeleted)
                             {
-                                slack = $"(Slack: {val.ValueSlack})";
+                                _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
+                                _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                              
+                               _logger.Fatal("Deleted: TRUE");
+                            
+                                _logger.Info("");
+
+                                _logger.Fatal($"Value name: '{val.ValueName}' ({val.ValueType})");
+                                var slack = "";
+                                if (val.ValueSlack.Length > 0)
+                                {
+                                    slack = $"(Slack: {val.ValueSlack})";
+                                }
+
+                                _logger.Fatal($"Value data: {val.ValueData} {slack}");
+                            }
+                            else
+                            {
+                                _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
+                                _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                              
+                                _logger.Info("");
+
+                                _logger.Info($"Value name: '{val.ValueName}' ({val.ValueType})");
+                                var slack = "";
+                                if (val.ValueSlack.Length > 0)
+                                {
+                                    slack = $"(Slack: {val.ValueSlack})";
+                                }
+
+                                _logger.Info($"Value data: {val.ValueData} {slack}");
                             }
 
-                            _logger.Info($"Value data: {val.ValueData} {slack}");
+                            
                         }
 
                         _logger.Info("");
                     } //end kn options
                     else if (_fluentCommandLineParser.Object.MinimumSize > 0)
                     {
+
                         searchUsed = true;
                         var hits = reg.FindByValueSize(_fluentCommandLineParser.Object.MinimumSize).ToList();
 
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
-                            _logger.Fatal(
+                            _logger.Warn(
                                 $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.MinimumSize:N0} bytes in '{hiveToProcess}'");
 
                             hivesWithHits += 1;
@@ -650,8 +771,24 @@ namespace RECmd
 
                         foreach (var valueBySizeInfo in hits)
                         {
-                            _logger.Info(
-                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
+                            searchUsed = true;
+
+                            var keyIsDeleted = ((valueBySizeInfo.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                                RegistryKey.KeyFlagsEnum.Deleted);
+
+                            var display =
+                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}";
+
+                            if (keyIsDeleted)
+                            {
+                                _logger.Fatal(display);
+                            }
+                            else
+                            {
+
+                                _logger.Info(display);
+                            }
+
                         }
 
                         _logger.Info("");
@@ -660,11 +797,11 @@ namespace RECmd
                     {
                         searchUsed = true;
                         var hits = reg.FindBase64(_fluentCommandLineParser.Object.Base64).ToList();
-
+                        
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
-                            _logger.Fatal(
+                            _logger.Warn(
                                 $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.Base64:N0} bytes in '{hiveToProcess}'");
 
                             hivesWithHits += 1;
@@ -675,10 +812,22 @@ namespace RECmd
                             _logger.Info("Nothing found");
                         }
 
-                        foreach (var valueBySizeInfo in hits)
+                        foreach (var base64hit in hits)
                         {
-                            _logger.Info(
-                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}");
+                            var keyIsDeleted = ((base64hit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                                RegistryKey.KeyFlagsEnum.Deleted);
+
+                            var display = $"Key: {Helpers.StripRootKeyNameFromKeyPath(base64hit.Key.KeyPath)}, Value: {base64hit.Value.ValueName}, Size: {base64hit.Value.ValueDataRaw.Length:N0}";
+
+                            if (keyIsDeleted)
+                            {
+                                _logger.Fatal(display);
+                            }
+                            else
+                            {
+
+                                _logger.Info(display);
+                            }
                         }
 
                         _logger.Info("");
