@@ -310,11 +310,10 @@ namespace RECmd
                         }
 
                         var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+                        var log = LogManager.GetCurrentClassLogger();
 
                         if (logFiles.Length == 0)
                         {
-                            var log = LogManager.GetCurrentClassLogger();
-
                             if (_fluentCommandLineParser.Object.NoTransLogs == false)
                             {
                                 log.Warn(
@@ -328,7 +327,14 @@ namespace RECmd
                         }
                         else
                         {
-                            reg.ProcessTransactionLogs(logFiles.ToList(), true);
+                            if (_fluentCommandLineParser.Object.NoTransLogs == false)
+                            {
+                                reg.ProcessTransactionLogs(logFiles.ToList(),true);
+                            }
+                            else
+                            {
+                                log.Warn("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
+                            }
                         }
                     }
 
