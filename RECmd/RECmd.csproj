@@ -81,12 +81,12 @@
       <Version>1.4.3</Version>
     </PackageReference>
     <PackageReference Include="Fody">
-      <Version>3.2.12</Version>
+      <Version>3.3.1</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NLog">
-      <Version>4.5.10</Version>
+      <Version>4.5.11</Version>
     </PackageReference>
     <PackageReference Include="ServiceStack.Text">
       <Version>5.4.0</Version>
