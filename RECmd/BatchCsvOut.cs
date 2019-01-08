@@ -24,6 +24,11 @@ namespace RECmd
         public bool Recursive { get; set; }
         public bool Deleted { get; set; }
 
+        
+
         public DateTimeOffset? LastWriteTimestamp { get; set; }
+        
+        public string PluginDetailFile { get; set; }
+
     }
 }

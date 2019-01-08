@@ -71,7 +71,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Changes.txt" />
-    <Content Include="Registry.dll" />
+    <Content Include="Dependencies\Registry.dll" />
+    <Content Include="Dependencies\RegistryPluginBase.dll" />
     <Content Include="Registry256.ico" />
     <None Include="App.config" />
   </ItemGroup>

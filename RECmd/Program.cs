@@ -1049,10 +1049,11 @@ namespace RECmd
                         _logger.Error($"There was an error: {ex.Message}");
                     }
                 }
+                _sw.Stop();
+                totalSeconds += _sw.Elapsed.TotalSeconds;
             }
 
-            _sw.Stop();
-            totalSeconds += _sw.Elapsed.TotalSeconds;
+      
 
             if (_batchCsvOutList.Count > 0)
             {
@@ -1208,13 +1209,15 @@ namespace RECmd
 
                     pig.ProcessValues(regKey);
 
+                    var pluginDetailsFile=        DumpPluginValues(pig,hivePath);
+
                     foreach (var pigValue in pig.Values)
                     {
                         var conv = (IValueOut) pigValue;
 
                         var rebOut = new BatchCsvOut
                         {
-                            ValueName = conv.ValueName,
+                            ValueName = conv.BatchValueName,
                             Deleted = regKey.NkRecord.IsDeleted,
                             Description = key.Description,
                             Category = key.Category,
@@ -1230,8 +1233,8 @@ namespace RECmd
                             ValueData3 = conv.BatchValueData3,
                         };
 
-                   
 
+                        rebOut.PluginDetailFile = pluginDetailsFile;
                         _batchCsvOutList.Add(rebOut); 
                     }
 
@@ -1241,7 +1244,7 @@ namespace RECmd
                     }
 
 
-                    DumpPluginValues(pig,hivePath);
+            
 
                 }
             }
@@ -1296,7 +1299,7 @@ namespace RECmd
 
             var hiveName1 = hivePath.Replace(":", "").Replace("\\", "_");
 
-            var outbase = $"{_runTimestamp}_{hiveName1}_{pluginType.Name}.csv";
+            var outbase = $"{_runTimestamp}_{pluginType.Name}_{hiveName1}.csv";
 
             if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
             {
@@ -1313,12 +1316,24 @@ namespace RECmd
                 var csvWriter = new CsvWriter(sw);
 
                 var foo = csvWriter.Configuration.AutoMap(plugin.Values[0].GetType());
+                
 
                 foreach (var fooMemberMap in foo.MemberMaps)
                 {
-                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData"))
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData")) 
                     {
                         fooMemberMap.Ignore();
+                    }
+
+
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath")) 
+                    {
+                        fooMemberMap.Index(0);
+                    }
+
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueName"))
+                    {
+                        fooMemberMap.Index(1);
                     }
                 }
 
