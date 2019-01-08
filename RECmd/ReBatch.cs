@@ -40,7 +40,7 @@ namespace RECmd
             [Description("SYSCACHE")] Syscache = 10
         }
 
-        public string Name {get; set; }
+        public string Description {get; set; }
         
         public HiveType_ HiveType {get; set; }
         public string Category {get; set; }
@@ -73,7 +73,7 @@ namespace RECmd
    {
        public KeyValidator()
        {
-           RuleFor(target => target.Name).NotNull();
+           RuleFor(target => target.Description).NotNull();
            RuleFor(target => target.HiveType).NotNull();
 
            RuleFor(target => target.Category).NotNull();

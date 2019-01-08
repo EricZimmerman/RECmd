@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ using Registry;
 using Registry.Abstractions;
 using Registry.Cells;
 using Registry.Other;
+using RegistryPluginBase.Interfaces;
 using ServiceStack;
 using ServiceStack.Text;
 using YamlDotNet.Core;
@@ -34,6 +36,13 @@ namespace RECmd
         private static Logger _logger;
         private static FluentCommandLineParser<ApplicationArguments> _fluentCommandLineParser;
         private static List<BatchCsvOut> _batchCsvOutList;
+        private static readonly List<IRegistryPluginBase> _plugins = new List<IRegistryPluginBase>();
+
+        private static readonly string _baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+        private static string _runTimestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
+
+        private static string _pluginsDir = string.Empty;
 
         private static void SetupNLog()
         {
@@ -62,10 +71,59 @@ namespace RECmd
             LogManager.Configuration = config;
         }
 
+        private static void LoadPlugins()
+        {
+            var dlls = Directory.GetFiles(_pluginsDir, "RegistryPlugin.*.dll", SearchOption.AllDirectories);
+
+            var loadedGuiDs = new HashSet<string>();
+
+            foreach (var dll in dlls)
+            {
+                try
+                {
+                    foreach (var exportedType in Assembly.LoadFrom(dll).GetExportedTypes())
+                    {
+                        if (exportedType.GetInterface("RegistryPluginBase.Interfaces.IRegistryPluginBase") == null)
+                        {
+                            continue;
+                        }
+
+                        _logger.Debug($"Loading plugin '{dll}'");
+                            
+                        var plugin = (IRegistryPluginBase) Activator.CreateInstance(exportedType);
+
+                        if (loadedGuiDs.Contains(plugin.InternalGuid))
+                        {
+                            //its already loaded, so warn
+                            _logger.Warn("Plugin '{plugin.PluginName}' has already been loaded. Internal GUID: {plugin.InternalGuid}");
+                        }
+                        else
+                        {
+                            loadedGuiDs.Add(plugin.InternalGuid);
+                            //this is a good plugin
+
+                            _plugins.Add(plugin);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex,$"Error loading plugin: {dll}");
+                }
+            }
+        }
+
         private static void Main(string[] args)
         {
             //TODO Live Registry support
             SetupNLog();
+
+            _pluginsDir = Path.Combine(_baseDirectory, "Plugins");
+
+            if (Directory.Exists(_pluginsDir) == false)
+            {
+                Directory.CreateDirectory(_pluginsDir);
+            }
 
             _logger = LogManager.GetCurrentClassLogger();
 
@@ -265,6 +323,8 @@ namespace RECmd
             }
 
 
+          
+
 
             if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
             {
@@ -362,6 +422,8 @@ namespace RECmd
             var searchUsed = false;
 
             _batchCsvOutList = new List<BatchCsvOut>();
+
+            LoadPlugins();
 
             foreach (var hiveToProcess in hivesToProcess)
             {
@@ -970,59 +1032,14 @@ namespace RECmd
                                     _logger.Info($"Found key '{key.KeyPath}'!");
                                 }
 
-
-                                if (key.Recursive)
-                                {
-                                    BatchDumpKey(regKey, key, reg.HivePath);
-                                }
-                                else
-                                {
-                                    if (regVal != null)
-                                    {
-                                        var rebOut = new BatchCsvOut();
-                                    
-                                        rebOut.ValueName = regVal.ValueName;
-                                        rebOut.Deleted = regKey.NkRecord.IsDeleted;
-
-                                        rebOut.Category = key.Category;
-                                        rebOut.Comment = key.Comment;
-                                        rebOut.HivePath = reg.HivePath;
-                                        rebOut.HiveType = key.HiveType.ToString();
-                                        rebOut.KeyPath = key.KeyPath;
-                                        rebOut.LastWriteTimestamp = regKey.LastWriteTime.Value;
-                                        rebOut.Recursive = key.Recursive;
-                                        if (regVal.ValueType == "RegBinary")
-                                        {
-                                            rebOut.ValueData = "(Binary data)";
-                                        }
-                                        else
-                                        {
-                                            rebOut.ValueData = regVal.ValueData;
-                                        }
-                                            
-                                        rebOut.ValueType = regVal.ValueType;
-                                            
-                                        _batchCsvOutList.Add(rebOut);     
-                                    }
-                                    else
-                                    {
-                                        BatchDumpKey(regKey, key, reg.HivePath);
-                                    }
-                                }
-
-                                
-
-
+                                //TODO test this with all conditions
+                                BatchDumpKey(regKey, key, reg.HivePath);
                             }
                             else
                             {
                                 _logger.Debug($"Skipping key '{key.KeyPath}' because the current hive ({reg.HiveType}) is not of the right type ({key.HiveType})");
                             }
-
-
-                         
                         }
-
                     }
                 }
                 catch (Exception ex)
@@ -1042,7 +1059,6 @@ namespace RECmd
                 _logger.Info("");
 
                 var suffix2 = _batchCsvOutList.Count == 1 ? "" : "s";
-              //  var suffix3 = hivesWithHits == 1 ? "" : "s";
                 var suffix4 = hivesToProcess.Count == 1 ? "" : "s";
 
                 _logger.Info(
@@ -1056,7 +1072,7 @@ namespace RECmd
                     Directory.CreateDirectory(_fluentCommandLineParser.Object.CsvDirectory);
                 }
 
-                var outName = $"{DateTimeOffset.Now:yyyyMMddHHmmss}_RECmd_Batch_Output.csv";
+                var outName = $"{_runTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.BatchName)}_Output.csv";
 
                 if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
                 {
@@ -1086,7 +1102,6 @@ namespace RECmd
                 swCsv.Close();
             }
 
-
             if (searchUsed && _fluentCommandLineParser.Object.Directory?.Length > 0)
             {
                 _logger.Info("");
@@ -1104,48 +1119,257 @@ namespace RECmd
             }
         }
 
+        private static List<IRegistryPluginBase> GetPluginsToActivate(RegistryKey regKey, Key key)
+        {
+            var pluginsToActivate = new List<IRegistryPluginBase>();
+
+            var keyPath = Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath);
+
+            foreach (var registryPluginBase in _plugins)
+            {
+                foreach (var path in registryPluginBase.KeyPaths)
+                {
+                    if (path.Contains("*"))
+                    {
+                        var segs = path.Split('*');
+
+                        if (keyPath.ToLowerInvariant().StartsWith(segs[0].ToLowerInvariant()))
+                        {
+                            if (segs.Length > 1)
+                            {
+                                if (keyPath.ToLowerInvariant().EndsWith(segs[1].ToLowerInvariant()))
+                                {
+                                    if (registryPluginBase.ValueName == null)
+                                    {
+                                        pluginsToActivate.Add(registryPluginBase);
+                                    }
+                                    else
+                                    {
+                                        if (registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName.ToLowerInvariant())
+                                        {
+                                            pluginsToActivate.Add(registryPluginBase);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (registryPluginBase.ValueName == null)
+                                {
+                                    pluginsToActivate.Add(registryPluginBase);
+                                }
+                                else
+                                {
+                                    if (registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName.ToLowerInvariant())
+                                    {
+                                        pluginsToActivate.Add(registryPluginBase);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (path.ToLowerInvariant().Contains(keyPath.ToLowerInvariant()))
+                        {
+                            if (registryPluginBase.ValueName == null &&
+                                path.ToLowerInvariant().Equals(keyPath.ToLowerInvariant()))
+                            {
+                                pluginsToActivate.Add(registryPluginBase);
+                            }
+                            else
+                            {
+                                if (registryPluginBase.ValueName?.ToLowerInvariant() == key.ValueName.ToLowerInvariant())
+                                {
+                                    pluginsToActivate.Add(registryPluginBase);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            return pluginsToActivate;
+        }
+
         private static void BatchDumpKey(RegistryKey regKey, Key key, string hivePath)
         {
             _logger.Debug($"Batch dumping '{regKey.KeyPath}' in '{hivePath}'. Recursive: {key.Recursive}");
-            
-            //dump all values from current key
-            foreach (var regKeyValue in regKey.Values)
+
+            var pluginsToActivate = GetPluginsToActivate(regKey, key);
+
+            if (pluginsToActivate.Count > 0)
             {
-                var rebOut = new BatchCsvOut
+
+                foreach (var registryPluginBase in pluginsToActivate)
                 {
-                    ValueName = regKeyValue.ValueName,
-                    Deleted = regKey.NkRecord.IsDeleted,
-                    Category = key.Category,
-                    Comment = key.Comment,
-                    HivePath = hivePath,
-                    HiveType = key.HiveType.ToString(),
-                    KeyPath = regKey.KeyPath,
-                    LastWriteTimestamp = regKey.LastWriteTime,
-                    Recursive = key.Recursive,
-                    ValueType = regKeyValue.ValueType
-                };
-                
-                if (regKeyValue.ValueType == "RegBinary")
+                    var pig = (IRegistryPluginGrid) registryPluginBase;
+
+                    pig.ProcessValues(regKey);
+
+                    foreach (var pigValue in pig.Values)
+                    {
+                        var conv = (IValueOut) pigValue;
+
+                        var rebOut = new BatchCsvOut
+                        {
+                            ValueName = conv.ValueName,
+                            Deleted = regKey.NkRecord.IsDeleted,
+                            Description = key.Description,
+                            Category = key.Category,
+                            Comment = key.Comment,
+                            HivePath = hivePath,
+                            HiveType = key.HiveType.ToString(),
+                            KeyPath = key.KeyPath,
+                            LastWriteTimestamp = regKey.LastWriteTime.Value,
+                            Recursive = key.Recursive,
+                            ValueType = "(plugin)",
+                            ValueData = conv.BatchValueData1,
+                            ValueDat2 = conv.BatchValueData2,
+                            ValueData3 = conv.BatchValueData3,
+                        };
+
+                   
+
+                        _batchCsvOutList.Add(rebOut); 
+                    }
+
+                    if (pig.Errors.Count > 0)
+                    {
+                        _logger.Warn($"Plugin {pig.PluginName} error", $"Errors: {string.Join(", ", pig.Errors)}");
+                    }
+
+
+                    DumpPluginValues(pig,hivePath);
+
+                }
+            }
+            else
+            {
+                   if (key.ValueName.IsNullOrEmpty() == false)
                 {
-                    rebOut.ValueData = "(Binary data)";
+                    //one value only
+                    var regVal = regKey.Values.SingleOrDefault(t =>
+                        t.ValueName.ToLowerInvariant() == key.ValueName.ToLowerInvariant());
+
+                    if (regVal != null)
+                    {
+                        var rebOut = BuildBatchCsvOut(regKey, key, hivePath, regVal);
+
+                        _batchCsvOutList.Add(rebOut);
+                    }
                 }
                 else
                 {
-                    rebOut.ValueData = regKeyValue.ValueData;
-                }
+                    //dump all values from current key
+                    foreach (var regKeyValue in regKey.Values)
+                    {
+                         var rebOut = BuildBatchCsvOut(regKey, key, hivePath, regKeyValue);
 
-                _batchCsvOutList.Add(rebOut);     
+                        _batchCsvOutList.Add(rebOut);     
+                    }
+
+                    //foreach subkey, call BatchDumpKey if recursive
+                    if (key.Recursive)
+                    {
+                        foreach (var regKeySubKey in regKey.SubKeys)
+                        {
+                            BatchDumpKey(regKeySubKey,key,hivePath);
+                        }
+                    }  
+                } 
             }
+            
 
-            //foreach subkey, call BatchDumpKey if recursive
-            if (key.Recursive)
+          
+        }
+
+        private static string DumpPluginValues(IRegistryPluginGrid plugin, string hivePath)
+        {
+            var pluginType = plugin.GetType();
+
+            if (plugin.Values.Count == 0)
             {
-
-                foreach (var regKeySubKey in regKey.SubKeys)
-                {
-                    BatchDumpKey(regKeySubKey,key,hivePath);
-                }
+                return null;
             }
+
+            var hiveName1 = hivePath.Replace(":", "").Replace("\\", "_");
+
+            var outbase = $"{_runTimestamp}_{hiveName1}_{pluginType.Name}.csv";
+
+            if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
+            {
+                outbase =
+                    $"{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.CsvName)}_{pluginType.Name}{Path.GetExtension(_fluentCommandLineParser.Object.CsvName)}";
+            }
+
+            var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outbase);
+
+            var exists = File.Exists(outFile);
+
+            using (var sw = new StreamWriter(outFile,true))
+            {
+                var csvWriter = new CsvWriter(sw);
+
+                var foo = csvWriter.Configuration.AutoMap(plugin.Values[0].GetType());
+
+                foreach (var fooMemberMap in foo.MemberMaps)
+                {
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData"))
+                    {
+                        fooMemberMap.Ignore();
+                    }
+                }
+
+                if (exists == false)
+                {
+                    csvWriter.WriteHeader(plugin.Values[0].GetType());
+                
+                    csvWriter.NextRecord();
+                    
+                }
+
+                foreach (var pluginValue in plugin.Values)
+                {
+                    csvWriter.WriteRecord(pluginValue);
+                    csvWriter.NextRecord();
+                }
+
+                sw.Flush();
+            }
+
+
+            return outFile;
+        }
+
+        private static BatchCsvOut BuildBatchCsvOut(RegistryKey regKey, Key key, string hivePath, KeyValue regVal)
+        {
+            var rebOut = new BatchCsvOut
+            {
+                ValueName = regVal.ValueName,
+                Deleted = regKey.NkRecord.IsDeleted,
+                Description = key.Description,
+                Category = key.Category,
+                Comment = key.Comment,
+                HivePath = hivePath,
+                HiveType = key.HiveType.ToString(),
+                KeyPath = key.KeyPath,
+                LastWriteTimestamp = regKey.LastWriteTime.Value,
+                Recursive = key.Recursive,
+                ValueType = regVal.ValueType
+            };
+
+            if (regVal.ValueType == "RegBinary")
+            {
+                rebOut.ValueData = "(Binary data)";
+            }
+            else
+            {
+                rebOut.ValueData = regVal.ValueData;
+            }
+
+            return rebOut;
         }
 
         private static ReBatch ValidateBatchFile()
