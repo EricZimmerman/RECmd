@@ -33,6 +33,7 @@ namespace RECmd
         private static Stopwatch _sw;
         private static Logger _logger;
         private static FluentCommandLineParser<ApplicationArguments> _fluentCommandLineParser;
+        private static List<BatchCsvOut> _batchCsvOutList;
 
         private static void SetupNLog()
         {
@@ -161,6 +162,11 @@ namespace RECmd
                 .SetDefault(false);
 
 
+            _fluentCommandLineParser.Setup(arg => arg.DateTimeFormat)
+                .As("dt")
+                .WithDescription(
+                    "The custom date/time format to use when displaying time stamps. Default is: yyyy-MM-dd HH:mm:ss.fffffff")
+                .SetDefault("yyyy-MM-dd HH:mm:ss.fffffff");
             _fluentCommandLineParser.Setup(arg => arg.NoTransLogs)
                 .As("nl")
                 .WithDescription(
@@ -239,6 +245,8 @@ namespace RECmd
 
             var hivesToProcess = new List<string>();
 
+            ReBatch reBatch = null;
+
             if (_fluentCommandLineParser.Object.BatchName?.Length > 0) //batch mode
             {
                 if (File.Exists(_fluentCommandLineParser.Object.BatchName) == false)
@@ -252,6 +260,8 @@ namespace RECmd
                     _logger.Error($"--csv is required when using -b. Exiting.");
                     return;
                 }
+
+                reBatch = ValidateBatchFile();
             }
 
 
@@ -351,7 +361,7 @@ namespace RECmd
             double totalSeconds = 0;
             var searchUsed = false;
 
-            var batchCsvOutList = new List<BatchCsvOut>();
+            _batchCsvOutList = new List<BatchCsvOut>();
 
             foreach (var hiveToProcess in hivesToProcess)
             {
@@ -919,10 +929,8 @@ namespace RECmd
                     } //end min size option
                     else if (_fluentCommandLineParser.Object.BatchName?.Length > 0) //batch mode
                     {
-                       var reb = ValidateBatchFile();
-
                        
-                        foreach (var key in reb.Keys)
+                        foreach (var key in reBatch.Keys)
                         {
                             if ((int) reg.HiveType == (int) key.HiveType)
                             {
@@ -930,10 +938,6 @@ namespace RECmd
                                 _logger.Trace(key.Dump);
 
                                 var regKey = reg.GetKey(key.KeyPath);
-
-                                //TODO handle deleted (test this specifically)
-                                //use FindInKeyName if regKey == null for deleted keys?
-
                                 
                                 KeyValue regVal = null;
 
@@ -958,28 +962,27 @@ namespace RECmd
                                 if (regVal != null)
                                 {
                                     //we found both
-                                    _logger.Info($"Found key '{key.KeyPath}' and value '{key.ValueName}'. Data type: '{regVal.ValueType}'");
+                                    _logger.Info($"Found key '{key.KeyPath}' and value '{key.ValueName}'!");
                                 }
                                 else
                                 {
                                     //just the key
-                                    _logger.Info($"Found key '{key.KeyPath}' Recursive: {key.Recursive}. Last write: {regKey.LastWriteTime.Value:yyyy/MM/dd HH:mm:ss.fffffff} value count: {regKey.Values.Count:N0} subkey count: {regKey.SubKeys.Count:N0}");
+                                    _logger.Info($"Found key '{key.KeyPath}'!");
                                 }
 
 
                                 if (key.Recursive)
                                 {
-                                    //TODO need to write function to dump this and probably move what is below into that.
+                                    BatchDumpKey(regKey, key, reg.HivePath);
                                 }
                                 else
                                 {
                                     if (regVal != null)
                                     {
                                         var rebOut = new BatchCsvOut();
-
                                     
                                         rebOut.ValueName = regVal.ValueName;
-                                    
+                                        rebOut.Deleted = regKey.NkRecord.IsDeleted;
 
                                         rebOut.Category = key.Category;
                                         rebOut.Comment = key.Comment;
@@ -999,45 +1002,12 @@ namespace RECmd
                                             
                                         rebOut.ValueType = regVal.ValueType;
                                             
-                                        batchCsvOutList.Add(rebOut);     
+                                        _batchCsvOutList.Add(rebOut);     
                                     }
                                     else
                                     {
-                                        //all
-                                        foreach (var regKeyValue in regKey.Values)
-                                        {
-                                            var rebOut = new BatchCsvOut();
-
-                                    
-                                            rebOut.ValueName = regKeyValue.ValueName;
-                                    
-
-                                            rebOut.Category = key.Category;
-                                            rebOut.Comment = key.Comment;
-                                            rebOut.HivePath = reg.HivePath;
-                                            rebOut.HiveType = key.HiveType.ToString();
-                                            rebOut.KeyPath = key.KeyPath;
-                                            rebOut.LastWriteTimestamp = regKey.LastWriteTime.Value;
-                                            rebOut.Recursive = key.Recursive;
-                                            if (regKeyValue.ValueType == "RegBinary")
-                                            {
-                                                rebOut.ValueData = "(Binary data)";
-                                            }
-                                            else
-                                            {
-                                                rebOut.ValueData = regKeyValue.ValueData;
-                                            }
-                                            
-                                            rebOut.ValueType = regKeyValue.ValueType;
-                                            
-
-                                            batchCsvOutList.Add(rebOut);     
-                                        }
+                                        BatchDumpKey(regKey, key, reg.HivePath);
                                     }
-
-                                   
-
-                                                               
                                 }
 
                                 
@@ -1046,7 +1016,7 @@ namespace RECmd
                             }
                             else
                             {
-                                _logger.Debug($"Skipping key '{key.KeyPath}' because the current hive is not of the right type");
+                                _logger.Debug($"Skipping key '{key.KeyPath}' because the current hive ({reg.HiveType}) is not of the right type ({key.HiveType})");
                             }
 
 
@@ -1067,8 +1037,17 @@ namespace RECmd
             _sw.Stop();
             totalSeconds += _sw.Elapsed.TotalSeconds;
 
-            if (batchCsvOutList.Count > 0)
+            if (_batchCsvOutList.Count > 0)
             {
+                _logger.Info("");
+
+                var suffix2 = _batchCsvOutList.Count == 1 ? "" : "s";
+              //  var suffix3 = hivesWithHits == 1 ? "" : "s";
+                var suffix4 = hivesToProcess.Count == 1 ? "" : "s";
+
+                _logger.Info(
+                    $"Found {_batchCsvOutList.Count:N0} key/value pair{suffix2} across {hivesToProcess.Count:N0} file{suffix4}");
+                _logger.Info($"Total search time: {totalSeconds:N3} seconds");
 
                 if (Directory.Exists(_fluentCommandLineParser.Object.CsvDirectory) == false)
                 {
@@ -1093,13 +1072,15 @@ namespace RECmd
 
                 var foo = csvWriter.Configuration.AutoMap<BatchCsvOut>();
 
-                //TODO map for timestamp format
+                foo.Map(t => t.LastWriteTimestamp).ConvertUsing(t =>
+                    $"{t.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
 
                 csvWriter.Configuration.RegisterClassMap(foo);
+
                 csvWriter.WriteHeader<BatchCsvOut>();
                 csvWriter.NextRecord();
 
-                csvWriter.WriteRecords(batchCsvOutList);
+                csvWriter.WriteRecords(_batchCsvOutList);
 
                 swCsv.Flush();
                 swCsv.Close();
@@ -1120,6 +1101,50 @@ namespace RECmd
                     $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
                 _logger.Info("");
+            }
+        }
+
+        private static void BatchDumpKey(RegistryKey regKey, Key key, string hivePath)
+        {
+            _logger.Debug($"Batch dumping '{regKey.KeyPath}' in '{hivePath}'. Recursive: {key.Recursive}");
+            
+            //dump all values from current key
+            foreach (var regKeyValue in regKey.Values)
+            {
+                var rebOut = new BatchCsvOut
+                {
+                    ValueName = regKeyValue.ValueName,
+                    Deleted = regKey.NkRecord.IsDeleted,
+                    Category = key.Category,
+                    Comment = key.Comment,
+                    HivePath = hivePath,
+                    HiveType = key.HiveType.ToString(),
+                    KeyPath = regKey.KeyPath,
+                    LastWriteTimestamp = regKey.LastWriteTime,
+                    Recursive = key.Recursive,
+                    ValueType = regKeyValue.ValueType
+                };
+                
+                if (regKeyValue.ValueType == "RegBinary")
+                {
+                    rebOut.ValueData = "(Binary data)";
+                }
+                else
+                {
+                    rebOut.ValueData = regKeyValue.ValueData;
+                }
+
+                _batchCsvOutList.Add(rebOut);     
+            }
+
+            //foreach subkey, call BatchDumpKey if recursive
+            if (key.Recursive)
+            {
+
+                foreach (var regKeySubKey in regKey.SubKeys)
+                {
+                    BatchDumpKey(regKeySubKey,key,hivePath);
+                }
             }
         }
 
@@ -1324,6 +1349,8 @@ namespace RECmd
         public string ValueName { get; set; } = string.Empty;
 
         public string SaveToName { get; set; } = string.Empty;
+
+        public string DateTimeFormat { get; set; }
 
         public bool Detailed { get; set; } = false;
 

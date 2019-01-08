@@ -19,7 +19,8 @@ namespace RECmd
 
         public string Comment { get; set; }
         public bool Recursive { get; set; }
+        public bool Deleted { get; set; }
 
-        public DateTimeOffset LastWriteTimestamp { get; set; }
+        public DateTimeOffset? LastWriteTimestamp { get; set; }
     }
 }

@@ -33,9 +33,55 @@ Keys:
         Recursive: true
         Comment: "user assist"
     -
+        Name: JustDeletedTest
+        HiveType: NTUSER
+        Category: Deletion
+        KeyPath: Software\Microsoft\Office\15.0\Common\Internet\WebServiceCache\AllUsers\officeimg.vo.msecnd.net\en-US-file.aspx-AssetId=ZA102826685
+        Recursive: false
+        Comment: "should be a deleted key"
+    -
         Name: Some non-existent key
         HiveType: SYSTEM
         Category: Fake
         KeyPath: Software\Wizzo\john\doe
         Recursive: true
         Comment: "does not exist"
+    -
+        Name: Some non-existent key 2
+        HiveType: NTUSER
+        Category: Fake
+        KeyPath: Software\Wizzo\john\doe
+        Recursive: true
+        Comment: "does not exist"
+    -
+        Name: MountedDevices
+        HiveType: SYSTEM
+        Category: Devices
+        KeyPath: MountedDevices
+        Recursive: false
+        Comment: "get them drives"
+    -
+        Name: MountedDevicesNope
+        HiveType: SYSTEM
+        Category: Devices
+        KeyPath: MountedDevicesNope
+        Recursive: false
+        Comment: "get them drives nope"
+    -
+        Name: Select current
+        HiveType: SYSTEM
+        Category: Devices
+        KeyPath: Select
+        ValueName: Current
+        Recursive: false
+        Comment: "gcurrent value"
+    -
+        Name: Setup
+        HiveType: SYSTEM
+        Category: Devices
+        KeyPath: Setup
+        Recursive: false
+        Comment: "Setup key"
+
+
+
