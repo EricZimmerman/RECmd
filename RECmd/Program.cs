@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Alphaleonis.Win32.Filesystem;
 using Fclp;
+using FluentValidation.Results;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -16,10 +17,14 @@ using Registry.Abstractions;
 using Registry.Cells;
 using Registry.Other;
 using ServiceStack;
+using ServiceStack.Text;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+using CsvWriter = CsvHelper.CsvWriter;
 
 namespace RECmd
 {
@@ -80,6 +85,21 @@ namespace RECmd
                 .As("kn")
                 .WithDescription(
                     "Display details for key name. Includes subkeys and values");
+
+            _fluentCommandLineParser.Setup(arg => arg.BatchName)
+                .As('b')
+                .WithDescription(
+                    "Use settings from supplied file to find keys/values. See included sample file for examples");
+            _fluentCommandLineParser.Setup(arg => arg.CsvDirectory)
+                .As("csv")
+                .WithDescription(
+                    "Directory to save CSV formatted results to. Required when -b is used.");
+
+            _fluentCommandLineParser.Setup(arg => arg.CsvName)
+                .As("csvf")
+                .WithDescription(
+                    "File name to save CSV formatted results to. When present, overrides default name\r\n");
+
 
             _fluentCommandLineParser.Setup(arg => arg.ValueName)
                 .As("vn")
@@ -146,9 +166,23 @@ namespace RECmd
                 .WithDescription(
                     "When true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
 
+            _fluentCommandLineParser.Setup(arg => arg.DisablePlugins)
+                .As("dp")
+                .WithDescription(
+                    "When true, plugins will not be used to process supported keys/values. Default is FALSE").SetDefault(false);
+
             _fluentCommandLineParser.Setup(arg => arg.RecoverDeleted)
                 .As("recover")
-                .WithDescription("If true, recover deleted keys/values. Default is TRUE").SetDefault(true);
+                .WithDescription("If true, recover deleted keys/values. Default is TRUE\r\n").SetDefault(true);
+
+            _fluentCommandLineParser.Setup(arg => arg.Debug)
+                .As("debug")
+                .WithDescription("Show debug information during processing").SetDefault(false);
+
+            _fluentCommandLineParser.Setup(arg => arg.Trace)
+                .As("trace")
+                .WithDescription("Show trace information during processing").SetDefault(false);
+
 
             var header =
                 $"RECmd version {Assembly.GetExecutingAssembly().GetName().Version}" +
@@ -164,6 +198,28 @@ namespace RECmd
                 .Callback(text => _logger.Info(text + "\r\n" + footer));
 
             var result = _fluentCommandLineParser.Parse(args);
+
+            if (_fluentCommandLineParser.Object.Debug)
+            {
+                foreach (var r in LogManager.Configuration.LoggingRules)
+                {
+                    r.EnableLoggingForLevel(LogLevel.Debug);
+                }
+
+                LogManager.ReconfigExistingLoggers();
+                _logger.Debug("Enabled debug messages...");
+            }
+
+            if (_fluentCommandLineParser.Object.Trace)
+            {
+                foreach (var r in LogManager.Configuration.LoggingRules)
+                {
+                    r.EnableLoggingForLevel(LogLevel.Trace);
+                }
+
+                LogManager.ReconfigExistingLoggers();
+                _logger.Trace("Enabled trace messages...");
+            }
 
             if (result.HelpCalled)
             {
@@ -182,6 +238,23 @@ namespace RECmd
             }
 
             var hivesToProcess = new List<string>();
+
+            if (_fluentCommandLineParser.Object.BatchName?.Length > 0) //batch mode
+            {
+                if (File.Exists(_fluentCommandLineParser.Object.BatchName) == false)
+                {
+                    _logger.Error($"Batch file '{_fluentCommandLineParser.Object.BatchName}' does not exist.");
+                    return;
+                }
+
+                if (_fluentCommandLineParser.Object.CsvDirectory.IsNullOrEmpty())
+                {
+                    _logger.Error($"--csv is required when using -b. Exiting.");
+                    return;
+                }
+            }
+
+
 
             if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
             {
@@ -277,6 +350,8 @@ namespace RECmd
             var hivesWithHits = 0;
             double totalSeconds = 0;
             var searchUsed = false;
+
+            var batchCsvOutList = new List<BatchCsvOut>();
 
             foreach (var hiveToProcess in hivesToProcess)
             {
@@ -842,6 +917,143 @@ namespace RECmd
 
                         _logger.Info("");
                     } //end min size option
+                    else if (_fluentCommandLineParser.Object.BatchName?.Length > 0) //batch mode
+                    {
+                       var reb = ValidateBatchFile();
+
+                       
+                        foreach (var key in reb.Keys)
+                        {
+                            if ((int) reg.HiveType == (int) key.HiveType)
+                            {
+                                _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
+                                _logger.Trace(key.Dump);
+
+                                var regKey = reg.GetKey(key.KeyPath);
+
+                                //TODO handle deleted (test this specifically)
+                                //use FindInKeyName if regKey == null for deleted keys?
+
+                                
+                                KeyValue regVal = null;
+
+                                if (regKey == null)
+                                {
+                                    _logger.Warn($"Key '{key.KeyPath}' not found in '{reg.HivePath}'");
+                                    continue;
+                                }
+
+                                if (key.ValueName.IsNullOrEmpty() == false)
+                                {
+                                    //we need to check for a value
+                                    regVal = regKey.Values.SingleOrDefault(t => t.ValueName == key.ValueName);
+
+                                    if (regVal == null)
+                                    {
+                                        _logger.Warn($"Value '{key.ValueName}' not found in key '{key.KeyPath}'");
+                                        continue;
+                                    }
+                                }
+
+                                if (regVal != null)
+                                {
+                                    //we found both
+                                    _logger.Info($"Found key '{key.KeyPath}' and value '{key.ValueName}'. Data type: '{regVal.ValueType}'");
+                                }
+                                else
+                                {
+                                    //just the key
+                                    _logger.Info($"Found key '{key.KeyPath}' Recursive: {key.Recursive}. Last write: {regKey.LastWriteTime.Value:yyyy/MM/dd HH:mm:ss.fffffff} value count: {regKey.Values.Count:N0} subkey count: {regKey.SubKeys.Count:N0}");
+                                }
+
+
+                                if (key.Recursive)
+                                {
+                                    //TODO need to write function to dump this and probably move what is below into that.
+                                }
+                                else
+                                {
+                                    if (regVal != null)
+                                    {
+                                        var rebOut = new BatchCsvOut();
+
+                                    
+                                        rebOut.ValueName = regVal.ValueName;
+                                    
+
+                                        rebOut.Category = key.Category;
+                                        rebOut.Comment = key.Comment;
+                                        rebOut.HivePath = reg.HivePath;
+                                        rebOut.HiveType = key.HiveType.ToString();
+                                        rebOut.KeyPath = key.KeyPath;
+                                        rebOut.LastWriteTimestamp = regKey.LastWriteTime.Value;
+                                        rebOut.Recursive = key.Recursive;
+                                        if (regVal.ValueType == "RegBinary")
+                                        {
+                                            rebOut.ValueData = "(Binary data)";
+                                        }
+                                        else
+                                        {
+                                            rebOut.ValueData = regVal.ValueData;
+                                        }
+                                            
+                                        rebOut.ValueType = regVal.ValueType;
+                                            
+                                        batchCsvOutList.Add(rebOut);     
+                                    }
+                                    else
+                                    {
+                                        //all
+                                        foreach (var regKeyValue in regKey.Values)
+                                        {
+                                            var rebOut = new BatchCsvOut();
+
+                                    
+                                            rebOut.ValueName = regKeyValue.ValueName;
+                                    
+
+                                            rebOut.Category = key.Category;
+                                            rebOut.Comment = key.Comment;
+                                            rebOut.HivePath = reg.HivePath;
+                                            rebOut.HiveType = key.HiveType.ToString();
+                                            rebOut.KeyPath = key.KeyPath;
+                                            rebOut.LastWriteTimestamp = regKey.LastWriteTime.Value;
+                                            rebOut.Recursive = key.Recursive;
+                                            if (regKeyValue.ValueType == "RegBinary")
+                                            {
+                                                rebOut.ValueData = "(Binary data)";
+                                            }
+                                            else
+                                            {
+                                                rebOut.ValueData = regKeyValue.ValueData;
+                                            }
+                                            
+                                            rebOut.ValueType = regKeyValue.ValueType;
+                                            
+
+                                            batchCsvOutList.Add(rebOut);     
+                                        }
+                                    }
+
+                                   
+
+                                                               
+                                }
+
+                                
+
+
+                            }
+                            else
+                            {
+                                _logger.Debug($"Skipping key '{key.KeyPath}' because the current hive is not of the right type");
+                            }
+
+
+                         
+                        }
+
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -854,6 +1066,45 @@ namespace RECmd
 
             _sw.Stop();
             totalSeconds += _sw.Elapsed.TotalSeconds;
+
+            if (batchCsvOutList.Count > 0)
+            {
+
+                if (Directory.Exists(_fluentCommandLineParser.Object.CsvDirectory) == false)
+                {
+                    _logger.Warn(
+                        $"Path to '{_fluentCommandLineParser.Object.CsvDirectory}' doesn't exist. Creating...");
+                    Directory.CreateDirectory(_fluentCommandLineParser.Object.CsvDirectory);
+                }
+
+                var outName = $"{DateTimeOffset.Now:yyyyMMddHHmmss}_RECmd_Batch_Output.csv";
+
+                if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
+                {
+                    outName = Path.GetFileName(_fluentCommandLineParser.Object.CsvName);
+                }
+
+                var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outName);
+
+                _logger.Info($"\r\nSaving batch mode CSV file to '{outFile}'");
+
+                var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
+                var csvWriter = new CsvWriter(swCsv);
+
+                var foo = csvWriter.Configuration.AutoMap<BatchCsvOut>();
+
+                //TODO map for timestamp format
+
+                csvWriter.Configuration.RegisterClassMap(foo);
+                csvWriter.WriteHeader<BatchCsvOut>();
+                csvWriter.NextRecord();
+
+                csvWriter.WriteRecords(batchCsvOutList);
+
+                swCsv.Flush();
+                swCsv.Close();
+            }
+
 
             if (searchUsed && _fluentCommandLineParser.Object.Directory?.Length > 0)
             {
@@ -870,6 +1121,92 @@ namespace RECmd
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
                 _logger.Info("");
             }
+        }
+
+        private static ReBatch ValidateBatchFile()
+        {
+             var deserializer = new DeserializerBuilder()
+                    .Build();
+
+                var hasError = false;
+
+                ReBatch re = null;
+
+                try
+                {
+                    re = deserializer.Deserialize<ReBatch>(File.ReadAllText(_fluentCommandLineParser.Object.BatchName));
+                    var validator = new ReBatchValidator();
+
+                    var validate = validator.Validate(re);
+                    DisplayValidationResults(validate, _fluentCommandLineParser.Object.BatchName);
+                }
+                catch (SyntaxErrorException se)
+                {
+                    _logger.Warn($"\r\nSyntax error in '{_fluentCommandLineParser.Object.BatchName}':");
+                    _logger.Fatal(se.Message);
+
+                    var lines = File.ReadLines(_fluentCommandLineParser.Object.BatchName).ToList();
+                    var fileContents = _fluentCommandLineParser.Object.BatchName.ReadAllText();
+
+                    var badLine = lines[se.Start.Line - 1];
+
+                    _logger.Fatal(
+                        $"\r\nBad line (or close to it) '{badLine}' has invalid data at column '{se.Start.Column}'");
+
+                    if (fileContents.Contains('\t'))
+                    {
+                        _logger.Error(
+                            "\r\nBad line contains one or more tab characters. Replace them with spaces\r\n");
+                        _logger.Info(fileContents.Replace("\t", "<TAB>"));
+                    }
+
+                    hasError = true;
+                }
+                catch (YamlException ye)
+                {
+                    _logger.Warn($"\r\nSyntax error in '{_fluentCommandLineParser.Object.BatchName}':");
+                    _logger.Fatal(ye.Message);
+
+                    _logger.Fatal(ye.InnerException?.Message);
+
+                    hasError = true;
+                }
+
+                catch (Exception e)
+                {
+                    _logger.Warn($"\r\nError when validating '{_fluentCommandLineParser.Object.BatchName}'");
+                    _logger.Fatal(e);
+                    hasError = true;
+                }
+
+                if (hasError)
+                {
+                    _logger.Warn(
+                        "\r\n\r\nThe batch file failed validation. Fix the issues and try again\r\n");
+                    Environment.Exit(0);
+                }
+
+                return re;
+        }
+
+        private static void DisplayValidationResults(ValidationResult result, string source)
+        {
+            _logger.Trace($"Performing validation on '{source}': {result.Dump()}");
+            if (result.Errors.Count == 0)
+            {
+                return;
+            }
+
+            _logger.Error($"\r\n{source} had validation errors:");
+
+            foreach (var validationFailure in result.Errors)
+            {
+                _logger.Error(validationFailure);
+            }
+
+            _logger.Error("\r\nCorrect the errors and try again. Exiting");
+
+            Environment.Exit(0);
         }
 
         private static SimpleKey BuildJson(RegistryKey key)
@@ -983,6 +1320,7 @@ namespace RECmd
         public string Directory { get; set; } = string.Empty;
         public bool RecoverDeleted { get; set; } = false;
         public string KeyName { get; set; } = string.Empty;
+        public string BatchName { get; set; } = string.Empty;
         public string ValueName { get; set; } = string.Empty;
 
         public string SaveToName { get; set; } = string.Empty;
@@ -999,11 +1337,16 @@ namespace RECmd
         public string Json { get; set; }
 
         public string EndDate { get; set; }
+        public string CsvDirectory { get; set; }
+        public string CsvName { get; set; }
 
         public bool RegEx { get; set; }
         public bool Literal { get; set; }
         public bool SuppressData { get; set; }
 
         public bool NoTransLogs { get; set; }
+        public bool DisablePlugins { get; set; }
+        public bool Debug { get; set; }
+        public bool Trace { get; set; }
     }
 }
