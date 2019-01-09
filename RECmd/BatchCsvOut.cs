@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RECmd
 {
@@ -24,11 +20,9 @@ namespace RECmd
         public bool Recursive { get; set; }
         public bool Deleted { get; set; }
 
-        
 
         public DateTimeOffset? LastWriteTimestamp { get; set; }
-        
-        public string PluginDetailFile { get; set; }
 
+        public string PluginDetailFile { get; set; }
     }
 }

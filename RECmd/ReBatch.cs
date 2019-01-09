@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluentValidation;
 
 namespace RECmd
@@ -22,7 +18,8 @@ namespace RECmd
 
         public List<Key> Keys { get; set; }
     }
-   public class Key
+
+    public class Key
     {
         public enum HiveType_
         {
@@ -40,45 +37,46 @@ namespace RECmd
             [Description("SYSCACHE")] Syscache = 10
         }
 
-        public string Description {get; set; }
-        
-        public HiveType_ HiveType {get; set; }
-        public string Category {get; set; }
-        public string KeyPath {get; set; }
-        public string ValueName {get; set; }
+        public string Description { get; set; }
 
-        public bool Recursive {get; set; }
+        public HiveType_ HiveType { get; set; }
+        public string Category { get; set; }
+        public string KeyPath { get; set; }
+        public string ValueName { get; set; }
 
-        public string Comment {get; set; }
+        public bool Recursive { get; set; }
+
+        public string Comment { get; set; }
     }
 
 
-   internal class ReBatchValidator : AbstractValidator<ReBatch>
-   {
-       public ReBatchValidator()
-       {
-           RuleFor(target => target.Description).NotNull();
-           RuleFor(target => target.Author).NotNull();
-           RuleFor(target => target.Version).NotNull().GreaterThan(0);
+    internal class ReBatchValidator : AbstractValidator<ReBatch>
+    {
+        public ReBatchValidator()
+        {
+            RuleFor(target => target.Description).NotNull();
+            RuleFor(target => target.Author).NotNull();
+            RuleFor(target => target.Version).NotNull().GreaterThan(0);
 
-           RuleFor(target => target.Id).NotNull();
-           RuleFor(target => target.Keys).NotNull();
-           RuleFor(target => target.Keys.Count).GreaterThan(0).When(t=>t.Keys!=null);
+            RuleFor(target => target.Id).NotNull();
+            RuleFor(target => target.Keys).NotNull();
+            RuleFor(target => target.Keys.Count).GreaterThan(0).When(t => t.Keys != null);
 
-           RuleForEach(target => target.Keys).NotNull().WithMessage("Keys cannot be null").SetValidator(new KeyValidator());
-       }
-   }
+            RuleForEach(target => target.Keys).NotNull().WithMessage("Keys cannot be null")
+                .SetValidator(new KeyValidator());
+        }
+    }
 
-   internal class KeyValidator : AbstractValidator<Key>
-   {
-       public KeyValidator()
-       {
-           RuleFor(target => target.Description).NotNull();
-           RuleFor(target => target.HiveType).NotNull();
+    internal class KeyValidator : AbstractValidator<Key>
+    {
+        public KeyValidator()
+        {
+            RuleFor(target => target.Description).NotNull();
+            RuleFor(target => target.HiveType).NotNull();
 
-           RuleFor(target => target.Category).NotNull();
-           RuleFor(target => target.KeyPath).NotNull();
-           RuleFor(target => target.Recursive).NotNull();
-       }
-   }
+            RuleFor(target => target.Category).NotNull();
+            RuleFor(target => target.KeyPath).NotNull();
+            RuleFor(target => target.Recursive).NotNull();
+        }
+    }
 }

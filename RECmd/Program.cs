@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,11 +21,11 @@ using ServiceStack;
 using ServiceStack.Text;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
+using CsvWriter = CsvHelper.CsvWriter;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-using CsvWriter = CsvHelper.CsvWriter;
 
 namespace RECmd
 {
@@ -40,16 +39,13 @@ namespace RECmd
 
         private static readonly string _baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        private static string _runTimestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
+        private static readonly string _runTimestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
 
         private static string _pluginsDir = string.Empty;
 
         private static void SetupNLog()
         {
-            if (File.Exists("Nlog.config"))
-            {
-                return;
-            }
+            if (File.Exists("Nlog.config")) return;
             var config = new LoggingConfiguration();
             var loglevel = LogLevel.Info;
 
@@ -78,24 +74,22 @@ namespace RECmd
             var loadedGuiDs = new HashSet<string>();
 
             foreach (var dll in dlls)
-            {
                 try
                 {
                     foreach (var exportedType in Assembly.LoadFrom(dll).GetExportedTypes())
                     {
                         if (exportedType.GetInterface("RegistryPluginBase.Interfaces.IRegistryPluginBase") == null)
-                        {
                             continue;
-                        }
 
                         _logger.Debug($"Loading plugin '{dll}'");
-                            
+
                         var plugin = (IRegistryPluginBase) Activator.CreateInstance(exportedType);
 
                         if (loadedGuiDs.Contains(plugin.InternalGuid))
                         {
                             //its already loaded, so warn
-                            _logger.Warn("Plugin '{plugin.PluginName}' has already been loaded. Internal GUID: {plugin.InternalGuid}");
+                            _logger.Warn(
+                                "Plugin '{plugin.PluginName}' has already been loaded. Internal GUID: {plugin.InternalGuid}");
                         }
                         else
                         {
@@ -108,9 +102,8 @@ namespace RECmd
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex,$"Error loading plugin: {dll}");
+                    _logger.Error(ex, $"Error loading plugin: {dll}");
                 }
-            }
         }
 
         private static void Main(string[] args)
@@ -120,10 +113,7 @@ namespace RECmd
 
             _pluginsDir = Path.Combine(_baseDirectory, "Plugins");
 
-            if (Directory.Exists(_pluginsDir) == false)
-            {
-                Directory.CreateDirectory(_pluginsDir);
-            }
+            if (Directory.Exists(_pluginsDir) == false) Directory.CreateDirectory(_pluginsDir);
 
             _logger = LogManager.GetCurrentClassLogger();
 
@@ -163,8 +153,6 @@ namespace RECmd
                     "File name to save CSV formatted results to. When present, overrides default name");
 
 
-     
-
             _fluentCommandLineParser.Setup(arg => arg.SaveToName)
                 .As("saveTo")
                 .WithDescription("Saves --vn value data in binary form to file. Expects path to a FILE");
@@ -172,7 +160,7 @@ namespace RECmd
                 .As("json")
                 .WithDescription(
                     "Export --kn to directory specified by --json. Ignored when --vn is specified\r\n");
-          
+
             _fluentCommandLineParser.Setup(arg => arg.Detailed)
                 .As("details")
                 .WithDescription(
@@ -253,7 +241,8 @@ namespace RECmd
                 "\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
                 "\r\nhttps://github.com/EricZimmerman/RECmd\r\n\r\nNote: Enclose all strings containing spaces (and all RegEx) with double quotes";
 
-            var footer = @"Example: RECmd.exe --f ""C:\Temp\UsrClass 1.dat"" --sk URL --recover false --nl" + "\r\n\t " +
+            var footer = @"Example: RECmd.exe --f ""C:\Temp\UsrClass 1.dat"" --sk URL --recover false --nl" +
+                         "\r\n\t " +
                          @"RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --StartDate ""11/13/2014 15:35:01"" " +
                          "\r\n\t " +
                          @"RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --RegEx --sv ""(App|Display)Name"" " + "\r\n";
@@ -265,10 +254,7 @@ namespace RECmd
 
             if (_fluentCommandLineParser.Object.Debug)
             {
-                foreach (var r in LogManager.Configuration.LoggingRules)
-                {
-                    r.EnableLoggingForLevel(LogLevel.Debug);
-                }
+                foreach (var r in LogManager.Configuration.LoggingRules) r.EnableLoggingForLevel(LogLevel.Debug);
 
                 LogManager.ReconfigExistingLoggers();
                 _logger.Debug("Enabled debug messages...");
@@ -276,19 +262,13 @@ namespace RECmd
 
             if (_fluentCommandLineParser.Object.Trace)
             {
-                foreach (var r in LogManager.Configuration.LoggingRules)
-                {
-                    r.EnableLoggingForLevel(LogLevel.Trace);
-                }
+                foreach (var r in LogManager.Configuration.LoggingRules) r.EnableLoggingForLevel(LogLevel.Trace);
 
                 LogManager.ReconfigExistingLoggers();
                 _logger.Trace("Enabled trace messages...");
             }
 
-            if (result.HelpCalled)
-            {
-                return;
-            }
+            if (result.HelpCalled) return;
 
             if (result.HasErrors)
             {
@@ -315,15 +295,12 @@ namespace RECmd
 
                 if (_fluentCommandLineParser.Object.CsvDirectory.IsNullOrEmpty())
                 {
-                    _logger.Error($"--csv is required when using -b. Exiting.");
+                    _logger.Error("--csv is required when using -b. Exiting.");
                     return;
                 }
 
                 reBatch = ValidateBatchFile();
             }
-
-
-        
 
 
             if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
@@ -352,40 +329,32 @@ namespace RECmd
                         fsei.Extension.ToUpperInvariant() == ".CSV" ||
                         fsei.Extension.ToUpperInvariant() == ".EXE" ||
                         fsei.Extension.ToUpperInvariant() == ".TXT" || fsei.Extension.ToUpperInvariant() == ".INI")
-                    {
                         return false;
-                    }
 
                     var fi = new FileInfo(fsei.FullPath);
 
-                    if (fi.Length < 4)
-                    {
-                        return false;
-                    }
+                    if (fi.Length < 4) return false;
 
                     try
                     {
-using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
-                    {
-                        using (var br = new BinaryReader(fs, new ASCIIEncoding()))
+                        using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                         {
-                            try
+                            using (var br = new BinaryReader(fs, new ASCIIEncoding()))
                             {
-                                var chunk = br.ReadBytes(4);
+                                try
+                                {
+                                    var chunk = br.ReadBytes(4);
 
-                                var sig = BitConverter.ToInt32(chunk, 0);
+                                    var sig = BitConverter.ToInt32(chunk, 0);
 
-                                if (sig != 0x66676572)
+                                    if (sig != 0x66676572) return false;
+                                }
+                                catch
                                 {
                                     return false;
                                 }
                             }
-                            catch
-                            {
-                                return false;
-                            }
                         }
-                    }
                     }
                     catch (Exception e)
                     {
@@ -393,7 +362,6 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                         return false;
                     }
 
-                    
 
                     return true;
                 };
@@ -467,10 +435,7 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
 
                         var dirname = Path.GetDirectoryName(hiveToProcess);
 
-                        if (string.IsNullOrEmpty(dirname))
-                        {
-                            dirname = ".";
-                        }
+                        if (string.IsNullOrEmpty(dirname)) dirname = ".";
 
                         var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
                         var log = LogManager.GetCurrentClassLogger();
@@ -491,13 +456,10 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                         else
                         {
                             if (_fluentCommandLineParser.Object.NoTransLogs == false)
-                            {
-                                reg.ProcessTransactionLogs(logFiles.ToList(),true);
-                            }
+                                reg.ProcessTransactionLogs(logFiles.ToList(), true);
                             else
-                            {
-                                log.Warn("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
-                            }
+                                log.Warn(
+                                    "Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
                         }
                     }
 
@@ -520,30 +482,21 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                         {
                             var results = DoKeySearch(reg, _fluentCommandLineParser.Object.SimpleSearchKey,
                                 _fluentCommandLineParser.Object.RegEx);
-                            if (results != null)
-                            {
-                                hits.AddRange(results);
-                            }
+                            if (results != null) hits.AddRange(results);
                         }
 
                         if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
                         {
                             var results = DoValueSearch(reg, _fluentCommandLineParser.Object.SimpleSearchValue,
                                 _fluentCommandLineParser.Object.RegEx);
-                            if (results != null)
-                            {
-                                hits.AddRange(results);
-                            }
+                            if (results != null) hits.AddRange(results);
                         }
 
                         if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
                         {
                             var results = DoValueDataSearch(reg, _fluentCommandLineParser.Object.SimpleSearchValueData,
                                 _fluentCommandLineParser.Object.RegEx, _fluentCommandLineParser.Object.Literal);
-                            if (results != null)
-                            {
-                                hits.AddRange(results);
-                            }
+                            if (results != null) hits.AddRange(results);
                         }
 
                         if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
@@ -551,10 +504,7 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                             var results = DoValueSlackSearch(reg,
                                 _fluentCommandLineParser.Object.SimpleSearchValueSlack,
                                 _fluentCommandLineParser.Object.RegEx, _fluentCommandLineParser.Object.Literal);
-                            if (results != null)
-                            {
-                                hits.AddRange(results);
-                            }
+                            if (results != null) hits.AddRange(results);
                         }
 
                         if (hits.Count > 0)
@@ -572,7 +522,6 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
 
                         var words = new HashSet<string>();
                         foreach (var searchHit in hits)
-                        {
                             if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
                             {
                                 words.Add(_fluentCommandLineParser.Object.SimpleSearchKey);
@@ -590,27 +539,18 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                 else
                                 {
                                     if (searchHit.Value.VkRecord.DataType == VkCellRecord.DataTypeEnum.RegBinary)
-                                    {
                                         words.Add(searchHit.HitString);
-                                    }
                                     else
-                                    {
                                         words.Add(_fluentCommandLineParser.Object.SimpleSearchValueData);
-                                    }
                                 }
                             }
                             else if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                             {
                                 if (_fluentCommandLineParser.Object.RegEx)
-                                {
                                     words.Add(_fluentCommandLineParser.Object.SimpleSearchValueSlack);
-                                }
                                 else
-                                {
                                     words.Add(searchHit.HitString);
-                                }
                             }
-                        }
 
                         AddHighlightingRules(words.ToList(), _fluentCommandLineParser.Object.RegEx);
 
@@ -618,10 +558,9 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                         {
                             searchHit.StripRootKeyName = true;
 
-                            var keyIsDeleted = ((searchHit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
-                                                RegistryKey.KeyFlagsEnum.Deleted);
+                            var keyIsDeleted = (searchHit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                               RegistryKey.KeyFlagsEnum.Deleted;
                             {
-
                                 if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0 ||
                                     _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                                 {
@@ -630,14 +569,9 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                         var display =
                                             $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
                                         if (keyIsDeleted)
-                                        {
                                             _logger.Fatal(display);
-                                        }
                                         else
-                                        {
                                             _logger.Info(display);
-                                        }
-
                                     }
                                     else
                                     {
@@ -647,28 +581,18 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                                 $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
 
                                             if (keyIsDeleted)
-                                            {
                                                 _logger.Fatal(display);
-                                            }
                                             else
-                                            {
                                                 _logger.Info(display);
-                                            }
-
                                         }
                                         else
                                         {
                                             var display =
                                                 $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
                                             if (keyIsDeleted)
-                                            {
                                                 _logger.Fatal(display);
-                                            }
                                             else
-                                            {
                                                 _logger.Info(display);
-                                            }
-
                                         }
                                     }
                                 }
@@ -678,14 +602,9 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                         $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
 
                                     if (keyIsDeleted)
-                                    {
                                         _logger.Fatal(display);
-                                    }
                                     else
-                                    {
                                         _logger.Info(display);
-                                    }
-
                                 }
                                 else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
                                 {
@@ -693,13 +612,9 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                         $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
 
                                     if (keyIsDeleted)
-                                    {
                                         _logger.Fatal(display);
-                                    }
                                     else
-                                    {
                                         _logger.Info(display);
-                                    }
                                 }
                             }
                         }
@@ -741,10 +656,7 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                             if (_fluentCommandLineParser.Object.SaveToName.Length > 0)
                             {
                                 var baseDir = Path.GetDirectoryName(_fluentCommandLineParser.Object.SaveToName);
-                                if (Directory.Exists(baseDir) == false)
-                                {
-                                    Directory.CreateDirectory(baseDir);
-                                }
+                                if (Directory.Exists(baseDir) == false) Directory.CreateDirectory(baseDir);
 
                                 _logger.Warn(
                                     $"Saving contents of '{val.ValueName}' to '{_fluentCommandLineParser.Object.SaveToName}\r\n'");
@@ -760,8 +672,8 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                             }
                         }
 
-                        var keyIsDeleted = ((key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
-                                            RegistryKey.KeyFlagsEnum.Deleted);
+                        var keyIsDeleted = (key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                           RegistryKey.KeyFlagsEnum.Deleted;
 
                         //dump key here
                         if (_fluentCommandLineParser.Object.ValueName.IsNullOrEmpty())
@@ -770,27 +682,25 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                             {
                                 //export to json
                                 if (Directory.Exists(_fluentCommandLineParser.Object.Json) == false)
-                                {
                                     Directory.CreateDirectory(_fluentCommandLineParser.Object.Json);
-                                }
 
                                 var jso = BuildJson(key);
 
                                 try
                                 {
                                     var outFile = Path.Combine(_fluentCommandLineParser.Object.Json,
-                                        $"{StripInvalidCharsFromFileName(key.KeyName,"_")}.json");
+                                        $"{StripInvalidCharsFromFileName(key.KeyName, "_")}.json");
 
                                     _logger.Warn($"Saving key to json file '{outFile}'\r\n");
-                                    File.WriteAllText(outFile,jso.ToJson());
+                                    File.WriteAllText(outFile, jso.ToJson());
                                 }
                                 catch (Exception e)
                                 {
-                                    _logger.Error($"Error saving key '{key.KeyPath}' to directory '{_fluentCommandLineParser.Object.Json}': {e.Message}");
+                                    _logger.Error(
+                                        $"Error saving key '{key.KeyPath}' to directory '{_fluentCommandLineParser.Object.Json}': {e.Message}");
                                 }
-
-
                             }
+
                             if (_fluentCommandLineParser.Object.Detailed)
                             {
                                 _logger.Info(key);
@@ -800,10 +710,7 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                 //key info only
                                 _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
                                 _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
-                                if (keyIsDeleted)
-                                {
-                                    _logger.Fatal("Deleted: TRUE");
-                                }
+                                if (keyIsDeleted) _logger.Fatal("Deleted: TRUE");
                                 _logger.Info("");
 
                                 _logger.Info($"Subkey count: {key.SubKeys.Count:N0}");
@@ -814,8 +721,8 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
 
                                 foreach (var sk in key.SubKeys)
                                 {
-                                    var skeyIsDeleted = ((sk.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
-                                                        RegistryKey.KeyFlagsEnum.Deleted);
+                                    var skeyIsDeleted = (sk.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                                        RegistryKey.KeyFlagsEnum.Deleted;
                                     if (skeyIsDeleted)
                                     {
                                         _logger.Fatal($"------------ Subkey #{i:N0} (DELETED) ------------");
@@ -828,7 +735,7 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                         _logger.Info(
                                             $"Name: {sk.KeyName} (Last write: {sk.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {sk.Values.Count:N0}");
                                     }
-                                  
+
                                     i += 1;
                                 }
 
@@ -844,55 +751,42 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
 
                                         var slack = "";
 
-                                        if (keyValue.ValueSlack.Length > 0)
-                                        {
-                                            slack = $"(Slack: {keyValue.ValueSlack})";
-                                        }
+                                        if (keyValue.ValueSlack.Length > 0) slack = $"(Slack: {keyValue.ValueSlack})";
 
                                         _logger.Fatal($"Data: {keyValue.ValueData} {slack}");
-
                                     }
                                     else
                                     {
-                                        
                                         _logger.Info($"------------ Value #{i:N0} ------------");
                                         _logger.Info($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
 
                                         var slack = "";
 
-                                        if (keyValue.ValueSlack.Length > 0)
-                                        {
-                                            slack = $"(Slack: {keyValue.ValueSlack})";
-                                        }
+                                        if (keyValue.ValueSlack.Length > 0) slack = $"(Slack: {keyValue.ValueSlack})";
 
                                         _logger.Info($"Data: {keyValue.ValueData} {slack}");
-
                                     }
-                                    
+
                                     i += 1;
                                 }
                             }
-                          
                         }
                         else
                         {
                             //value only
-                            
+
                             if (keyIsDeleted)
                             {
                                 _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
                                 _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
-                              
-                               _logger.Fatal("Deleted: TRUE");
-                            
+
+                                _logger.Fatal("Deleted: TRUE");
+
                                 _logger.Info("");
 
                                 _logger.Fatal($"Value name: '{val.ValueName}' ({val.ValueType})");
                                 var slack = "";
-                                if (val.ValueSlack.Length > 0)
-                                {
-                                    slack = $"(Slack: {val.ValueSlack})";
-                                }
+                                if (val.ValueSlack.Length > 0) slack = $"(Slack: {val.ValueSlack})";
 
                                 _logger.Fatal($"Value data: {val.ValueData} {slack}");
                             }
@@ -900,27 +794,21 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                             {
                                 _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
                                 _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
-                              
+
                                 _logger.Info("");
 
                                 _logger.Info($"Value name: '{val.ValueName}' ({val.ValueType})");
                                 var slack = "";
-                                if (val.ValueSlack.Length > 0)
-                                {
-                                    slack = $"(Slack: {val.ValueSlack})";
-                                }
+                                if (val.ValueSlack.Length > 0) slack = $"(Slack: {val.ValueSlack})";
 
                                 _logger.Info($"Value data: {val.ValueData} {slack}");
                             }
-
-                            
                         }
 
                         _logger.Info("");
                     } //end kn options
                     else if (_fluentCommandLineParser.Object.MinimumSize > 0)
                     {
-
                         searchUsed = true;
                         var hits = reg.FindByValueSize(_fluentCommandLineParser.Object.MinimumSize).ToList();
 
@@ -942,22 +830,16 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                         {
                             searchUsed = true;
 
-                            var keyIsDeleted = ((valueBySizeInfo.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
-                                                RegistryKey.KeyFlagsEnum.Deleted);
+                            var keyIsDeleted = (valueBySizeInfo.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                               RegistryKey.KeyFlagsEnum.Deleted;
 
                             var display =
                                 $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}";
 
                             if (keyIsDeleted)
-                            {
                                 _logger.Fatal(display);
-                            }
                             else
-                            {
-
                                 _logger.Info(display);
-                            }
-
                         }
 
                         _logger.Info("");
@@ -966,7 +848,7 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                     {
                         searchUsed = true;
                         var hits = reg.FindBase64(_fluentCommandLineParser.Object.Base64).ToList();
-                        
+
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
@@ -983,36 +865,30 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
 
                         foreach (var base64hit in hits)
                         {
-                            var keyIsDeleted = ((base64hit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
-                                                RegistryKey.KeyFlagsEnum.Deleted);
+                            var keyIsDeleted = (base64hit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                                               RegistryKey.KeyFlagsEnum.Deleted;
 
-                            var display = $"Key: {Helpers.StripRootKeyNameFromKeyPath(base64hit.Key.KeyPath)}, Value: {base64hit.Value.ValueName}, Size: {base64hit.Value.ValueDataRaw.Length:N0}";
+                            var display =
+                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(base64hit.Key.KeyPath)}, Value: {base64hit.Value.ValueName}, Size: {base64hit.Value.ValueDataRaw.Length:N0}";
 
                             if (keyIsDeleted)
-                            {
                                 _logger.Fatal(display);
-                            }
                             else
-                            {
-
                                 _logger.Info(display);
-                            }
                         }
 
                         _logger.Info("");
                     } //end min size option
                     else if (_fluentCommandLineParser.Object.BatchName?.Length > 0) //batch mode
                     {
-                       
                         foreach (var key in reBatch.Keys)
-                        {
                             if ((int) reg.HiveType == (int) key.HiveType)
                             {
                                 _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
                                 _logger.Trace(key.Dump);
 
                                 var regKey = reg.GetKey(key.KeyPath);
-                                
+
                                 KeyValue regVal = null;
 
                                 if (regKey == null)
@@ -1034,38 +910,30 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                 }
 
                                 if (regVal != null)
-                                {
-                                    //we found both
                                     _logger.Info($"Found key '{key.KeyPath}' and value '{key.ValueName}'!");
-                                }
                                 else
-                                {
-                                    //just the key
                                     _logger.Info($"Found key '{key.KeyPath}'!");
-                                }
 
                                 //TODO test this with all conditions
                                 BatchDumpKey(regKey, key, reg.HivePath);
                             }
                             else
                             {
-                                _logger.Debug($"Skipping key '{key.KeyPath}' because the current hive ({reg.HiveType}) is not of the right type ({key.HiveType})");
+                                _logger.Debug(
+                                    $"Skipping key '{key.KeyPath}' because the current hive ({reg.HiveType}) is not of the right type ({key.HiveType})");
                             }
-                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     if (ex.Message.Contains("Sequence numbers do not match and transaction") == false)
-                    {
                         _logger.Error($"There was an error: {ex.Message}");
-                    }
                 }
+
                 _sw.Stop();
                 totalSeconds += _sw.Elapsed.TotalSeconds;
             }
 
-      
 
             if (_batchCsvOutList.Count > 0)
             {
@@ -1085,12 +953,11 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                     Directory.CreateDirectory(_fluentCommandLineParser.Object.CsvDirectory);
                 }
 
-                var outName = $"{_runTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.BatchName)}_Output.csv";
+                var outName =
+                    $"{_runTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.BatchName)}_Output.csv";
 
                 if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
-                {
                     outName = Path.GetFileName(_fluentCommandLineParser.Object.CsvName);
-                }
 
                 var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outName);
 
@@ -1139,33 +1006,16 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
             var keyPath = Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath);
 
             foreach (var registryPluginBase in _plugins)
-            {
-                foreach (var path in registryPluginBase.KeyPaths)
+            foreach (var path in registryPluginBase.KeyPaths)
+                if (path.Contains("*"))
                 {
-                    if (path.Contains("*"))
-                    {
-                        var segs = path.Split('*');
+                    var segs = path.Split('*');
 
-                        if (keyPath.ToLowerInvariant().StartsWith(segs[0].ToLowerInvariant()))
+                    if (keyPath.ToLowerInvariant().StartsWith(segs[0].ToLowerInvariant()))
+                    {
+                        if (segs.Length > 1)
                         {
-                            if (segs.Length > 1)
-                            {
-                                if (keyPath.ToLowerInvariant().EndsWith(segs[1].ToLowerInvariant()))
-                                {
-                                    if (registryPluginBase.ValueName == null)
-                                    {
-                                        pluginsToActivate.Add(registryPluginBase);
-                                    }
-                                    else
-                                    {
-                                        if (registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName.ToLowerInvariant())
-                                        {
-                                            pluginsToActivate.Add(registryPluginBase);
-                                        }
-                                    }
-                                }
-                            }
-                            else
+                            if (keyPath.ToLowerInvariant().EndsWith(segs[1].ToLowerInvariant()))
                             {
                                 if (registryPluginBase.ValueName == null)
                                 {
@@ -1173,34 +1023,41 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                                 }
                                 else
                                 {
-                                    if (registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName.ToLowerInvariant())
-                                    {
-                                        pluginsToActivate.Add(registryPluginBase);
-                                    }
+                                    if (registryPluginBase.ValueName.ToLowerInvariant() ==
+                                        key.ValueName.ToLowerInvariant()) pluginsToActivate.Add(registryPluginBase);
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        if (path.ToLowerInvariant().Contains(keyPath.ToLowerInvariant()))
+                        else
                         {
-                            if (registryPluginBase.ValueName == null &&
-                                path.ToLowerInvariant().Equals(keyPath.ToLowerInvariant()))
+                            if (registryPluginBase.ValueName == null)
                             {
                                 pluginsToActivate.Add(registryPluginBase);
                             }
                             else
                             {
-                                if (registryPluginBase.ValueName?.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
-                                {
+                                if (registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName.ToLowerInvariant())
                                     pluginsToActivate.Add(registryPluginBase);
-                                }
                             }
                         }
                     }
                 }
-            }
+                else
+                {
+                    if (path.ToLowerInvariant().Contains(keyPath.ToLowerInvariant()))
+                    {
+                        if (registryPluginBase.ValueName == null &&
+                            path.ToLowerInvariant().Equals(keyPath.ToLowerInvariant()))
+                        {
+                            pluginsToActivate.Add(registryPluginBase);
+                        }
+                        else
+                        {
+                            if (registryPluginBase.ValueName?.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
+                                pluginsToActivate.Add(registryPluginBase);
+                        }
+                    }
+                }
 
 
             return pluginsToActivate;
@@ -1214,14 +1071,13 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
 
             if (pluginsToActivate.Count > 0)
             {
-
                 foreach (var registryPluginBase in pluginsToActivate)
                 {
                     var pig = (IRegistryPluginGrid) registryPluginBase;
 
                     pig.ProcessValues(regKey);
 
-                    var pluginDetailsFile=        DumpPluginValues(pig,hivePath);
+                    var pluginDetailsFile = DumpPluginValues(pig, hivePath);
 
                     foreach (var pigValue in pig.Values)
                     {
@@ -1242,27 +1098,21 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                             ValueType = "(plugin)",
                             ValueData = conv.BatchValueData1,
                             ValueDat2 = conv.BatchValueData2,
-                            ValueData3 = conv.BatchValueData3,
+                            ValueData3 = conv.BatchValueData3
                         };
 
 
                         rebOut.PluginDetailFile = pluginDetailsFile;
-                        _batchCsvOutList.Add(rebOut); 
+                        _batchCsvOutList.Add(rebOut);
                     }
 
                     if (pig.Errors.Count > 0)
-                    {
                         _logger.Warn($"Plugin {pig.PluginName} error", $"Errors: {string.Join(", ", pig.Errors)}");
-                    }
-
-
-            
-
                 }
             }
             else
             {
-                   if (key.ValueName.IsNullOrEmpty() == false)
+                if (key.ValueName.IsNullOrEmpty() == false)
                 {
                     //one value only
                     var regVal = regKey.Values.SingleOrDefault(t =>
@@ -1280,83 +1130,61 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                     //dump all values from current key
                     foreach (var regKeyValue in regKey.Values)
                     {
-                         var rebOut = BuildBatchCsvOut(regKey, key, hivePath, regKeyValue);
+                        var rebOut = BuildBatchCsvOut(regKey, key, hivePath, regKeyValue);
 
-                        _batchCsvOutList.Add(rebOut);     
+                        _batchCsvOutList.Add(rebOut);
                     }
 
                     //foreach subkey, call BatchDumpKey if recursive
                     if (key.Recursive)
-                    {
                         foreach (var regKeySubKey in regKey.SubKeys)
-                        {
-                            BatchDumpKey(regKeySubKey,key,hivePath);
-                        }
-                    }  
-                } 
+                            BatchDumpKey(regKeySubKey, key, hivePath);
+                }
             }
-            
-
-          
         }
 
         private static string DumpPluginValues(IRegistryPluginGrid plugin, string hivePath)
         {
             var pluginType = plugin.GetType();
 
-            if (plugin.Values.Count == 0)
-            {
-                return null;
-            }
+            if (plugin.Values.Count == 0) return null;
 
             var hiveName1 = hivePath.Replace(":", "").Replace("\\", "_");
 
             var outbase = $"{_runTimestamp}_{pluginType.Name}_{hiveName1}.csv";
 
             if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
-            {
                 outbase =
                     $"{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.CsvName)}_{pluginType.Name}{Path.GetExtension(_fluentCommandLineParser.Object.CsvName)}";
-            }
 
             var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outbase);
 
             var exists = File.Exists(outFile);
 
-            using (var sw = new StreamWriter(outFile,true))
+            using (var sw = new StreamWriter(outFile, true))
             {
                 var csvWriter = new CsvWriter(sw);
 
                 var foo = csvWriter.Configuration.AutoMap(plugin.Values[0].GetType());
-                
+
 
                 foreach (var fooMemberMap in foo.MemberMaps)
                 {
-                  //TODO can these be used to find Datetime related properties and format appropriately?
+                    //TODO can these be used to find Datetime related properties and format appropriately?
 
-                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData")) 
-                    {
-                        fooMemberMap.Ignore();
-                    }
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData")) fooMemberMap.Ignore();
 
 
-                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath")) 
-                    {
-                        fooMemberMap.Index(0);
-                    }
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath")) fooMemberMap.Index(0);
 
-                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueName"))
-                    {
-                        fooMemberMap.Index(1);
-                    }
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueName")) fooMemberMap.Index(1);
                 }
 
                 if (exists == false)
                 {
                     csvWriter.WriteHeader(plugin.Values[0].GetType());
-                
+
                     csvWriter.NextRecord();
-                    
                 }
 
                 foreach (var pluginValue in plugin.Values)
@@ -1390,97 +1218,87 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
             };
 
             if (regVal.ValueType == "RegBinary")
-            {
                 rebOut.ValueData = "(Binary data)";
-            }
             else
-            {
                 rebOut.ValueData = regVal.ValueData;
-            }
 
             return rebOut;
         }
 
         private static ReBatch ValidateBatchFile()
         {
-             var deserializer = new DeserializerBuilder()
-                    .Build();
+            var deserializer = new DeserializerBuilder()
+                .Build();
 
-                var hasError = false;
+            var hasError = false;
 
-                ReBatch re = null;
+            ReBatch re = null;
 
-                try
+            try
+            {
+                re = deserializer.Deserialize<ReBatch>(File.ReadAllText(_fluentCommandLineParser.Object.BatchName));
+                var validator = new ReBatchValidator();
+
+                var validate = validator.Validate(re);
+                DisplayValidationResults(validate, _fluentCommandLineParser.Object.BatchName);
+            }
+            catch (SyntaxErrorException se)
+            {
+                _logger.Warn($"\r\nSyntax error in '{_fluentCommandLineParser.Object.BatchName}':");
+                _logger.Fatal(se.Message);
+
+                var lines = File.ReadLines(_fluentCommandLineParser.Object.BatchName).ToList();
+                var fileContents = _fluentCommandLineParser.Object.BatchName.ReadAllText();
+
+                var badLine = lines[se.Start.Line - 1];
+
+                _logger.Fatal(
+                    $"\r\nBad line (or close to it) '{badLine}' has invalid data at column '{se.Start.Column}'");
+
+                if (fileContents.Contains('\t'))
                 {
-                    re = deserializer.Deserialize<ReBatch>(File.ReadAllText(_fluentCommandLineParser.Object.BatchName));
-                    var validator = new ReBatchValidator();
-
-                    var validate = validator.Validate(re);
-                    DisplayValidationResults(validate, _fluentCommandLineParser.Object.BatchName);
-                }
-                catch (SyntaxErrorException se)
-                {
-                    _logger.Warn($"\r\nSyntax error in '{_fluentCommandLineParser.Object.BatchName}':");
-                    _logger.Fatal(se.Message);
-
-                    var lines = File.ReadLines(_fluentCommandLineParser.Object.BatchName).ToList();
-                    var fileContents = _fluentCommandLineParser.Object.BatchName.ReadAllText();
-
-                    var badLine = lines[se.Start.Line - 1];
-
-                    _logger.Fatal(
-                        $"\r\nBad line (or close to it) '{badLine}' has invalid data at column '{se.Start.Column}'");
-
-                    if (fileContents.Contains('\t'))
-                    {
-                        _logger.Error(
-                            "\r\nBad line contains one or more tab characters. Replace them with spaces\r\n");
-                        _logger.Info(fileContents.Replace("\t", "<TAB>"));
-                    }
-
-                    hasError = true;
-                }
-                catch (YamlException ye)
-                {
-                    _logger.Warn($"\r\nSyntax error in '{_fluentCommandLineParser.Object.BatchName}':");
-                    _logger.Fatal(ye.Message);
-
-                    _logger.Fatal(ye.InnerException?.Message);
-
-                    hasError = true;
+                    _logger.Error(
+                        "\r\nBad line contains one or more tab characters. Replace them with spaces\r\n");
+                    _logger.Info(fileContents.Replace("\t", "<TAB>"));
                 }
 
-                catch (Exception e)
-                {
-                    _logger.Warn($"\r\nError when validating '{_fluentCommandLineParser.Object.BatchName}'");
-                    _logger.Fatal(e);
-                    hasError = true;
-                }
+                hasError = true;
+            }
+            catch (YamlException ye)
+            {
+                _logger.Warn($"\r\nSyntax error in '{_fluentCommandLineParser.Object.BatchName}':");
+                _logger.Fatal(ye.Message);
 
-                if (hasError)
-                {
-                    _logger.Warn(
-                        "\r\n\r\nThe batch file failed validation. Fix the issues and try again\r\n");
-                    Environment.Exit(0);
-                }
+                _logger.Fatal(ye.InnerException?.Message);
 
-                return re;
+                hasError = true;
+            }
+
+            catch (Exception e)
+            {
+                _logger.Warn($"\r\nError when validating '{_fluentCommandLineParser.Object.BatchName}'");
+                _logger.Fatal(e);
+                hasError = true;
+            }
+
+            if (hasError)
+            {
+                _logger.Warn(
+                    "\r\n\r\nThe batch file failed validation. Fix the issues and try again\r\n");
+                Environment.Exit(0);
+            }
+
+            return re;
         }
 
         private static void DisplayValidationResults(ValidationResult result, string source)
         {
             _logger.Trace($"Performing validation on '{source}': {result.Dump()}");
-            if (result.Errors.Count == 0)
-            {
-                return;
-            }
+            if (result.Errors.Count == 0) return;
 
             _logger.Error($"\r\n{source} had validation errors:");
 
-            foreach (var validationFailure in result.Errors)
-            {
-                _logger.Error(validationFailure);
-            }
+            foreach (var validationFailure in result.Errors) _logger.Error(validationFailure);
 
             _logger.Error("\r\nCorrect the errors and try again. Exiting");
 
@@ -1515,7 +1333,7 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
 
         private static string StripInvalidCharsFromFileName(string initialFileName, string substituteWith)
         {
-            string regex = $"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]";
+            var regex = $"[{Regex.Escape(new string(Path.GetInvalidFileNameChars()))}]";
             var removeInvalidChars = new Regex(regex,
                 RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
@@ -1575,13 +1393,9 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                     IgnoreCase = true
                 };
                 if (isRegEx)
-                {
                     r.Regex = word;
-                }
                 else
-                {
                     r.Text = word;
-                }
 
                 r.ForegroundColor = fgColor;
                 r.BackgroundColor = bgColor;

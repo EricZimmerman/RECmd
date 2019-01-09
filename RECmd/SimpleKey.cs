@@ -1,24 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RECmd
 {
- internal   class SimpleKey
+    internal class SimpleKey
     {
-        public string KeyPath { get; set; }
-        public string KeyName { get; set; }
-        public DateTimeOffset LastWriteTimestamp { get; set; }
-        public List<SimpleKey>SubKeys { get;set; }
-        public List<SimpleValue>Values { get;set; }
-
         public SimpleKey()
         {
             SubKeys = new List<SimpleKey>();
             Values = new List<SimpleValue>();
         }
+
+        public string KeyPath { get; set; }
+        public string KeyName { get; set; }
+        public DateTimeOffset LastWriteTimestamp { get; set; }
+        public List<SimpleKey> SubKeys { get; set; }
+        public List<SimpleValue> Values { get; set; }
     }
 
     internal class SimpleValue
