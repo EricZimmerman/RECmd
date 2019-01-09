@@ -144,26 +144,26 @@ namespace RECmd
                 .As("kn")
                 .WithDescription(
                     "Display details for key name. Includes subkeys and values");
-
+            _fluentCommandLineParser.Setup(arg => arg.ValueName)
+                .As("vn")
+                .WithDescription(
+                    "Value name. Only this value will be dumped");
             _fluentCommandLineParser.Setup(arg => arg.BatchName)
-                .As('b')
+                .As("bn")
                 .WithDescription(
                     "Use settings from supplied file to find keys/values. See included sample file for examples");
             _fluentCommandLineParser.Setup(arg => arg.CsvDirectory)
                 .As("csv")
                 .WithDescription(
-                    "Directory to save CSV formatted results to. Required when -b is used.");
+                    "Directory to save CSV formatted results to. Required when -bn is used.");
 
             _fluentCommandLineParser.Setup(arg => arg.CsvName)
                 .As("csvf")
                 .WithDescription(
-                    "File name to save CSV formatted results to. When present, overrides default name\r\n");
+                    "File name to save CSV formatted results to. When present, overrides default name");
 
 
-            _fluentCommandLineParser.Setup(arg => arg.ValueName)
-                .As("vn")
-                .WithDescription(
-                    "Value name. Only this value will be dumped");
+     
 
             _fluentCommandLineParser.Setup(arg => arg.SaveToName)
                 .As("saveTo")
@@ -171,7 +171,7 @@ namespace RECmd
             _fluentCommandLineParser.Setup(arg => arg.Json)
                 .As("json")
                 .WithDescription(
-                    "Export --kn to directory specified by --json. Ignored when --vn is specified");
+                    "Export --kn to directory specified by --json. Ignored when --vn is specified\r\n");
           
             _fluentCommandLineParser.Setup(arg => arg.Detailed)
                 .As("details")
@@ -230,10 +230,10 @@ namespace RECmd
                 .WithDescription(
                     "When true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
 
-            _fluentCommandLineParser.Setup(arg => arg.DisablePlugins)
-                .As("dp")
-                .WithDescription(
-                    "When true, plugins will not be used to process supported keys/values. Default is FALSE").SetDefault(false);
+//            _fluentCommandLineParser.Setup(arg => arg.DisablePlugins)
+//                .As("dp")
+//                .WithDescription(
+//                    "When true, plugins will not be used to process supported keys/values. Default is FALSE").SetDefault(false);
 
             _fluentCommandLineParser.Setup(arg => arg.RecoverDeleted)
                 .As("recover")
@@ -253,7 +253,7 @@ namespace RECmd
                 "\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
                 "\r\nhttps://github.com/EricZimmerman/RECmd\r\n\r\nNote: Enclose all strings containing spaces (and all RegEx) with double quotes";
 
-            var footer = @"Example: RECmd.exe --f ""C:\Temp\UsrClass 1.dat"" --sk URL --recover" + "\r\n\t " +
+            var footer = @"Example: RECmd.exe --f ""C:\Temp\UsrClass 1.dat"" --sk URL --recover false --nl" + "\r\n\t " +
                          @"RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --StartDate ""11/13/2014 15:35:01"" " +
                          "\r\n\t " +
                          @"RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --RegEx --sv ""(App|Display)Name"" " + "\r\n";
@@ -323,8 +323,7 @@ namespace RECmd
             }
 
 
-            _logger.Info(header);
-            _logger.Info("");
+        
 
 
             if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
@@ -419,7 +418,8 @@ using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                 return;
             }
 
-          
+            _logger.Info(header);
+            _logger.Info("");
 
             if (hivesToProcess.Count == 0)
             {
