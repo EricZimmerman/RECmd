@@ -45,7 +45,11 @@ namespace RECmd
 
         private static void SetupNLog()
         {
-            if (File.Exists("Nlog.config")) return;
+            if (File.Exists("Nlog.config"))
+            {
+                return;
+            }
+
             var config = new LoggingConfiguration();
             var loglevel = LogLevel.Info;
 
@@ -74,12 +78,15 @@ namespace RECmd
             var loadedGuiDs = new HashSet<string>();
 
             foreach (var dll in dlls)
+            {
                 try
                 {
                     foreach (var exportedType in Assembly.LoadFrom(dll).GetExportedTypes())
                     {
                         if (exportedType.GetInterface("RegistryPluginBase.Interfaces.IRegistryPluginBase") == null)
+                        {
                             continue;
+                        }
 
                         _logger.Debug($"Loading plugin '{dll}'");
 
@@ -104,6 +111,7 @@ namespace RECmd
                 {
                     _logger.Error(ex, $"Error loading plugin: {dll}");
                 }
+            }
         }
 
         private static void Main(string[] args)
@@ -113,7 +121,10 @@ namespace RECmd
 
             _pluginsDir = Path.Combine(_baseDirectory, "Plugins");
 
-            if (Directory.Exists(_pluginsDir) == false) Directory.CreateDirectory(_pluginsDir);
+            if (Directory.Exists(_pluginsDir) == false)
+            {
+                Directory.CreateDirectory(_pluginsDir);
+            }
 
             _logger = LogManager.GetCurrentClassLogger();
 
@@ -254,7 +265,10 @@ namespace RECmd
 
             if (_fluentCommandLineParser.Object.Debug)
             {
-                foreach (var r in LogManager.Configuration.LoggingRules) r.EnableLoggingForLevel(LogLevel.Debug);
+                foreach (var r in LogManager.Configuration.LoggingRules)
+                {
+                    r.EnableLoggingForLevel(LogLevel.Debug);
+                }
 
                 LogManager.ReconfigExistingLoggers();
                 _logger.Debug("Enabled debug messages...");
@@ -262,13 +276,19 @@ namespace RECmd
 
             if (_fluentCommandLineParser.Object.Trace)
             {
-                foreach (var r in LogManager.Configuration.LoggingRules) r.EnableLoggingForLevel(LogLevel.Trace);
+                foreach (var r in LogManager.Configuration.LoggingRules)
+                {
+                    r.EnableLoggingForLevel(LogLevel.Trace);
+                }
 
                 LogManager.ReconfigExistingLoggers();
                 _logger.Trace("Enabled trace messages...");
             }
 
-            if (result.HelpCalled) return;
+            if (result.HelpCalled)
+            {
+                return;
+            }
 
             if (result.HasErrors)
             {
@@ -329,11 +349,16 @@ namespace RECmd
                         fsei.Extension.ToUpperInvariant() == ".CSV" ||
                         fsei.Extension.ToUpperInvariant() == ".EXE" ||
                         fsei.Extension.ToUpperInvariant() == ".TXT" || fsei.Extension.ToUpperInvariant() == ".INI")
+                    {
                         return false;
+                    }
 
                     var fi = new FileInfo(fsei.FullPath);
 
-                    if (fi.Length < 4) return false;
+                    if (fi.Length < 4)
+                    {
+                        return false;
+                    }
 
                     try
                     {
@@ -347,7 +372,10 @@ namespace RECmd
 
                                     var sig = BitConverter.ToInt32(chunk, 0);
 
-                                    if (sig != 0x66676572) return false;
+                                    if (sig != 0x66676572)
+                                    {
+                                        return false;
+                                    }
                                 }
                                 catch
                                 {
@@ -435,7 +463,10 @@ namespace RECmd
 
                         var dirname = Path.GetDirectoryName(hiveToProcess);
 
-                        if (string.IsNullOrEmpty(dirname)) dirname = ".";
+                        if (string.IsNullOrEmpty(dirname))
+                        {
+                            dirname = ".";
+                        }
 
                         var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
                         var log = LogManager.GetCurrentClassLogger();
@@ -456,10 +487,14 @@ namespace RECmd
                         else
                         {
                             if (_fluentCommandLineParser.Object.NoTransLogs == false)
+                            {
                                 reg.ProcessTransactionLogs(logFiles.ToList(), true);
+                            }
                             else
+                            {
                                 log.Warn(
                                     "Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
+                            }
                         }
                     }
 
@@ -482,21 +517,30 @@ namespace RECmd
                         {
                             var results = DoKeySearch(reg, _fluentCommandLineParser.Object.SimpleSearchKey,
                                 _fluentCommandLineParser.Object.RegEx);
-                            if (results != null) hits.AddRange(results);
+                            if (results != null)
+                            {
+                                hits.AddRange(results);
+                            }
                         }
 
                         if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
                         {
                             var results = DoValueSearch(reg, _fluentCommandLineParser.Object.SimpleSearchValue,
                                 _fluentCommandLineParser.Object.RegEx);
-                            if (results != null) hits.AddRange(results);
+                            if (results != null)
+                            {
+                                hits.AddRange(results);
+                            }
                         }
 
                         if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
                         {
                             var results = DoValueDataSearch(reg, _fluentCommandLineParser.Object.SimpleSearchValueData,
                                 _fluentCommandLineParser.Object.RegEx, _fluentCommandLineParser.Object.Literal);
-                            if (results != null) hits.AddRange(results);
+                            if (results != null)
+                            {
+                                hits.AddRange(results);
+                            }
                         }
 
                         if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
@@ -504,7 +548,10 @@ namespace RECmd
                             var results = DoValueSlackSearch(reg,
                                 _fluentCommandLineParser.Object.SimpleSearchValueSlack,
                                 _fluentCommandLineParser.Object.RegEx, _fluentCommandLineParser.Object.Literal);
-                            if (results != null) hits.AddRange(results);
+                            if (results != null)
+                            {
+                                hits.AddRange(results);
+                            }
                         }
 
                         if (hits.Count > 0)
@@ -522,6 +569,7 @@ namespace RECmd
 
                         var words = new HashSet<string>();
                         foreach (var searchHit in hits)
+                        {
                             if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
                             {
                                 words.Add(_fluentCommandLineParser.Object.SimpleSearchKey);
@@ -539,18 +587,27 @@ namespace RECmd
                                 else
                                 {
                                     if (searchHit.Value.VkRecord.DataType == VkCellRecord.DataTypeEnum.RegBinary)
+                                    {
                                         words.Add(searchHit.HitString);
+                                    }
                                     else
+                                    {
                                         words.Add(_fluentCommandLineParser.Object.SimpleSearchValueData);
+                                    }
                                 }
                             }
                             else if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                             {
                                 if (_fluentCommandLineParser.Object.RegEx)
+                                {
                                     words.Add(_fluentCommandLineParser.Object.SimpleSearchValueSlack);
+                                }
                                 else
+                                {
                                     words.Add(searchHit.HitString);
+                                }
                             }
+                        }
 
                         AddHighlightingRules(words.ToList(), _fluentCommandLineParser.Object.RegEx);
 
@@ -569,9 +626,13 @@ namespace RECmd
                                         var display =
                                             $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
                                         if (keyIsDeleted)
+                                        {
                                             _logger.Fatal(display);
+                                        }
                                         else
+                                        {
                                             _logger.Info(display);
+                                        }
                                     }
                                     else
                                     {
@@ -581,18 +642,26 @@ namespace RECmd
                                                 $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
 
                                             if (keyIsDeleted)
+                                            {
                                                 _logger.Fatal(display);
+                                            }
                                             else
+                                            {
                                                 _logger.Info(display);
+                                            }
                                         }
                                         else
                                         {
                                             var display =
                                                 $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
                                             if (keyIsDeleted)
+                                            {
                                                 _logger.Fatal(display);
+                                            }
                                             else
+                                            {
                                                 _logger.Info(display);
+                                            }
                                         }
                                     }
                                 }
@@ -602,9 +671,13 @@ namespace RECmd
                                         $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
 
                                     if (keyIsDeleted)
+                                    {
                                         _logger.Fatal(display);
+                                    }
                                     else
+                                    {
                                         _logger.Info(display);
+                                    }
                                 }
                                 else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
                                 {
@@ -612,9 +685,13 @@ namespace RECmd
                                         $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
 
                                     if (keyIsDeleted)
+                                    {
                                         _logger.Fatal(display);
+                                    }
                                     else
+                                    {
                                         _logger.Info(display);
+                                    }
                                 }
                             }
                         }
@@ -656,7 +733,10 @@ namespace RECmd
                             if (_fluentCommandLineParser.Object.SaveToName.Length > 0)
                             {
                                 var baseDir = Path.GetDirectoryName(_fluentCommandLineParser.Object.SaveToName);
-                                if (Directory.Exists(baseDir) == false) Directory.CreateDirectory(baseDir);
+                                if (Directory.Exists(baseDir) == false)
+                                {
+                                    Directory.CreateDirectory(baseDir);
+                                }
 
                                 _logger.Warn(
                                     $"Saving contents of '{val.ValueName}' to '{_fluentCommandLineParser.Object.SaveToName}\r\n'");
@@ -682,7 +762,9 @@ namespace RECmd
                             {
                                 //export to json
                                 if (Directory.Exists(_fluentCommandLineParser.Object.Json) == false)
+                                {
                                     Directory.CreateDirectory(_fluentCommandLineParser.Object.Json);
+                                }
 
                                 var jso = BuildJson(key);
 
@@ -710,7 +792,11 @@ namespace RECmd
                                 //key info only
                                 _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
                                 _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
-                                if (keyIsDeleted) _logger.Fatal("Deleted: TRUE");
+                                if (keyIsDeleted)
+                                {
+                                    _logger.Fatal("Deleted: TRUE");
+                                }
+
                                 _logger.Info("");
 
                                 _logger.Info($"Subkey count: {key.SubKeys.Count:N0}");
@@ -751,7 +837,10 @@ namespace RECmd
 
                                         var slack = "";
 
-                                        if (keyValue.ValueSlack.Length > 0) slack = $"(Slack: {keyValue.ValueSlack})";
+                                        if (keyValue.ValueSlack.Length > 0)
+                                        {
+                                            slack = $"(Slack: {keyValue.ValueSlack})";
+                                        }
 
                                         _logger.Fatal($"Data: {keyValue.ValueData} {slack}");
                                     }
@@ -762,7 +851,10 @@ namespace RECmd
 
                                         var slack = "";
 
-                                        if (keyValue.ValueSlack.Length > 0) slack = $"(Slack: {keyValue.ValueSlack})";
+                                        if (keyValue.ValueSlack.Length > 0)
+                                        {
+                                            slack = $"(Slack: {keyValue.ValueSlack})";
+                                        }
 
                                         _logger.Info($"Data: {keyValue.ValueData} {slack}");
                                     }
@@ -786,7 +878,10 @@ namespace RECmd
 
                                 _logger.Fatal($"Value name: '{val.ValueName}' ({val.ValueType})");
                                 var slack = "";
-                                if (val.ValueSlack.Length > 0) slack = $"(Slack: {val.ValueSlack})";
+                                if (val.ValueSlack.Length > 0)
+                                {
+                                    slack = $"(Slack: {val.ValueSlack})";
+                                }
 
                                 _logger.Fatal($"Value data: {val.ValueData} {slack}");
                             }
@@ -799,7 +894,10 @@ namespace RECmd
 
                                 _logger.Info($"Value name: '{val.ValueName}' ({val.ValueType})");
                                 var slack = "";
-                                if (val.ValueSlack.Length > 0) slack = $"(Slack: {val.ValueSlack})";
+                                if (val.ValueSlack.Length > 0)
+                                {
+                                    slack = $"(Slack: {val.ValueSlack})";
+                                }
 
                                 _logger.Info($"Value data: {val.ValueData} {slack}");
                             }
@@ -837,9 +935,13 @@ namespace RECmd
                                 $"Key: {Helpers.StripRootKeyNameFromKeyPath(valueBySizeInfo.Key.KeyPath)}, Value: {valueBySizeInfo.Value.ValueName}, Size: {valueBySizeInfo.Value.ValueDataRaw.Length:N0}";
 
                             if (keyIsDeleted)
+                            {
                                 _logger.Fatal(display);
+                            }
                             else
+                            {
                                 _logger.Info(display);
+                            }
                         }
 
                         _logger.Info("");
@@ -872,9 +974,13 @@ namespace RECmd
                                 $"Key: {Helpers.StripRootKeyNameFromKeyPath(base64hit.Key.KeyPath)}, Value: {base64hit.Value.ValueName}, Size: {base64hit.Value.ValueDataRaw.Length:N0}";
 
                             if (keyIsDeleted)
+                            {
                                 _logger.Fatal(display);
+                            }
                             else
+                            {
                                 _logger.Info(display);
+                            }
                         }
 
                         _logger.Info("");
@@ -882,6 +988,7 @@ namespace RECmd
                     else if (_fluentCommandLineParser.Object.BatchName?.Length > 0) //batch mode
                     {
                         foreach (var key in reBatch.Keys)
+                        {
                             if ((int) reg.HiveType == (int) key.HiveType)
                             {
                                 _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
@@ -910,9 +1017,13 @@ namespace RECmd
                                 }
 
                                 if (regVal != null)
+                                {
                                     _logger.Info($"Found key '{key.KeyPath}' and value '{key.ValueName}'!");
+                                }
                                 else
+                                {
                                     _logger.Info($"Found key '{key.KeyPath}'!");
+                                }
 
                                 //TODO test this with all conditions
                                 BatchDumpKey(regKey, key, reg.HivePath);
@@ -922,12 +1033,15 @@ namespace RECmd
                                 _logger.Debug(
                                     $"Skipping key '{key.KeyPath}' because the current hive ({reg.HiveType}) is not of the right type ({key.HiveType})");
                             }
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     if (ex.Message.Contains("Sequence numbers do not match and transaction") == false)
+                    {
                         _logger.Error($"There was an error: {ex.Message}");
+                    }
                 }
 
                 _sw.Stop();
@@ -957,7 +1071,9 @@ namespace RECmd
                     $"{_runTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.BatchName)}_Output.csv";
 
                 if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
+                {
                     outName = Path.GetFileName(_fluentCommandLineParser.Object.CsvName);
+                }
 
                 var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outName);
 
@@ -1007,6 +1123,7 @@ namespace RECmd
 
             foreach (var registryPluginBase in _plugins)
             foreach (var path in registryPluginBase.KeyPaths)
+            {
                 if (path.Contains("*"))
                 {
                     var segs = path.Split('*');
@@ -1023,8 +1140,10 @@ namespace RECmd
                                 }
                                 else
                                 {
-                                    if (registryPluginBase.ValueName.ToLowerInvariant() ==
-                                        key.ValueName.ToLowerInvariant()) pluginsToActivate.Add(registryPluginBase);
+                                    if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
+                                    {
+                                        pluginsToActivate.Add(registryPluginBase);
+                                    }
                                 }
                             }
                         }
@@ -1036,8 +1155,10 @@ namespace RECmd
                             }
                             else
                             {
-                                if (registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName.ToLowerInvariant())
+                                if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
+                                {
                                     pluginsToActivate.Add(registryPluginBase);
+                                }
                             }
                         }
                     }
@@ -1053,11 +1174,14 @@ namespace RECmd
                         }
                         else
                         {
-                            if (registryPluginBase.ValueName?.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
+                            if (key.ValueName != null && registryPluginBase.ValueName?.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
+                            {
                                 pluginsToActivate.Add(registryPluginBase);
+                            }
                         }
                     }
                 }
+            }
 
 
             return pluginsToActivate;
@@ -1107,7 +1231,9 @@ namespace RECmd
                     }
 
                     if (pig.Errors.Count > 0)
-                        _logger.Warn($"Plugin {pig.PluginName} error", $"Errors: {string.Join(", ", pig.Errors)}");
+                    {
+                        _logger.Warn($"Plugin {pig.PluginName} error. Errors: {string.Join(", ", pig.Errors)}");
+                    }
                 }
             }
             else
@@ -1137,8 +1263,12 @@ namespace RECmd
 
                     //foreach subkey, call BatchDumpKey if recursive
                     if (key.Recursive)
+                    {
                         foreach (var regKeySubKey in regKey.SubKeys)
+                        {
                             BatchDumpKey(regKeySubKey, key, hivePath);
+                        }
+                    }
                 }
             }
         }
@@ -1147,15 +1277,20 @@ namespace RECmd
         {
             var pluginType = plugin.GetType();
 
-            if (plugin.Values.Count == 0) return null;
+            if (plugin.Values.Count == 0)
+            {
+                return null;
+            }
 
             var hiveName1 = hivePath.Replace(":", "").Replace("\\", "_");
 
             var outbase = $"{_runTimestamp}_{pluginType.Name}_{hiveName1}.csv";
 
             if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
+            {
                 outbase =
                     $"{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.CsvName)}_{pluginType.Name}{Path.GetExtension(_fluentCommandLineParser.Object.CsvName)}";
+            }
 
             var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outbase);
 
@@ -1172,12 +1307,21 @@ namespace RECmd
                 {
                     //TODO can these be used to find Datetime related properties and format appropriately?
 
-                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData")) fooMemberMap.Ignore();
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData"))
+                    {
+                        fooMemberMap.Ignore();
+                    }
 
 
-                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath")) fooMemberMap.Index(0);
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath"))
+                    {
+                        fooMemberMap.Index(0);
+                    }
 
-                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueName")) fooMemberMap.Index(1);
+                    if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueName"))
+                    {
+                        fooMemberMap.Index(1);
+                    }
                 }
 
                 if (exists == false)
@@ -1218,9 +1362,13 @@ namespace RECmd
             };
 
             if (regVal.ValueType == "RegBinary")
+            {
                 rebOut.ValueData = "(Binary data)";
+            }
             else
+            {
                 rebOut.ValueData = regVal.ValueData;
+            }
 
             return rebOut;
         }
@@ -1294,11 +1442,17 @@ namespace RECmd
         private static void DisplayValidationResults(ValidationResult result, string source)
         {
             _logger.Trace($"Performing validation on '{source}': {result.Dump()}");
-            if (result.Errors.Count == 0) return;
+            if (result.Errors.Count == 0)
+            {
+                return;
+            }
 
             _logger.Error($"\r\n{source} had validation errors:");
 
-            foreach (var validationFailure in result.Errors) _logger.Error(validationFailure);
+            foreach (var validationFailure in result.Errors)
+            {
+                _logger.Error(validationFailure);
+            }
 
             _logger.Error("\r\nCorrect the errors and try again. Exiting");
 
@@ -1393,9 +1547,13 @@ namespace RECmd
                     IgnoreCase = true
                 };
                 if (isRegEx)
+                {
                     r.Regex = word;
+                }
                 else
+                {
                     r.Text = word;
+                }
 
                 r.ForegroundColor = fgColor;
                 r.BackgroundColor = bgColor;
