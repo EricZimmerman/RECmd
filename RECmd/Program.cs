@@ -323,7 +323,8 @@ namespace RECmd
             }
 
 
-          
+            _logger.Info(header);
+            _logger.Info("");
 
 
             if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
@@ -349,6 +350,8 @@ namespace RECmd
                 {
                     if (fsei.Extension.ToUpperInvariant() == ".LOG1" || fsei.Extension.ToUpperInvariant() == ".LOG2" ||
                         fsei.Extension.ToUpperInvariant() == ".DLL" ||
+                        fsei.Extension.ToUpperInvariant() == ".CSV" ||
+                        fsei.Extension.ToUpperInvariant() == ".EXE" ||
                         fsei.Extension.ToUpperInvariant() == ".TXT" || fsei.Extension.ToUpperInvariant() == ".INI")
                     {
                         return false;
@@ -361,7 +364,9 @@ namespace RECmd
                         return false;
                     }
 
-                    using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
+                    try
+                    {
+using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
                     {
                         using (var br = new BinaryReader(fs, new ASCIIEncoding()))
                         {
@@ -382,6 +387,14 @@ namespace RECmd
                             }
                         }
                     }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Fatal($"Could not open '{fsei.FullPath}' for read access. Is it in use?");
+                        return false;
+                    }
+
+                    
 
                     return true;
                 };
@@ -406,8 +419,7 @@ namespace RECmd
                 return;
             }
 
-            _logger.Info(header);
-            _logger.Info("");
+          
 
             if (hivesToProcess.Count == 0)
             {
@@ -1180,7 +1192,7 @@ namespace RECmd
                             }
                             else
                             {
-                                if (registryPluginBase.ValueName?.ToLowerInvariant() == key.ValueName.ToLowerInvariant())
+                                if (registryPluginBase.ValueName?.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
                                 {
                                     pluginsToActivate.Add(registryPluginBase);
                                 }
@@ -1320,6 +1332,8 @@ namespace RECmd
 
                 foreach (var fooMemberMap in foo.MemberMaps)
                 {
+                  //TODO can these be used to find Datetime related properties and format appropriately?
+
                     if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData")) 
                     {
                         fooMemberMap.Ignore();
