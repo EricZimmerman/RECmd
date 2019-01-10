@@ -1220,7 +1220,7 @@ namespace RECmd
                             Comment = key.Comment,
                             HivePath = hivePath,
                             HiveType = key.HiveType.ToString(),
-                            KeyPath = key.KeyPath,
+                            KeyPath = regKey.KeyPath,
                             LastWriteTimestamp = regKey.LastWriteTime.Value,
                             Recursive = key.Recursive,
                             ValueType = "(plugin)",
@@ -1359,7 +1359,7 @@ namespace RECmd
                 Comment = key.Comment,
                 HivePath = hivePath,
                 HiveType = key.HiveType.ToString(),
-                KeyPath = key.KeyPath,
+                KeyPath = regKey.KeyPath,
                 LastWriteTimestamp = regKey.LastWriteTime.Value,
                 Recursive = key.Recursive,
                 ValueType = regVal.ValueType
