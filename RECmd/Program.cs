@@ -35,11 +35,11 @@ namespace RECmd
         private static Logger _logger;
         private static FluentCommandLineParser<ApplicationArguments> _fluentCommandLineParser;
         private static List<BatchCsvOut> _batchCsvOutList;
-        private static readonly List<IRegistryPluginBase> _plugins = new List<IRegistryPluginBase>();
+        private static readonly List<IRegistryPluginBase> Plugins = new List<IRegistryPluginBase>();
 
-        private static readonly string _baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        private static readonly string BaseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        private static readonly string _runTimestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
+        private static readonly string RunTimestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
 
         private static string _pluginsDir = string.Empty;
 
@@ -103,7 +103,7 @@ namespace RECmd
                             loadedGuiDs.Add(plugin.InternalGuid);
                             //this is a good plugin
 
-                            _plugins.Add(plugin);
+                            Plugins.Add(plugin);
                         }
                     }
                 }
@@ -116,10 +116,10 @@ namespace RECmd
 
         private static void Main(string[] args)
         {
-            //TODO Live Registry support
+        
             SetupNLog();
 
-            _pluginsDir = Path.Combine(_baseDirectory, "Plugins");
+            _pluginsDir = Path.Combine(BaseDirectory, "Plugins");
 
             if (Directory.Exists(_pluginsDir) == false)
             {
@@ -384,7 +384,7 @@ namespace RECmd
                             }
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         _logger.Fatal($"Could not open '{fsei.FullPath}' for read access. Is it in use?");
                         return false;
@@ -965,13 +965,13 @@ namespace RECmd
                             _logger.Info("Nothing found");
                         }
 
-                        foreach (var base64hit in hits)
+                        foreach (var base64Hit in hits)
                         {
-                            var keyIsDeleted = (base64hit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
+                            var keyIsDeleted = (base64Hit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
                                                RegistryKey.KeyFlagsEnum.Deleted;
 
                             var display =
-                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(base64hit.Key.KeyPath)}, Value: {base64hit.Value.ValueName}, Size: {base64hit.Value.ValueDataRaw.Length:N0}";
+                                $"Key: {Helpers.StripRootKeyNameFromKeyPath(base64Hit.Key.KeyPath)}, Value: {base64Hit.Value.ValueName}, Size: {base64Hit.Value.ValueDataRaw.Length:N0}";
 
                             if (keyIsDeleted)
                             {
@@ -1048,9 +1048,9 @@ namespace RECmd
                 totalSeconds += _sw.Elapsed.TotalSeconds;
             }
 
-
-            if (_batchCsvOutList.Count > 0)
+            if (_fluentCommandLineParser.Object.BatchName.IsNullOrEmpty() == false)
             {
+ 
                 _logger.Info("");
 
                 var suffix2 = _batchCsvOutList.Count == 1 ? "" : "s";
@@ -1059,7 +1059,8 @@ namespace RECmd
                 _logger.Info(
                     $"Found {_batchCsvOutList.Count:N0} key/value pair{suffix2} across {hivesToProcess.Count:N0} file{suffix4}");
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
-
+                if (_batchCsvOutList.Count > 0)
+                {
                 if (Directory.Exists(_fluentCommandLineParser.Object.CsvDirectory) == false)
                 {
                     _logger.Warn(
@@ -1068,7 +1069,7 @@ namespace RECmd
                 }
 
                 var outName =
-                    $"{_runTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.BatchName)}_Output.csv";
+                    $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.BatchName)}_Output.csv";
 
                 if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
                 {
@@ -1097,6 +1098,9 @@ namespace RECmd
                 swCsv.Flush();
                 swCsv.Close();
             }
+            }
+
+           
 
             if (searchUsed && _fluentCommandLineParser.Object.Directory?.Length > 0)
             {
@@ -1121,7 +1125,7 @@ namespace RECmd
 
             var keyPath = Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath);
 
-            foreach (var registryPluginBase in _plugins)
+            foreach (var registryPluginBase in Plugins)
             foreach (var path in registryPluginBase.KeyPaths)
             {
                 if (path.Contains("*"))
@@ -1222,11 +1226,11 @@ namespace RECmd
                             ValueType = "(plugin)",
                             ValueData = conv.BatchValueData1,
                             ValueDat2 = conv.BatchValueData2,
-                            ValueData3 = conv.BatchValueData3
+                            ValueData3 = conv.BatchValueData3,
+                            PluginDetailFile = pluginDetailsFile
                         };
 
 
-                        rebOut.PluginDetailFile = pluginDetailsFile;
                         _batchCsvOutList.Add(rebOut);
                     }
 
@@ -1284,7 +1288,7 @@ namespace RECmd
 
             var hiveName1 = hivePath.Replace(":", "").Replace("\\", "_");
 
-            var outbase = $"{_runTimestamp}_{pluginType.Name}_{hiveName1}.csv";
+            var outbase = $"{RunTimestamp}_{pluginType.Name}_{hiveName1}.csv";
 
             if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
             {
@@ -1461,18 +1465,22 @@ namespace RECmd
 
         private static SimpleKey BuildJson(RegistryKey key)
         {
-            var sk = new SimpleKey();
-            sk.KeyName = key.KeyName;
-            sk.KeyPath = key.KeyPath;
-            sk.LastWriteTimestamp = key.LastWriteTime.Value;
+            var sk = new SimpleKey
+            {
+                KeyName = key.KeyName, 
+                KeyPath = key.KeyPath, 
+                LastWriteTimestamp = key.LastWriteTime.Value
+            };
             foreach (var keyValue in key.Values)
             {
-                var sv = new SimpleValue();
-                sv.ValueType = keyValue.ValueType;
-                sv.ValueData = keyValue.ValueData;
-                sv.ValueName = keyValue.ValueName;
-                sv.DataRaw = keyValue.ValueDataRaw;
-                sv.Slack = keyValue.ValueSlackRaw;
+                var sv = new SimpleValue
+                {
+                    ValueType = keyValue.ValueType,
+                    ValueData = keyValue.ValueData,
+                    ValueName = keyValue.ValueName,
+                    DataRaw = keyValue.ValueDataRaw,
+                    Slack = keyValue.ValueSlackRaw
+                };
                 sk.Values.Add(sv);
             }
 
