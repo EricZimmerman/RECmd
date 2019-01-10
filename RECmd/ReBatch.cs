@@ -45,6 +45,7 @@ namespace RECmd
         public string ValueName { get; set; }
 
         public bool Recursive { get; set; }
+        public bool DisablePlugin { get; set; }
 
         public string Comment { get; set; }
     }

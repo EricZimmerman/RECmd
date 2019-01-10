@@ -116,7 +116,6 @@ namespace RECmd
 
         private static void Main(string[] args)
         {
-        
             SetupNLog();
 
             _pluginsDir = Path.Combine(BaseDirectory, "Plugins");
@@ -1050,7 +1049,6 @@ namespace RECmd
 
             if (_fluentCommandLineParser.Object.BatchName.IsNullOrEmpty() == false)
             {
- 
                 _logger.Info("");
 
                 var suffix2 = _batchCsvOutList.Count == 1 ? "" : "s";
@@ -1061,46 +1059,45 @@ namespace RECmd
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
                 if (_batchCsvOutList.Count > 0)
                 {
-                if (Directory.Exists(_fluentCommandLineParser.Object.CsvDirectory) == false)
-                {
-                    _logger.Warn(
-                        $"Path to '{_fluentCommandLineParser.Object.CsvDirectory}' doesn't exist. Creating...");
-                    Directory.CreateDirectory(_fluentCommandLineParser.Object.CsvDirectory);
+                    if (Directory.Exists(_fluentCommandLineParser.Object.CsvDirectory) == false)
+                    {
+                        _logger.Warn(
+                            $"Path to '{_fluentCommandLineParser.Object.CsvDirectory}' doesn't exist. Creating...");
+                        Directory.CreateDirectory(_fluentCommandLineParser.Object.CsvDirectory);
+                    }
+
+                    var outName =
+                        $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.BatchName)}_Output.csv";
+
+                    if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
+                    {
+                        outName = Path.GetFileName(_fluentCommandLineParser.Object.CsvName);
+                    }
+
+                    var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outName);
+
+                    _logger.Info($"\r\nSaving batch mode CSV file to '{outFile}'");
+
+                    var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
+                    var csvWriter = new CsvWriter(swCsv);
+
+                    var foo = csvWriter.Configuration.AutoMap<BatchCsvOut>();
+
+                    foo.Map(t => t.LastWriteTimestamp).ConvertUsing(t =>
+                        $"{t.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
+
+                    csvWriter.Configuration.RegisterClassMap(foo);
+
+                    csvWriter.WriteHeader<BatchCsvOut>();
+                    csvWriter.NextRecord();
+
+                    csvWriter.WriteRecords(_batchCsvOutList);
+
+                    swCsv.Flush();
+                    swCsv.Close();
                 }
-
-                var outName =
-                    $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.BatchName)}_Output.csv";
-
-                if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
-                {
-                    outName = Path.GetFileName(_fluentCommandLineParser.Object.CsvName);
-                }
-
-                var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outName);
-
-                _logger.Info($"\r\nSaving batch mode CSV file to '{outFile}'");
-
-                var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
-                var csvWriter = new CsvWriter(swCsv);
-
-                var foo = csvWriter.Configuration.AutoMap<BatchCsvOut>();
-
-                foo.Map(t => t.LastWriteTimestamp).ConvertUsing(t =>
-                    $"{t.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
-
-                csvWriter.Configuration.RegisterClassMap(foo);
-
-                csvWriter.WriteHeader<BatchCsvOut>();
-                csvWriter.NextRecord();
-
-                csvWriter.WriteRecords(_batchCsvOutList);
-
-                swCsv.Flush();
-                swCsv.Close();
-            }
             }
 
-           
 
             if (searchUsed && _fluentCommandLineParser.Object.Directory?.Length > 0)
             {
@@ -1144,7 +1141,8 @@ namespace RECmd
                                 }
                                 else
                                 {
-                                    if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
+                                    if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() ==
+                                        key.ValueName?.ToLowerInvariant())
                                     {
                                         pluginsToActivate.Add(registryPluginBase);
                                     }
@@ -1159,7 +1157,8 @@ namespace RECmd
                             }
                             else
                             {
-                                if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
+                                if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() ==
+                                    key.ValueName?.ToLowerInvariant())
                                 {
                                     pluginsToActivate.Add(registryPluginBase);
                                 }
@@ -1178,7 +1177,8 @@ namespace RECmd
                         }
                         else
                         {
-                            if (key.ValueName != null && registryPluginBase.ValueName?.ToLowerInvariant() == key.ValueName?.ToLowerInvariant())
+                            if (key.ValueName != null && registryPluginBase.ValueName?.ToLowerInvariant() ==
+                                key.ValueName?.ToLowerInvariant())
                             {
                                 pluginsToActivate.Add(registryPluginBase);
                             }
@@ -1197,7 +1197,7 @@ namespace RECmd
 
             var pluginsToActivate = GetPluginsToActivate(regKey, key);
 
-            if (pluginsToActivate.Count > 0)
+            if (key.DisablePlugin == false &&  pluginsToActivate.Count > 0)
             {
                 foreach (var registryPluginBase in pluginsToActivate)
                 {
@@ -1467,8 +1467,8 @@ namespace RECmd
         {
             var sk = new SimpleKey
             {
-                KeyName = key.KeyName, 
-                KeyPath = key.KeyPath, 
+                KeyName = key.KeyName,
+                KeyPath = key.KeyPath,
                 LastWriteTimestamp = key.LastWriteTime.Value
             };
             foreach (var keyValue in key.Values)
