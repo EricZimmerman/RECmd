@@ -993,39 +993,85 @@ namespace RECmd
                                 _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
                                 _logger.Trace(key.Dump);
 
-                                var regKey = reg.GetKey(key.KeyPath);
-
-                                KeyValue regVal = null;
-
-                                if (regKey == null)
+                                if (key.KeyPath.Contains("*"))
                                 {
-                                    _logger.Warn($"Key '{key.KeyPath}' not found in '{reg.HivePath}'");
-                                    continue;
-                                }
-
-                                if (key.ValueName.IsNullOrEmpty() == false)
-                                {
-                                    //we need to check for a value
-                                    regVal = regKey.Values.SingleOrDefault(t => t.ValueName == key.ValueName);
-
-                                    if (regVal == null)
+                                    var keysToProcess = reg.ExpandKeyPath(key.KeyPath);
+                                    _logger.Debug($"Expanded '{key.KeyPath}' to '{string.Join(" | ",keysToProcess)}'");
+                                    foreach (var keyToProcess in keysToProcess)
                                     {
-                                        _logger.Warn($"Value '{key.ValueName}' not found in key '{key.KeyPath}'");
-                                        continue;
-                                    }
-                                }
+                                        var regKey = reg.GetKey(keyToProcess);
 
-                                if (regVal != null)
-                                {
-                                    _logger.Info($"Found key '{key.KeyPath}' and value '{key.ValueName}'!");
+                                        KeyValue regVal = null;
+
+                                        if (regKey == null)
+                                        {
+                                            _logger.Warn($"Key '{keyToProcess}' not found in '{reg.HivePath}'");
+                                            continue;
+                                        }
+
+                                        if (key.ValueName.IsNullOrEmpty() == false)
+                                        {
+                                            //we need to check for a value
+                                            regVal = regKey.Values.SingleOrDefault(t => t.ValueName == key.ValueName);
+
+                                            if (regVal == null)
+                                            {
+                                                _logger.Warn($"Value '{key.ValueName}' not found in key '{keyToProcess}'");
+                                                continue;
+                                            }
+                                        }
+
+                                        if (regVal != null)
+                                        {
+                                            _logger.Info($"Found key '{keyToProcess}' and value '{key.ValueName}'!");
+                                        }
+                                        else
+                                        {
+                                            _logger.Info($"Found key '{keyToProcess}'!");
+                                        }
+
+                                        //TODO test this with all conditions
+                                        BatchDumpKey(regKey, key, reg.HivePath);
+                                    }
                                 }
                                 else
                                 {
-                                    _logger.Info($"Found key '{key.KeyPath}'!");
+                                    
+                                    var regKey = reg.GetKey(key.KeyPath);
+
+                                    KeyValue regVal = null;
+
+                                    if (regKey == null)
+                                    {
+                                        _logger.Warn($"Key '{key.KeyPath}' not found in '{reg.HivePath}'");
+                                        continue;
+                                    }
+
+                                    if (key.ValueName.IsNullOrEmpty() == false)
+                                    {
+                                        //we need to check for a value
+                                        regVal = regKey.Values.SingleOrDefault(t => t.ValueName == key.ValueName);
+
+                                        if (regVal == null)
+                                        {
+                                            _logger.Warn($"Value '{key.ValueName}' not found in key '{key.KeyPath}'");
+                                            continue;
+                                        }
+                                    }
+
+                                    if (regVal != null)
+                                    {
+                                        _logger.Info($"Found key '{key.KeyPath}' and value '{key.ValueName}'!");
+                                    }
+                                    else
+                                    {
+                                        _logger.Info($"Found key '{key.KeyPath}'!");
+                                    }
+
+                                    //TODO test this with all conditions
+                                    BatchDumpKey(regKey, key, reg.HivePath);
                                 }
 
-                                //TODO test this with all conditions
-                                BatchDumpKey(regKey, key, reg.HivePath);
                             }
                             else
                             {
@@ -1112,8 +1158,10 @@ namespace RECmd
                 _logger.Info(
                     $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
-                _logger.Info("");
+          
             }
+
+            _logger.Info("");
         }
 
         private static List<IRegistryPluginBase> GetPluginsToActivate(RegistryKey regKey, Key key)
