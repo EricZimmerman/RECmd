@@ -1,9 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.22823.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RECmd", "RECmd\RECmd.csproj", "{B931C052-18F8-4BE3-99F3-A974D78C46D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BatchExamples", "BatchExamples", "{BCD44F48-E791-4D0A-A77E-99FF56C87D3A}"
+	ProjectSection(SolutionItems) = preProject
+		BatchExamples\BatchExample.reb = BatchExamples\BatchExample.reb
+		BatchExamples\BatchExampleServcies.reb = BatchExamples\BatchExampleServcies.reb
+		BatchExamples\BatchExampleUserAssist.reb = BatchExamples\BatchExampleUserAssist.reb
+		BatchExamples\BatchExampleWildCard.reb = BatchExamples\BatchExampleWildCard.reb
+		BatchExamples\RECmd_Batch_MC.reb = BatchExamples\RECmd_Batch_MC.reb
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +27,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7E7E6635-A5F8-43E0-A7DF-9658A87B2A63}
 	EndGlobalSection
 EndGlobal

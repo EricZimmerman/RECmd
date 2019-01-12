@@ -33,14 +33,6 @@ Keys:
         Recursive: true
         Comment: No comment
     -
-        Description: UserAssist NO PLUGIN
-        HiveType: NTUSER
-        Category: Execution
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist
-        Recursive: true
-	DisablePlugin: true
-        Comment: Just like the one above, but here we just dump the key as is, since DisablePlugin is true.
-    -
         Description: Some non-existent key
         HiveType: SYSTEM
         Category: Fake
