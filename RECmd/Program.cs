@@ -1131,7 +1131,7 @@ namespace RECmd
 
                     foo.Map(t => t.LastWriteTimestamp).ConvertUsing(t =>
                         $"{t.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
-
+                    
                     csvWriter.Configuration.RegisterClassMap(foo);
 
                     csvWriter.WriteHeader<BatchCsvOut>();
@@ -1273,7 +1273,7 @@ namespace RECmd
                             Recursive = key.Recursive,
                             ValueType = "(plugin)",
                             ValueData = conv.BatchValueData1,
-                            ValueDat2 = conv.BatchValueData2,
+                            ValueData2 = conv.BatchValueData2,
                             ValueData3 = conv.BatchValueData3,
                             PluginDetailFile = pluginDetailsFile
                         };

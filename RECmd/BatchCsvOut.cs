@@ -13,7 +13,7 @@ namespace RECmd
 
         public string ValueType { get; set; }
         public string ValueData { get; set; }
-        public string ValueDat2 { get; set; }
+        public string ValueData2 { get; set; }
         public string ValueData3 { get; set; }
 
         public string Comment { get; set; }
