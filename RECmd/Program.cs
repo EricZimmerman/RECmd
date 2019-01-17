@@ -12,6 +12,7 @@ using FluentValidation.Results;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using RawCopy;
 using Registry;
 using Registry.Abstractions;
 using Registry.Cells;
@@ -367,7 +368,6 @@ namespace RECmd
                         return false;
                     }
 
-         
 
                     var foundOKFilePart = false;
 
@@ -375,10 +375,8 @@ namespace RECmd
                     {
                         if (fsei.FileName.ToUpperInvariant().Contains(okFilePart))
                         {
-                       
-
                             foundOKFilePart = true;
-                       //     return true;
+                            //     return true;
                         }
                     }
 
@@ -386,16 +384,15 @@ namespace RECmd
                     {
                         return false;
                     }
-                  
-                    
+
+
                     var fi = new FileInfo(fsei.FullPath);
 
                     if (fi.Length < 4)
                     {
                         return false;
                     }
-                
-               
+
 
                     try
                     {
@@ -416,7 +413,6 @@ namespace RECmd
                                 }
                                 catch
                                 {
-                                   
                                 }
 
                                 return false;
@@ -425,17 +421,15 @@ namespace RECmd
                     }
                     catch (IOException)
                     {
-                        if (RawCopy.Helper.IsAdministrator() == false)
+                        if (Helper.IsAdministrator() == false)
                         {
-                         throw new UnauthorizedAccessException("Administrator privileges not found!");
-
-                   
+                            throw new UnauthorizedAccessException("Administrator privileges not found!");
                         }
 
                         var files = new List<string>();
                         files.Add(fsei.FullPath);
 
-                        var rawf = RawCopy.Helper.GetFiles(files);
+                        var rawf = Helper.GetFiles(files);
 
                         if (rawf.First().FileBytes.Length == 0)
                         {
@@ -454,9 +448,9 @@ namespace RECmd
                         catch
                         {
                         }
+
                         return false;
                     }
-                   
                 };
 
                 f.RecursionFilter = entryInfo => !entryInfo.IsMountPoint && !entryInfo.IsSymbolicLink;
@@ -472,7 +466,6 @@ namespace RECmd
                     Directory.EnumerateFileSystemEntries(_fluentCommandLineParser.Object.Directory, dirEnumOptions, f);
 
 
-
                 try
                 {
                     hivesToProcess.AddRange(files2);
@@ -484,8 +477,6 @@ namespace RECmd
                     _logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
                     //Environment.Exit(-1);
                 }
-
-                
             }
             else
             {
@@ -528,112 +519,109 @@ namespace RECmd
 
                 try
                 {
-                     RegistryHive reg;
+                    RegistryHive reg;
 
-            var dirname = Path.GetDirectoryName(hiveToProcess);
-            var hiveBase = Path.GetFileName(hiveToProcess);
+                    var dirname = Path.GetDirectoryName(hiveToProcess);
+                    var hiveBase = Path.GetFileName(hiveToProcess);
 
-            List<RawCopy.RawCopyReturn> rawFiles = null;
+                    List<RawCopyReturn> rawFiles = null;
 
-            try
-            {
-                                    _sw = new Stopwatch();
-                    _sw.Start();
-
-
-                reg = new RegistryHive(hiveToProcess)
-                {
-                    RecoverDeleted = true
-                };
-            }
-            catch (IOException)
-            {
-                //file is in use
-
-                if (RawCopy.Helper.IsAdministrator() == false)
-                {
-                    throw new UnauthorizedAccessException("Administrator privileges not found!");
-                }
-
-                _logger.Warn($"'{hiveToProcess}' is in use. Rerouting...\r\n");
-
-                var files = new List<string>();
-                files.Add(hiveToProcess);
-
-                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-
-                foreach (var logFile in logFiles)
-                {
-                    files.Add(logFile);
-                }
-
-                rawFiles = RawCopy.Helper.GetFiles(files);
-
-                if (rawFiles.First().FileBytes.Length == 0)
-                {
-                    continue;
-                }
-
-                reg = new RegistryHive(rawFiles.First().FileBytes,rawFiles.First().InputFilename);
-            }
-
-            if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
-            {
-                
-
-                if (string.IsNullOrEmpty(dirname))
-                {
-                    dirname = ".";
-                }
-
-                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-                
-
-                if (logFiles.Length == 0)
-                {
-                    if (_fluentCommandLineParser.Object.NoTransLogs == false)
+                    try
                     {
-                        _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
-                        throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
-                    }
-                    else
-                    {
-                        _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
-                    }
-               
-                }
-                else
-                {
-                    if (_fluentCommandLineParser.Object.NoTransLogs == false)
-                    {
-                        if (rawFiles != null)
+                        _sw = new Stopwatch();
+                        _sw.Start();
+
+
+                        reg = new RegistryHive(hiveToProcess)
                         {
-                            var lt = new List<TransactionLogFileInfo>();
-                            foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
+                            RecoverDeleted = true
+                        };
+                    }
+                    catch (IOException)
+                    {
+                        //file is in use
+
+                        if (Helper.IsAdministrator() == false)
+                        {
+                            throw new UnauthorizedAccessException("Administrator privileges not found!");
+                        }
+
+                        _logger.Warn($"'{hiveToProcess}' is in use. Rerouting...\r\n");
+
+                        var files = new List<string>();
+                        files.Add(hiveToProcess);
+
+                        var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+
+                        foreach (var logFile in logFiles)
+                        {
+                            files.Add(logFile);
+                        }
+
+                        rawFiles = Helper.GetFiles(files);
+
+                        if (rawFiles.First().FileBytes.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        reg = new RegistryHive(rawFiles.First().FileBytes, rawFiles.First().InputFilename);
+                    }
+
+                    if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+                    {
+                        if (string.IsNullOrEmpty(dirname))
+                        {
+                            dirname = ".";
+                        }
+
+                        var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+
+
+                        if (logFiles.Length == 0)
+                        {
+                            if (_fluentCommandLineParser.Object.NoTransLogs == false)
                             {
-                                var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename,rawCopyReturn.FileBytes);
-                                lt.Add(tt);
+                                _logger.Warn(
+                                    "Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
+                                throw new Exception(
+                                    "Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
                             }
 
-                            reg.ProcessTransactionLogs(lt,true);
+                            _logger.Warn(
+                                "Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
                         }
                         else
                         {
-                            reg.ProcessTransactionLogs(logFiles.ToList(),true);    
+                            if (_fluentCommandLineParser.Object.NoTransLogs == false)
+                            {
+                                if (rawFiles != null)
+                                {
+                                    var lt = new List<TransactionLogFileInfo>();
+                                    foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
+                                    {
+                                        var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename,
+                                            rawCopyReturn.FileBytes);
+                                        lt.Add(tt);
+                                    }
+
+                                    reg.ProcessTransactionLogs(lt, true);
+                                }
+                                else
+                                {
+                                    reg.ProcessTransactionLogs(logFiles.ToList(), true);
+                                }
+                            }
+                            else
+                            {
+                                _logger.Warn(
+                                    "Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
+                            }
                         }
                     }
-                    else
-                    {
-                        _logger.Warn("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
-                    }
-                    
-                }
-            }
 
 
-            reg.ParseHive();
-
-
+                    reg.ParseHive();
 
 
                     _logger.Info("");
@@ -1133,7 +1121,7 @@ namespace RECmd
                                 if (key.KeyPath.Contains("*"))
                                 {
                                     var keysToProcess = reg.ExpandKeyPath(key.KeyPath);
-                                    _logger.Debug($"Expanded '{key.KeyPath}' to '{string.Join(" | ",keysToProcess)}'");
+                                    _logger.Debug($"Expanded '{key.KeyPath}' to '{string.Join(" | ", keysToProcess)}'");
                                     foreach (var keyToProcess in keysToProcess)
                                     {
                                         var regKey = reg.GetKey(keyToProcess);
@@ -1153,7 +1141,8 @@ namespace RECmd
 
                                             if (regVal == null)
                                             {
-                                                _logger.Warn($"Value '{key.ValueName}' not found in key '{keyToProcess}'");
+                                                _logger.Warn(
+                                                    $"Value '{key.ValueName}' not found in key '{keyToProcess}'");
                                                 continue;
                                             }
                                         }
@@ -1173,7 +1162,6 @@ namespace RECmd
                                 }
                                 else
                                 {
-                                    
                                     var regKey = reg.GetKey(key.KeyPath);
 
                                     KeyValue regVal = null;
@@ -1208,7 +1196,6 @@ namespace RECmd
                                     //TODO test this with all conditions
                                     BatchDumpKey(regKey, key, reg.HivePath);
                                 }
-
                             }
                             else
                             {
@@ -1230,7 +1217,6 @@ namespace RECmd
                         }
                         else
                         {
-
                             _logger.Error($"There was an error: {ex.Message}");
                         }
                     }
@@ -1278,7 +1264,7 @@ namespace RECmd
 
                     foo.Map(t => t.LastWriteTimestamp).ConvertUsing(t =>
                         $"{t.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
-                    
+
                     csvWriter.Configuration.RegisterClassMap(foo);
 
                     csvWriter.WriteHeader<BatchCsvOut>();
@@ -1305,7 +1291,6 @@ namespace RECmd
                 _logger.Info(
                     $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
-          
             }
 
             _logger.Info("");
@@ -1392,7 +1377,7 @@ namespace RECmd
 
             var pluginsToActivate = GetPluginsToActivate(regKey, key);
 
-            if (key.DisablePlugin == false &&  pluginsToActivate.Count > 0)
+            if (key.DisablePlugin == false && pluginsToActivate.Count > 0)
             {
                 foreach (var registryPluginBase in pluginsToActivate)
                 {
