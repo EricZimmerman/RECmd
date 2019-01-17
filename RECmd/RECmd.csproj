@@ -41,6 +41,10 @@
     <ApplicationIcon>Registry256.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="RawCopy, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dependencies\RawCopy.dll</HintPath>
+    </Reference>
     <Reference Include="Registry">
       <HintPath>Dependencies\Registry.dll</HintPath>
     </Reference>
@@ -71,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Changes.txt" />
+    <Content Include="Dependencies\RawCopy.dll" />
     <Content Include="Dependencies\Registry.dll" />
     <Content Include="Dependencies\RegistryPluginBase.dll" />
     <Content Include="Registry256.ico" />

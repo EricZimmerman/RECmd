@@ -340,24 +340,62 @@ namespace RECmd
                     return;
                 }
 
+                var okFileParts = new HashSet<string>();
+                okFileParts.Add("USRCLASS");
+                okFileParts.Add("NTUSER");
+                okFileParts.Add("SYSTEM");
+                okFileParts.Add("SAM");
+                okFileParts.Add("SOFTWARE");
+                okFileParts.Add("AMCACHE");
+                okFileParts.Add("SYSCACHE");
+                okFileParts.Add("SECURITY");
+                okFileParts.Add("DRIVERS");
+                okFileParts.Add("COMPONENTS");
+
                 var f = new DirectoryEnumerationFilters();
                 f.InclusionFilter = fsei =>
                 {
                     if (fsei.Extension.ToUpperInvariant() == ".LOG1" || fsei.Extension.ToUpperInvariant() == ".LOG2" ||
                         fsei.Extension.ToUpperInvariant() == ".DLL" ||
+                        fsei.Extension.ToUpperInvariant() == ".LOG" ||
                         fsei.Extension.ToUpperInvariant() == ".CSV" ||
+                        fsei.Extension.ToUpperInvariant() == ".BLF" ||
+                        fsei.Extension.ToUpperInvariant() == ".REGTRANS-MS" ||
                         fsei.Extension.ToUpperInvariant() == ".EXE" ||
                         fsei.Extension.ToUpperInvariant() == ".TXT" || fsei.Extension.ToUpperInvariant() == ".INI")
                     {
                         return false;
                     }
 
+         
+
+                    var foundOKFilePart = false;
+
+                    foreach (var okFilePart in okFileParts)
+                    {
+                        if (fsei.FileName.ToUpperInvariant().Contains(okFilePart))
+                        {
+                       
+
+                            foundOKFilePart = true;
+                       //     return true;
+                        }
+                    }
+
+                    if (foundOKFilePart == false)
+                    {
+                        return false;
+                    }
+                  
+                    
                     var fi = new FileInfo(fsei.FullPath);
 
                     if (fi.Length < 4)
                     {
                         return false;
                     }
+                
+               
 
                     try
                     {
@@ -371,26 +409,54 @@ namespace RECmd
 
                                     var sig = BitConverter.ToInt32(chunk, 0);
 
-                                    if (sig != 0x66676572)
+                                    if (sig == 0x66676572)
                                     {
-                                        return false;
+                                        return true;
                                     }
                                 }
                                 catch
                                 {
-                                    return false;
+                                   
                                 }
+
+                                return false;
                             }
                         }
                     }
-                    catch (Exception)
+                    catch (IOException)
                     {
-                        _logger.Fatal($"Could not open '{fsei.FullPath}' for read access. Is it in use?");
+                        if (RawCopy.Helper.IsAdministrator() == false)
+                        {
+                         throw new UnauthorizedAccessException("Administrator privileges not found!");
+
+                   
+                        }
+
+                        var files = new List<string>();
+                        files.Add(fsei.FullPath);
+
+                        var rawf = RawCopy.Helper.GetFiles(files);
+
+                        if (rawf.First().FileBytes.Length == 0)
+                        {
+                            return false;
+                        }
+
+                        try
+                        {
+                            var sig = BitConverter.ToInt32(rawf.First().FileBytes, 0);
+
+                            if (sig == 0x66676572)
+                            {
+                                return true;
+                            }
+                        }
+                        catch
+                        {
+                        }
                         return false;
                     }
-
-
-                    return true;
+                   
                 };
 
                 f.RecursionFilter = entryInfo => !entryInfo.IsMountPoint && !entryInfo.IsSymbolicLink;
@@ -405,7 +471,21 @@ namespace RECmd
                 var files2 =
                     Directory.EnumerateFileSystemEntries(_fluentCommandLineParser.Object.Directory, dirEnumOptions, f);
 
-                hivesToProcess.AddRange(files2);
+
+
+                try
+                {
+                    hivesToProcess.AddRange(files2);
+                }
+                catch (Exception e)
+                {
+                    _logger.Fatal($"Could not access all files in '{_fluentCommandLineParser.Object.Directory}'");
+                    _logger.Error("");
+                    _logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                    //Environment.Exit(-1);
+                }
+
+                
             }
             else
             {
@@ -448,56 +528,113 @@ namespace RECmd
 
                 try
                 {
-                    var reg = new RegistryHive(hiveToProcess)
-                    {
-                        RecoverDeleted = _fluentCommandLineParser.Object.RecoverDeleted
-                    };
+                     RegistryHive reg;
 
-                    _sw = new Stopwatch();
+            var dirname = Path.GetDirectoryName(hiveToProcess);
+            var hiveBase = Path.GetFileName(hiveToProcess);
+
+            List<RawCopy.RawCopyReturn> rawFiles = null;
+
+            try
+            {
+                                    _sw = new Stopwatch();
                     _sw.Start();
 
-                    if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+
+                reg = new RegistryHive(hiveToProcess)
+                {
+                    RecoverDeleted = true
+                };
+            }
+            catch (IOException)
+            {
+                //file is in use
+
+                if (RawCopy.Helper.IsAdministrator() == false)
+                {
+                    throw new UnauthorizedAccessException("Administrator privileges not found!");
+                }
+
+                _logger.Warn($"'{hiveToProcess}' is in use. Rerouting...\r\n");
+
+                var files = new List<string>();
+                files.Add(hiveToProcess);
+
+                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+
+                foreach (var logFile in logFiles)
+                {
+                    files.Add(logFile);
+                }
+
+                rawFiles = RawCopy.Helper.GetFiles(files);
+
+                if (rawFiles.First().FileBytes.Length == 0)
+                {
+                    continue;
+                }
+
+                reg = new RegistryHive(rawFiles.First().FileBytes,rawFiles.First().InputFilename);
+            }
+
+            if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+            {
+                
+
+                if (string.IsNullOrEmpty(dirname))
+                {
+                    dirname = ".";
+                }
+
+                var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+                
+
+                if (logFiles.Length == 0)
+                {
+                    if (_fluentCommandLineParser.Object.NoTransLogs == false)
                     {
-                        var hiveBase = Path.GetFileName(hiveToProcess);
-
-                        var dirname = Path.GetDirectoryName(hiveToProcess);
-
-                        if (string.IsNullOrEmpty(dirname))
+                        _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
+                        throw new Exception("Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                    }
+                    else
+                    {
+                        _logger.Warn("Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
+                    }
+               
+                }
+                else
+                {
+                    if (_fluentCommandLineParser.Object.NoTransLogs == false)
+                    {
+                        if (rawFiles != null)
                         {
-                            dirname = ".";
-                        }
-
-                        var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-                        var log = LogManager.GetCurrentClassLogger();
-
-                        if (logFiles.Length == 0)
-                        {
-                            if (_fluentCommandLineParser.Object.NoTransLogs == false)
+                            var lt = new List<TransactionLogFileInfo>();
+                            foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
                             {
-                                log.Warn(
-                                    "Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
-                                throw new Exception(
-                                    "Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
+                                var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename,rawCopyReturn.FileBytes);
+                                lt.Add(tt);
                             }
 
-                            log.Warn(
-                                "Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
+                            reg.ProcessTransactionLogs(lt,true);
                         }
                         else
                         {
-                            if (_fluentCommandLineParser.Object.NoTransLogs == false)
-                            {
-                                reg.ProcessTransactionLogs(logFiles.ToList(), true);
-                            }
-                            else
-                            {
-                                log.Warn(
-                                    "Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
-                            }
+                            reg.ProcessTransactionLogs(logFiles.ToList(),true);    
                         }
                     }
+                    else
+                    {
+                        _logger.Warn("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
+                    }
+                    
+                }
+            }
 
-                    reg.ParseHive();
+
+            reg.ParseHive();
+
+
+
 
                     _logger.Info("");
 
@@ -1085,7 +1222,17 @@ namespace RECmd
                 {
                     if (ex.Message.Contains("Sequence numbers do not match and transaction") == false)
                     {
-                        _logger.Error($"There was an error: {ex.Message}");
+                        if (ex.Message.Contains("Administrator privileges not found"))
+                        {
+                            _logger.Fatal($"Could not access '{hiveToProcess}' because it is in use");
+                            _logger.Error("");
+                            _logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                        }
+                        else
+                        {
+
+                            _logger.Error($"There was an error: {ex.Message}");
+                        }
                     }
                 }
 
