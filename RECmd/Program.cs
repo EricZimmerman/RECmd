@@ -315,12 +315,14 @@ namespace RECmd
 
                 if (_fluentCommandLineParser.Object.CsvDirectory.IsNullOrEmpty())
                 {
-                    _logger.Error("--csv is required when using -b. Exiting.");
+                    _logger.Error("--csv is required when using --bn. Exiting.");
                     return;
                 }
 
                 reBatch = ValidateBatchFile();
             }
+
+         
 
 
             if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
@@ -331,6 +333,13 @@ namespace RECmd
                     return;
                 }
 
+                if (CheckMinSwitches() == false)
+                {
+                    _logger.Error($"\r\nOne of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
+                    _logger.Info("Verify the command line and try again");
+                    return;
+                }
+
                 hivesToProcess.Add(_fluentCommandLineParser.Object.HiveFile);
             }
             else if (_fluentCommandLineParser.Object.Directory?.Length > 0)
@@ -338,6 +347,13 @@ namespace RECmd
                 if (Directory.Exists(_fluentCommandLineParser.Object.Directory) == false)
                 {
                     _logger.Error($"Directory '{_fluentCommandLineParser.Object.Directory}' does not exist.");
+                    return;
+                }
+
+                if (CheckMinSwitches() == false)
+                {
+                    _logger.Error($"\r\nOne of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
+                    _logger.Info("Verify the command line and try again");
                     return;
                 }
 
@@ -1204,6 +1220,7 @@ namespace RECmd
                             }
                         }
                     }
+                  
                 }
                 catch (Exception ex)
                 {
@@ -1294,6 +1311,24 @@ namespace RECmd
             }
 
             _logger.Info("");
+        }
+
+        private static bool CheckMinSwitches()
+        {
+            if (_fluentCommandLineParser.Object.SimpleSearchKey.IsNullOrEmpty() &&
+                _fluentCommandLineParser.Object.SimpleSearchValue.IsNullOrEmpty() &&
+                _fluentCommandLineParser.Object.SimpleSearchValueData.IsNullOrEmpty() &&
+                _fluentCommandLineParser.Object.SimpleSearchValueSlack.IsNullOrEmpty() &&
+                _fluentCommandLineParser.Object.KeyName.IsNullOrEmpty() &&
+                _fluentCommandLineParser.Object.MinimumSize == 0 &&
+                _fluentCommandLineParser.Object.Base64 == 0 &&
+                _fluentCommandLineParser.Object.BatchName.IsNullOrEmpty())
+            {
+              
+                return false;
+            }
+
+            return true;
         }
 
         private static List<IRegistryPluginBase> GetPluginsToActivate(RegistryKey regKey, Key key)
