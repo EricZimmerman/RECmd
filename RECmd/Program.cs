@@ -322,8 +322,6 @@ namespace RECmd
                 reBatch = ValidateBatchFile();
             }
 
-         
-
 
             if (_fluentCommandLineParser.Object.HiveFile?.Length > 0)
             {
