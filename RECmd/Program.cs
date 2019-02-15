@@ -1151,7 +1151,7 @@ namespace RECmd
                                         if (key.ValueName.IsNullOrEmpty() == false)
                                         {
                                             //we need to check for a value
-                                            regVal = regKey.Values.SingleOrDefault(t => t.ValueName == key.ValueName);
+                                            regVal = regKey.Values.SingleOrDefault(t => t.ValueName.ToUpperInvariant() == key.ValueName.ToUpperInvariant());
 
                                             if (regVal == null)
                                             {
@@ -1189,7 +1189,7 @@ namespace RECmd
                                     if (key.ValueName.IsNullOrEmpty() == false)
                                     {
                                         //we need to check for a value
-                                        regVal = regKey.Values.SingleOrDefault(t => t.ValueName == key.ValueName);
+                                        regVal = regKey.Values.SingleOrDefault(t => t.ValueName.ToUpperInvariant() == key.ValueName.ToUpperInvariant());
 
                                         if (regVal == null)
                                         {
