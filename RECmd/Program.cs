@@ -333,7 +333,8 @@ namespace RECmd
 
                 if (CheckMinSwitches() == false)
                 {
-                    _logger.Error($"\r\nOne of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
+                    _logger.Error(
+                        "\r\nOne of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
                     _logger.Info("Verify the command line and try again");
                     return;
                 }
@@ -350,7 +351,8 @@ namespace RECmd
 
                 if (CheckMinSwitches() == false)
                 {
-                    _logger.Error($"\r\nOne of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
+                    _logger.Error(
+                        "\r\nOne of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
                     _logger.Info("Verify the command line and try again");
                     return;
                 }
@@ -1125,100 +1127,8 @@ namespace RECmd
                     } //end min size option
                     else if (_fluentCommandLineParser.Object.BatchName?.Length > 0) //batch mode
                     {
-                        foreach (var key in reBatch.Keys)
-                        {
-                            if ((int) reg.HiveType == (int) key.HiveType)
-                            {
-                                _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
-                                _logger.Trace(key.Dump);
-
-                                if (key.KeyPath.Contains("*"))
-                                {
-                                    var keysToProcess = reg.ExpandKeyPath(key.KeyPath);
-                                    _logger.Debug($"Expanded '{key.KeyPath}' to '{string.Join(" | ", keysToProcess)}'");
-                                    foreach (var keyToProcess in keysToProcess)
-                                    {
-                                        var regKey = reg.GetKey(keyToProcess);
-
-                                        KeyValue regVal = null;
-
-                                        if (regKey == null)
-                                        {
-                                            _logger.Warn($"Key '{keyToProcess}' not found in '{reg.HivePath}'");
-                                            continue;
-                                        }
-
-                                        if (key.ValueName.IsNullOrEmpty() == false)
-                                        {
-                                            //we need to check for a value
-                                            regVal = regKey.Values.SingleOrDefault(t => t.ValueName.ToUpperInvariant() == key.ValueName.ToUpperInvariant());
-
-                                            if (regVal == null)
-                                            {
-                                                _logger.Warn(
-                                                    $"Value '{key.ValueName}' not found in key '{keyToProcess}'");
-                                                continue;
-                                            }
-                                        }
-
-                                        if (regVal != null)
-                                        {
-                                            _logger.Info($"Found key '{keyToProcess}' and value '{key.ValueName}'!");
-                                        }
-                                        else
-                                        {
-                                            _logger.Info($"Found key '{keyToProcess}'!");
-                                        }
-
-                                        //TODO test this with all conditions
-                                        BatchDumpKey(regKey, key, reg.HivePath);
-                                    }
-                                }
-                                else
-                                {
-                                    var regKey = reg.GetKey(key.KeyPath);
-
-                                    KeyValue regVal = null;
-
-                                    if (regKey == null)
-                                    {
-                                        _logger.Warn($"Key '{key.KeyPath}' not found in '{reg.HivePath}'");
-                                        continue;
-                                    }
-
-                                    if (key.ValueName.IsNullOrEmpty() == false)
-                                    {
-                                        //we need to check for a value
-                                        regVal = regKey.Values.SingleOrDefault(t => t.ValueName.ToUpperInvariant() == key.ValueName.ToUpperInvariant());
-
-                                        if (regVal == null)
-                                        {
-                                            _logger.Warn($"Value '{key.ValueName}' not found in key '{key.KeyPath}'");
-                                            continue;
-                                        }
-                                    }
-
-                                    if (regVal != null)
-                                    {
-                                        _logger.Info($"Found key '{key.KeyPath}' and value '{key.ValueName}'!");
-                                    }
-                                    else
-                                    {
-                                        _logger.Info($"Found key '{key.KeyPath}'!");
-                                    }
-
-                                    //TODO test this with all conditions
-                                    BatchDumpKey(regKey, key, reg.HivePath);
-                                }
-                            }
-                            else
-                            {
-                                _logger.Debug(
-                                    $"Skipping key '{key.KeyPath}' because the current hive ({reg.HiveType}) is not of the right type ({key.HiveType})");
-                            }
-                        }
+                        ProcessBatch(reBatch, reg);
                     }
-                  
                 }
                 catch (Exception ex)
                 {
@@ -1311,6 +1221,132 @@ namespace RECmd
             _logger.Info("");
         }
 
+        private static void ProcessBatchKey(RegistryKey key, Key batchKey, string hivePath)
+        {
+            if (batchKey.KeyPath.Contains("*"))
+            {
+                //TODO finish
+            }
+            else
+            {
+                var regKey = key;
+
+                KeyValue regVal = null;
+
+                //1. dump all key values (valuename is null)
+                //2. dump only value in a key (value name is specified)
+
+                if (batchKey.ValueName.IsNullOrEmpty() == false)
+                {
+                    //we need to check for a value
+                    regVal = regKey.Values.SingleOrDefault(t =>
+                        String.Equals(t.ValueName, batchKey.ValueName, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (regVal != null)
+                    {
+                        _logger.Trace($"Found value '{batchKey.ValueName}' in key {regKey.KeyPath}!");
+                        BatchDumpKey(key, batchKey, hivePath);
+                    }
+                }
+
+                if (regVal == null && batchKey.ValueName.IsNullOrEmpty())
+                {
+                    //do not need to find a value, 
+                    _logger.Trace($"Found key '{key.KeyPath}'!");
+                    BatchDumpKey(key, batchKey, hivePath);
+                }
+            
+
+                if (!batchKey.Recursive)
+                {
+                    return;
+                }
+
+                foreach (var regKeySubKey in regKey.SubKeys)
+                {
+                    ProcessBatchKey(regKeySubKey, batchKey, hivePath);
+                }
+            }
+        }
+
+        private static void ProcessBatch(ReBatch reBatch, RegistryHive regHive)
+        {
+            foreach (var key in reBatch.Keys)
+            {
+                if ((int) regHive.HiveType != (int) key.HiveType)
+                {
+                    _logger.Debug(
+                        $"Skipping key '{key.KeyPath}' because the current hive ({regHive.HiveType}) is not of the right type ({key.HiveType})");
+                    continue;
+                }
+
+            
+                _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
+                _logger.Trace(key.Dump);
+
+                if (key.KeyPath.Contains("*"))
+                {
+                    var keysToProcess = regHive.ExpandKeyPath(key.KeyPath);
+                    _logger.Debug($"Expanded '{key.KeyPath}' to '{string.Join(" | ", keysToProcess)}'");
+                    foreach (var keyToProcess in keysToProcess)
+                    {
+                        var regKey = regHive.GetKey(keyToProcess);
+
+                        KeyValue regVal = null;
+
+                        if (regKey == null)
+                        {
+                            _logger.Warn($"Key '{keyToProcess}' not found in '{regHive.HivePath}'");
+                            continue;
+                        }
+
+                        if (key.ValueName.IsNullOrEmpty() == false)
+                        {
+                            //we need to check for a value
+                            regVal = regKey.Values.SingleOrDefault(t =>
+                                t.ValueName.ToUpperInvariant() == key.ValueName.ToUpperInvariant());
+
+                            if (regVal == null)
+                            {
+                                _logger.Debug(
+                                    $"Value '{key.ValueName}' not found in key '{keyToProcess}'");
+                                continue;
+                            }
+                        }
+
+                        if (regVal != null)
+                        {
+                            _logger.Info($"Found key '{keyToProcess}' and value '{key.ValueName}'!");
+                        }
+                        else
+                        {
+                            _logger.Info($"Found key '{keyToProcess}'!");
+                        }
+
+                        //TODO test this with all conditions
+                        BatchDumpKey(regKey, key, regHive.HivePath);
+                    }
+                }
+                else
+                {
+                    var regKey = regHive.GetKey(key.KeyPath);
+
+                    KeyValue regVal = null;
+
+                    if (regKey == null)
+                    {
+                        _logger.Debug($"Key '{key.KeyPath}' not found in '{regHive.HivePath}'");
+                        continue;
+                    }
+
+                    ProcessBatchKey(regKey, key, regHive.HivePath);
+
+                   
+                }
+           
+            }
+        }
+
         private static bool CheckMinSwitches()
         {
             if (_fluentCommandLineParser.Object.SimpleSearchKey.IsNullOrEmpty() &&
@@ -1322,7 +1358,6 @@ namespace RECmd
                 _fluentCommandLineParser.Object.Base64 == 0 &&
                 _fluentCommandLineParser.Object.BatchName.IsNullOrEmpty())
             {
-              
                 return false;
             }
 
@@ -1406,7 +1441,10 @@ namespace RECmd
 
         private static void BatchDumpKey(RegistryKey regKey, Key key, string hivePath)
         {
-            _logger.Debug($"Batch dumping '{regKey.KeyPath}' in '{hivePath}'. Recursive: {key.Recursive}");
+            _logger.Trace($"Batch dumping '{regKey.KeyPath}' in '{hivePath}'");
+           
+            //1. dump all key values (valuename is null)
+            //2. dump only value in a key (value name is specified)
 
             var pluginsToActivate = GetPluginsToActivate(regKey, key);
 
@@ -1478,14 +1516,14 @@ namespace RECmd
                         _batchCsvOutList.Add(rebOut);
                     }
 
-                    //foreach subkey, call BatchDumpKey if recursive
-                    if (key.Recursive)
-                    {
-                        foreach (var regKeySubKey in regKey.SubKeys)
-                        {
-                            BatchDumpKey(regKeySubKey, key, hivePath);
-                        }
-                    }
+//                    //foreach subkey, call BatchDumpKey if recursive
+//                    if (key.Recursive)
+//                    {
+//                        foreach (var regKeySubKey in regKey.SubKeys)
+//                        {
+//                            BatchDumpKey(regKeySubKey, key, hivePath);
+//                        }
+//                    }
                 }
             }
         }
