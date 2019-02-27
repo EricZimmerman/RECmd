@@ -1287,7 +1287,7 @@ namespace RECmd
                 if (key.KeyPath.Contains("*"))
                 {
                     var keysToProcess = regHive.ExpandKeyPath(key.KeyPath);
-                    _logger.Debug($"Expanded '{key.KeyPath}' to '{string.Join(" | ", keysToProcess)}'");
+                    _logger.Trace($"Expanded '{key.KeyPath}' to '{string.Join(" | ", keysToProcess)}'");
                     foreach (var keyToProcess in keysToProcess)
                     {
                         var regKey = regHive.GetKey(keyToProcess);
@@ -1296,7 +1296,7 @@ namespace RECmd
 
                         if (regKey == null)
                         {
-                            _logger.Warn($"Key '{keyToProcess}' not found in '{regHive.HivePath}'");
+                            _logger.Warn($"Key '{regKey.KeyPath}' not found in '{regHive.HivePath}'");
                             continue;
                         }
 
@@ -1309,18 +1309,18 @@ namespace RECmd
                             if (regVal == null)
                             {
                                 _logger.Debug(
-                                    $"Value '{key.ValueName}' not found in key '{keyToProcess}'");
+                                    $"Value '{key.ValueName}' not found in key '{Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath)}'");
                                 continue;
                             }
                         }
 
                         if (regVal != null)
                         {
-                            _logger.Info($"Found key '{keyToProcess}' and value '{key.ValueName}'!");
+                            _logger.Info($"Found key '{Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath)}' and value '{key.ValueName}'!");
                         }
                         else
                         {
-                            _logger.Info($"Found key '{keyToProcess}'!");
+                            _logger.Info($"Found key '{Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath)}'!");
                         }
 
                         //TODO test this with all conditions
