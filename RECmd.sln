@@ -7,11 +7,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RECmd", "RECmd\RECmd.csproj
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BatchExamples", "BatchExamples", "{BCD44F48-E791-4D0A-A77E-99FF56C87D3A}"
 	ProjectSection(SolutionItems) = preProject
+		BatchExamples\AllRegExecutablesFoundOrRun.reb = BatchExamples\AllRegExecutablesFoundOrRun.reb
+		BatchExamples\BasicSystemInfo.reb = BatchExamples\BasicSystemInfo.reb
 		BatchExamples\BatchExample.reb = BatchExamples\BatchExample.reb
 		BatchExamples\BatchExampleServcies.reb = BatchExamples\BatchExampleServcies.reb
+		BatchExamples\BatchExampleServices.reb = BatchExamples\BatchExampleServices.reb
+		BatchExamples\BatchExampleSysCache.reb = BatchExamples\BatchExampleSysCache.reb
 		BatchExamples\BatchExampleUserAssist.reb = BatchExamples\BatchExampleUserAssist.reb
 		BatchExamples\BatchExampleWildCard.reb = BatchExamples\BatchExampleWildCard.reb
 		BatchExamples\RECmd_Batch_MC.reb = BatchExamples\RECmd_Batch_MC.reb
+		BatchExamples\RegistryASEPs.reb = BatchExamples\RegistryASEPs.reb
+		BatchExamples\SoftwareASEPs.reb = BatchExamples\SoftwareASEPs.reb
+		BatchExamples\SoftwareClassesASEPs.reb = BatchExamples\SoftwareClassesASEPs.reb
+		BatchExamples\SoftwareWoW6432ASEPs.reb = BatchExamples\SoftwareWoW6432ASEPs.reb
+		BatchExamples\SystemASEPs.reb = BatchExamples\SystemASEPs.reb
 	EndProjectSection
 EndProject
 Global
