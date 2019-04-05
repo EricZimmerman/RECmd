@@ -246,7 +246,7 @@ Keys:
         Description: Network Interfaces
         HiveType: SYSTEM
         Category: Network Configuration
-        KeyPath: ControlSet00*\Services\Tcpip\Parameters\Interfaces
+        KeyPath: ControlSet00*\Services\Tcpip\Parameters\Interfaces\*
         Recursive: true
         DisablePlugin: true
         Comment: Network Interfaces       
@@ -272,3 +272,11 @@ Keys:
         ValueName: Current
         Recursive: false
         Comment: Current Control Set Name
+    -
+        Description: Shutdown Time
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet00*\Control\Windows
+        ValueName: ShutdownTime
+        Recursive: false
+        Comment: Shutdown Time
