@@ -7,6 +7,9 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Alphaleonis.Win32.Filesystem;
+using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using Fclp;
 using FluentValidation.Results;
 using NLog;
@@ -385,18 +388,18 @@ namespace RECmd
                     }
 
 
-                    var foundOKFilePart = false;
+                    var foundOkFilePart = false;
 
                     foreach (var okFilePart in okFileParts)
                     {
                         if (fsei.FileName.ToUpperInvariant().Contains(okFilePart))
                         {
-                            foundOKFilePart = true;
+                            foundOkFilePart = true;
                             //     return true;
                         }
                     }
 
-                    if (foundOKFilePart == false)
+                    if (foundOkFilePart == false)
                     {
                         return false;
                     }
@@ -427,7 +430,7 @@ namespace RECmd
                                         return true;
                                     }
                                 }
-                                catch
+                                catch (Exception)
                                 {
                                 }
 
@@ -447,21 +450,24 @@ namespace RECmd
 
                         var rawf = Helper.GetFiles(files);
 
-                        if (rawf.First().FileBytes.Length == 0)
+                        if (rawf.First().FileStream.Length == 0)
                         {
                             return false;
                         }
 
                         try
                         {
-                            var sig = BitConverter.ToInt32(rawf.First().FileBytes, 0);
+                            var b = new byte[4];
+                            rawf.First().FileStream.ReadExactly(b, 4);
+
+                            var sig = BitConverter.ToInt32(b, 0);
 
                             if (sig == 0x66676572)
                             {
                                 return true;
                             }
                         }
-                        catch
+                        catch (Exception)
                         {
                         }
 
@@ -486,7 +492,7 @@ namespace RECmd
                 {
                     hivesToProcess.AddRange(files2);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     _logger.Fatal($"Could not access all files in '{_fluentCommandLineParser.Object.Directory}'");
                     _logger.Error("");
@@ -576,12 +582,14 @@ namespace RECmd
 
                         rawFiles = Helper.GetFiles(files);
 
-                        if (rawFiles.First().FileBytes.Length == 0)
+                        if (rawFiles.First().FileStream.Length == 0)
                         {
                             continue;
                         }
 
-                        reg = new RegistryHive(rawFiles.First().FileBytes, rawFiles.First().InputFilename);
+                        var bb = rawFiles.First().FileStream.ReadFully();
+
+                        reg = new RegistryHive(bb, rawFiles.First().InputFilename);
                     }
 
                     if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
@@ -616,8 +624,9 @@ namespace RECmd
                                     var lt = new List<TransactionLogFileInfo>();
                                     foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
                                     {
-                                        var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename,
-                                            rawCopyReturn.FileBytes);
+                                        var bb1 = rawCopyReturn.FileStream.ReadFully();
+
+                                        var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename, bb1);
                                         lt.Add(tt);
                                     }
 
@@ -1223,49 +1232,42 @@ namespace RECmd
 
         private static void ProcessBatchKey(RegistryKey key, Key batchKey, string hivePath)
         {
-            if (batchKey.KeyPath.Contains("*"))
+            var regKey = key;
+
+            KeyValue regVal = null;
+
+            //1. dump all key values (value name is null)
+            //2. dump only value in a key (value name is specified)
+
+            if (batchKey.ValueName.IsNullOrEmpty() == false)
             {
-                //TODO finish
-            }
-            else
-            {
-                var regKey = key;
+                //we need to check for a value
+                regVal = regKey.Values.SingleOrDefault(t =>
+                    string.Equals(t.ValueName, batchKey.ValueName, StringComparison.InvariantCultureIgnoreCase));
 
-                KeyValue regVal = null;
-
-                //1. dump all key values (valuename is null)
-                //2. dump only value in a key (value name is specified)
-
-                if (batchKey.ValueName.IsNullOrEmpty() == false)
+                if (regVal != null)
                 {
-                    //we need to check for a value
-                    regVal = regKey.Values.SingleOrDefault(t =>
-                        String.Equals(t.ValueName, batchKey.ValueName, StringComparison.InvariantCultureIgnoreCase));
-
-                    if (regVal != null)
-                    {
-                        _logger.Trace($"Found value '{batchKey.ValueName}' in key {regKey.KeyPath}!");
-                        BatchDumpKey(key, batchKey, hivePath);
-                    }
-                }
-
-                if (regVal == null && batchKey.ValueName.IsNullOrEmpty())
-                {
-                    //do not need to find a value, 
-                    _logger.Trace($"Found key '{key.KeyPath}'!");
+                    _logger.Trace($"Found value '{batchKey.ValueName}' in key {regKey.KeyPath}!");
                     BatchDumpKey(key, batchKey, hivePath);
                 }
-            
+            }
 
-                if (!batchKey.Recursive)
-                {
-                    return;
-                }
+            if (regVal == null && batchKey.ValueName.IsNullOrEmpty())
+            {
+                //do not need to find a value, 
+                _logger.Trace($"Found key '{key.KeyPath}'!");
+                BatchDumpKey(key, batchKey, hivePath);
+            }
 
-                foreach (var regKeySubKey in regKey.SubKeys)
-                {
-                    ProcessBatchKey(regKeySubKey, batchKey, hivePath);
-                }
+
+            if (!batchKey.Recursive)
+            {
+                return;
+            }
+
+            foreach (var regKeySubKey in regKey.SubKeys)
+            {
+                ProcessBatchKey(regKeySubKey, batchKey, hivePath);
             }
         }
 
@@ -1280,7 +1282,6 @@ namespace RECmd
                     continue;
                 }
 
-            
                 _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
                 _logger.Trace(key.Dump);
 
@@ -1296,7 +1297,7 @@ namespace RECmd
 
                         if (regKey == null)
                         {
-                            _logger.Warn($"Key '{regKey.KeyPath}' not found in '{regHive.HivePath}'");
+                            _logger.Warn($"Key '{keyToProcess}' not found in '{regHive.HivePath}'");
                             continue;
                         }
 
@@ -1316,7 +1317,8 @@ namespace RECmd
 
                         if (regVal != null)
                         {
-                            _logger.Info($"Found key '{Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath)}' and value '{key.ValueName}'!");
+                            _logger.Info(
+                                $"Found key '{Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath)}' and value '{key.ValueName}'!");
                         }
                         else
                         {
@@ -1331,8 +1333,6 @@ namespace RECmd
                 {
                     var regKey = regHive.GetKey(key.KeyPath);
 
-                    KeyValue regVal = null;
-
                     if (regKey == null)
                     {
                         _logger.Debug($"Key '{key.KeyPath}' not found in '{regHive.HivePath}'");
@@ -1340,10 +1340,7 @@ namespace RECmd
                     }
 
                     ProcessBatchKey(regKey, key, regHive.HivePath);
-
-                   
                 }
-           
             }
         }
 
@@ -1442,7 +1439,7 @@ namespace RECmd
         private static void BatchDumpKey(RegistryKey regKey, Key key, string hivePath)
         {
             _logger.Trace($"Batch dumping '{regKey.KeyPath}' in '{hivePath}'");
-           
+
             //1. dump all key values (valuename is null)
             //2. dump only value in a key (value name is specified)
 
@@ -1541,6 +1538,13 @@ namespace RECmd
 
             var outbase = $"{RunTimestamp}_{pluginType.Name}_{hiveName1}.csv";
 
+            if (Directory.Exists(_fluentCommandLineParser.Object.CsvDirectory) == false)
+            {
+                _logger.Warn(
+                    $"Path to '{_fluentCommandLineParser.Object.CsvDirectory}' doesn't exist. Creating...");
+                Directory.CreateDirectory(_fluentCommandLineParser.Object.CsvDirectory);
+            }
+
             if (_fluentCommandLineParser.Object.CsvName.IsNullOrEmpty() == false)
             {
                 outbase =
@@ -1557,16 +1561,18 @@ namespace RECmd
 
                 var foo = csvWriter.Configuration.AutoMap(plugin.Values[0].GetType());
 
-
                 foreach (var fooMemberMap in foo.MemberMaps)
                 {
-                    //TODO can these be used to find Datetime related properties and format appropriately?
+                    if (fooMemberMap.Data.Member.ToString().Contains("DateTime") ||
+                        fooMemberMap.Data.Member.ToString().Contains("DateTimeOffset"))
+                    {
+                        fooMemberMap.Data.TypeConverter = new NullConverter();
+                    }
 
                     if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData"))
                     {
                         fooMemberMap.Ignore();
                     }
-
 
                     if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath"))
                     {
@@ -1578,6 +1584,8 @@ namespace RECmd
                         fooMemberMap.Index(1);
                     }
                 }
+
+                csvWriter.Configuration.RegisterClassMap(foo);
 
                 if (exists == false)
                 {
@@ -1819,6 +1827,22 @@ namespace RECmd
 
                 r.WholeWords = false;
                 target.WordHighlightingRules.Add(r);
+            }
+        }
+
+        public class NullConverter : DefaultTypeConverter
+        {
+            public override string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
+            {
+                switch (value)
+                {
+                    case DateTimeOffset dto:
+                        return dto.ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                    case DateTime dt:
+                        return dt.ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                    default:
+                        return base.ConvertToString(value, row, memberMapData);
+                }
             }
         }
     }
