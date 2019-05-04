@@ -21,7 +21,7 @@ Keys:
         Description: MS Office MRU
         HiveType: NTUSER
         Category: File and Folder Opening
-        KeyPath: SOFTWARE\Microsoft\Office\*\*\User MRU\*
+        KeyPath: SOFTWARE\Microsoft\Office\*\*\User MRU\*\*
         Recursive: true
         Comment: MS Office MRU   
     -
