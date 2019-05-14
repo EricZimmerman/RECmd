@@ -46,6 +46,7 @@ namespace RECmd
         private static readonly string RunTimestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
 
         private static string _pluginsDir = string.Empty;
+        private const string VssDir = @"C:\___vssMount";
 
         private static void SetupNLog()
         {
@@ -117,6 +118,8 @@ namespace RECmd
                 }
             }
         }
+
+        private static HashSet<string> _seenHashes = new HashSet<string>();
 
         private static void Main(string[] args)
         {
@@ -232,14 +235,21 @@ namespace RECmd
                 .WithDescription(
                     "When true, ignore transaction log files for dirty hives. Default is FALSE").SetDefault(false);
 
-//            _fluentCommandLineParser.Setup(arg => arg.DisablePlugins)
-//                .As("dp")
-//                .WithDescription(
-//                    "When true, plugins will not be used to process supported keys/values. Default is FALSE").SetDefault(false);
-
             _fluentCommandLineParser.Setup(arg => arg.RecoverDeleted)
                 .As("recover")
                 .WithDescription("If true, recover deleted keys/values. Default is TRUE\r\n").SetDefault(true);
+            
+            _fluentCommandLineParser.Setup(arg => arg.Vss)
+                .As("vss")
+                .WithDescription(
+                    "Process all Volume Shadow Copies that exist on drive specified by -f or -d . Default is FALSE")
+                .SetDefault(false);
+            _fluentCommandLineParser.Setup(arg => arg.Dedupe)
+                .As("dedupe")
+                .WithDescription(
+                    "Deduplicate -f or -d & VSCs based on SHA-1. First file found wins. Default is TRUE\r\n")
+                .SetDefault(true);
+
 
             _fluentCommandLineParser.Setup(arg => arg.Debug)
                 .As("debug")
@@ -288,6 +298,12 @@ namespace RECmd
                 _logger.Trace("Enabled trace messages...");
             }
 
+            if (_fluentCommandLineParser.Object.Vss & (Helper.IsAdministrator() == false))
+            {
+                _logger.Error("--vss is present, but administrator rights not found. Exiting\r\n");
+                return;
+            }
+
             if (result.HelpCalled)
             {
                 return;
@@ -307,6 +323,28 @@ namespace RECmd
             var hivesToProcess = new List<string>();
 
             ReBatch reBatch = null;
+
+            _logger.Info(header);
+            _logger.Info("");
+            _logger.Info($"Command line: {string.Join(" ", Environment.GetCommandLineArgs().Skip(1))}\r\n");
+
+            if (_fluentCommandLineParser.Object.Vss)
+            {
+                string driveLetter;
+                if (_fluentCommandLineParser.Object.HiveFile.IsEmpty() == false)
+                {
+                    driveLetter = Path.GetPathRoot(Path.GetFullPath(_fluentCommandLineParser.Object.HiveFile))
+                        .Substring(0, 1);
+                }
+                else
+                {
+                    driveLetter = Path.GetPathRoot(Path.GetFullPath(_fluentCommandLineParser.Object.Directory))
+                        .Substring(0, 1);
+                }
+                
+                Helper.MountVss(driveLetter,VssDir);
+                Console.WriteLine();
+            }
 
             if (_fluentCommandLineParser.Object.BatchName?.Length > 0) //batch mode
             {
@@ -343,6 +381,25 @@ namespace RECmd
                 }
 
                 hivesToProcess.Add(_fluentCommandLineParser.Object.HiveFile);
+
+                if (_fluentCommandLineParser.Object.Vss)
+                {
+                    var vssDirs = Directory.GetDirectories(VssDir);
+
+                    var root = Path.GetPathRoot(Path.GetFullPath(_fluentCommandLineParser.Object.HiveFile));
+                    var stem = Path.GetFullPath(_fluentCommandLineParser.Object.HiveFile).Replace(root, "");
+
+                    foreach (var vssDir in vssDirs)
+                    {
+                        var newPath = Path.Combine(vssDir, stem);
+                        if (File.Exists(newPath))
+                        {
+                            hivesToProcess.Add(newPath);
+                        }
+                    }
+                }
+
+
             }
             else if (_fluentCommandLineParser.Object.Directory?.Length > 0)
             {
@@ -484,13 +541,19 @@ namespace RECmd
                     DirectoryEnumerationOptions.SkipReparsePoints | DirectoryEnumerationOptions.ContinueOnException |
                     DirectoryEnumerationOptions.BasicSearch;
 
+                _logger.Fatal($"Searching 'VSS{_fluentCommandLineParser.Object.Directory}' for hives...");
+
                 var files2 =
                     Directory.EnumerateFileSystemEntries(_fluentCommandLineParser.Object.Directory, dirEnumOptions, f);
 
+                var count = 0;
 
                 try
                 {
                     hivesToProcess.AddRange(files2);
+                    count = hivesToProcess.Count;
+
+                    _logger.Info($"\tHives found: {count:N0}");
                 }
                 catch (Exception)
                 {
@@ -499,6 +562,47 @@ namespace RECmd
                     _logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
                     //Environment.Exit(-1);
                 }
+
+                if (_fluentCommandLineParser.Object.Vss)
+                {
+                    var vssDirs = Directory.GetDirectories(VssDir);
+
+                    
+
+                    foreach (var vssDir in vssDirs)
+                    {
+                        var root = Path.GetPathRoot(Path.GetFullPath(_fluentCommandLineParser.Object.Directory));
+                        var stem = Path.GetFullPath(_fluentCommandLineParser.Object.Directory).Replace(root, "");
+
+                        var target = Path.Combine(vssDir, stem);
+
+                        _logger.Fatal($"Searching 'VSS{target.Replace($"{VssDir}\\","")}' for hives...");
+
+                        files2 =
+                            Directory.EnumerateFileSystemEntries(target, dirEnumOptions, f);
+
+                        try
+                        {
+                            hivesToProcess.AddRange(files2);
+
+                            count = hivesToProcess.Count - count;
+
+                            _logger.Info($"\tHives found: {count:N0}");
+                        }
+                        catch (Exception)
+                        {
+                            _logger.Fatal($"Could not access all files in '{_fluentCommandLineParser.Object.Directory}'");
+                            _logger.Error("");
+                            _logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                            //Environment.Exit(-1);
+                        }                    
+                    }
+
+                }
+
+                _logger.Fatal($"\r\nTotal hives found: {hivesToProcess.Count:N0}");
+                
+
             }
             else
             {
@@ -506,8 +610,7 @@ namespace RECmd
                 return;
             }
 
-            _logger.Info(header);
-            _logger.Info("");
+          
 
             if (hivesToProcess.Count == 0)
             {
@@ -529,9 +632,18 @@ namespace RECmd
             {
                 _logger.Info("");
 
-                _logger.Info($"Processing hive '{hiveToProcess}'");
+            
+                
+                if (hiveToProcess.StartsWith(VssDir))
+                {
+                    _logger.Warn($"Processing 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                }
+                else
+                {
+                    _logger.Info($"Processing hive '{hiveToProcess}'");
+                }
 
-                _logger.Info("");
+                //_logger.Info("");
 
                 if (File.Exists(hiveToProcess) == false)
                 {
@@ -553,11 +665,29 @@ namespace RECmd
                         _sw = new Stopwatch();
                         _sw.Start();
 
-
-                        reg = new RegistryHive(hiveToProcess)
+                        using (var fs = new FileStream(hiveToProcess,FileMode.Open,FileAccess.Read))
                         {
-                            RecoverDeleted = true
-                        };
+                            if (_fluentCommandLineParser.Object.Dedupe)
+                            {
+                                var sha = Helper.GetSha1FromStream(fs,0);
+                                if (_seenHashes.Contains(sha))
+                                {
+                                    _logger.Debug($"Skipping '{hiveToProcess}' as a file with SHA-1 '{sha}' has already been processed");
+                                    continue;
+                                }
+
+                                _seenHashes.Add(sha);
+                            }
+
+                            reg = new RegistryHive(fs.ReadFully(),hiveToProcess)
+                            {
+                                RecoverDeleted = true
+                            };
+
+                        }
+
+
+                    
                     }
                     catch (IOException)
                     {
@@ -585,6 +715,18 @@ namespace RECmd
                         if (rawFiles.First().FileStream.Length == 0)
                         {
                             continue;
+                        }
+
+                        if (_fluentCommandLineParser.Object.Dedupe)
+                        {
+                            var sha = Helper.GetSha1FromStream(rawFiles.First().FileStream,0);
+                            if (_seenHashes.Contains(sha))
+                            {
+                                _logger.Debug($"Skipping '{hiveToProcess}' as a file with SHA-1 '{sha}' has already been processed");
+                                continue;
+                            }
+
+                            _seenHashes.Add(sha);
                         }
 
                         var bb = rawFiles.First().FileStream.ReadFully();
@@ -649,7 +791,7 @@ namespace RECmd
                     reg.ParseHive();
 
 
-                    _logger.Info("");
+                   // _logger.Info("");
 
                     //hive is ready for searching/interaction
 
@@ -706,14 +848,22 @@ namespace RECmd
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
-                            _logger.Fatal($"Found {hits.Count:N0} search hit{suffix2} in '{hiveToProcess}'");
+                            
+                            if (hiveToProcess.StartsWith(VssDir))
+                            {
+                                _logger.Fatal($"\tFound {hits.Count:N0} search hit{suffix2} in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                            }
+                            else
+                            {
+                                _logger.Fatal($"\tFound {hits.Count:N0} search hit{suffix2} in '{hiveToProcess}'");
+                            }
 
                             hivesWithHits += 1;
                             totalHits += hits.Count;
                         }
                         else
                         {
-                            _logger.Info("Nothing found");
+                            _logger.Info("\tNothing found");
                         }
 
                         var words = new HashSet<string>();
@@ -773,7 +923,7 @@ namespace RECmd
                                     if (_fluentCommandLineParser.Object.SuppressData)
                                     {
                                         var display =
-                                            $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+                                            $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
                                         if (keyIsDeleted)
                                         {
                                             _logger.Fatal(display);
@@ -788,7 +938,7 @@ namespace RECmd
                                         if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                                         {
                                             var display =
-                                                $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
+                                                $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
 
                                             if (keyIsDeleted)
                                             {
@@ -802,7 +952,7 @@ namespace RECmd
                                         else
                                         {
                                             var display =
-                                                $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
+                                                $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
                                             if (keyIsDeleted)
                                             {
                                                 _logger.Fatal(display);
@@ -817,7 +967,7 @@ namespace RECmd
                                 else if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
                                 {
                                     var display =
-                                        $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
+                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
 
                                     if (keyIsDeleted)
                                     {
@@ -831,7 +981,7 @@ namespace RECmd
                                 else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
                                 {
                                     var display =
-                                        $"Key: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
 
                                     if (keyIsDeleted)
                                     {
@@ -1062,8 +1212,17 @@ namespace RECmd
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
-                            _logger.Warn(
-                                $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.MinimumSize:N0} bytes in '{hiveToProcess}'");
+
+                            if (hiveToProcess.StartsWith(VssDir))
+                            {
+                                _logger.Warn(
+                                    $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.MinimumSize:N0} bytes in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                            }
+                            else
+                            {
+                                _logger.Warn(
+                                    $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.MinimumSize:N0} bytes in '{hiveToProcess}'");
+                            }
 
                             hivesWithHits += 1;
                             totalHits += hits.Count;
@@ -1103,8 +1262,17 @@ namespace RECmd
                         if (hits.Count > 0)
                         {
                             var suffix2 = hits.Count == 1 ? "" : "s";
-                            _logger.Warn(
-                                $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.Base64:N0} bytes in '{hiveToProcess}'");
+
+                            if (hiveToProcess.StartsWith(VssDir))
+                            {
+                                _logger.Warn(
+                                    $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.Base64:N0} bytes in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                            }
+                            else
+                            {
+                                _logger.Warn(
+                                    $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {_fluentCommandLineParser.Object.Base64:N0} bytes in '{hiveToProcess}'");
+                            }
 
                             hivesWithHits += 1;
                             totalHits += hits.Count;
@@ -1219,15 +1387,28 @@ namespace RECmd
                 var suffix2 = totalHits == 1 ? "" : "s";
                 var suffix3 = hivesWithHits == 1 ? "" : "s";
                 var suffix4 = hivesToProcess.Count == 1 ? "" : "s";
-
+                var suffix5 = _fluentCommandLineParser.Object.Vss ? " (and VSCs)" : "";
+                
                 _logger.Info("---------------------------------------------");
-                _logger.Info($"Directory: {_fluentCommandLineParser.Object.Directory}");
+                _logger.Info($"Directory: {_fluentCommandLineParser.Object.Directory}{suffix5}");
                 _logger.Info(
                     $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
             }
 
             _logger.Info("");
+
+            if (_fluentCommandLineParser.Object.Vss)
+            {
+                if (Directory.Exists(VssDir))
+                {
+                    foreach (var directory in Directory.GetDirectories(VssDir))
+                    {
+                        Directory.Delete(directory);
+                    }
+                    Directory.Delete(VssDir,true,true);
+                }
+            }
         }
 
         private static void ProcessBatchKey(RegistryKey key, Key batchKey, string hivePath)
@@ -1432,7 +1613,6 @@ namespace RECmd
                 }
             }
 
-
             return pluginsToActivate;
         }
 
@@ -1455,6 +1635,13 @@ namespace RECmd
 
                     var pluginDetailsFile = DumpPluginValues(pig, hivePath);
 
+                    var path = hivePath;
+
+                    if (hivePath.StartsWith(VssDir))
+                    {
+                        path = $"VSS{hivePath.Replace($"{VssDir}\\", "")}'";
+                    }
+
                     foreach (var pigValue in pig.Values)
                     {
                         var conv = (IValueOut) pigValue;
@@ -1466,7 +1653,7 @@ namespace RECmd
                             Description = key.Description,
                             Category = key.Category,
                             Comment = key.Comment,
-                            HivePath = hivePath,
+                            HivePath = path,
                             HiveType = key.HiveType.ToString(),
                             KeyPath = regKey.KeyPath,
                             LastWriteTimestamp = regKey.LastWriteTime.Value,
@@ -1477,7 +1664,6 @@ namespace RECmd
                             ValueData3 = conv.BatchValueData3,
                             PluginDetailFile = pluginDetailsFile
                         };
-
 
                         _batchCsvOutList.Add(rebOut);
                     }
@@ -1512,15 +1698,6 @@ namespace RECmd
 
                         _batchCsvOutList.Add(rebOut);
                     }
-
-//                    //foreach subkey, call BatchDumpKey if recursive
-//                    if (key.Recursive)
-//                    {
-//                        foreach (var regKeySubKey in regKey.SubKeys)
-//                        {
-//                            BatchDumpKey(regKeySubKey, key, hivePath);
-//                        }
-//                    }
                 }
             }
         }
@@ -1536,6 +1713,11 @@ namespace RECmd
 
             var hiveName1 = hivePath.Replace(":", "").Replace("\\", "_");
 
+            if (hivePath.StartsWith(VssDir))
+            {
+                hiveName1 = $"VSS{hivePath.Replace($"{VssDir}\\","").Replace(":", "").Replace("\\", "_")}";
+            }
+            
             var outbase = $"{RunTimestamp}_{pluginType.Name}_{hiveName1}.csv";
 
             if (Directory.Exists(_fluentCommandLineParser.Object.CsvDirectory) == false)
@@ -1609,6 +1791,13 @@ namespace RECmd
 
         private static BatchCsvOut BuildBatchCsvOut(RegistryKey regKey, Key key, string hivePath, KeyValue regVal)
         {
+            var path = hivePath;
+
+            if (hivePath.StartsWith(VssDir))
+            {
+                path = $"VSS{hivePath.Replace($"{VssDir}\\", "")}'";
+            }
+            
             var rebOut = new BatchCsvOut
             {
                 ValueName = regVal.ValueName,
@@ -1616,7 +1805,7 @@ namespace RECmd
                 Description = key.Description,
                 Category = key.Category,
                 Comment = key.Comment,
-                HivePath = hivePath,
+                HivePath = path,
                 HiveType = key.HiveType.ToString(),
                 KeyPath = regKey.KeyPath,
                 LastWriteTimestamp = regKey.LastWriteTime.Value,
@@ -1870,6 +2059,9 @@ namespace RECmd
         public int MinimumSize { get; set; }
         public int Base64 { get; set; }
         public string Json { get; set; }
+
+        public bool Vss { get; set; }
+        public bool Dedupe { get; set; }
 
         public string EndDate { get; set; }
         public string CsvDirectory { get; set; }
