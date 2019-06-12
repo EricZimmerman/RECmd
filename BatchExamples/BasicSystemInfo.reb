@@ -391,6 +391,22 @@ Keys:
         Recursive: false
         Comment: 
     -
+        Description: ProductOptions\ProductSuite
+        HiveType: System
+        Category: System Info
+        KeyPath: ControlSet*\Control\ProductOptions
+        ValueName: ProductSuite
+        Recursive: false
+        Comment:
+    -
+        Description: ProductOptions
+        HiveType: System
+        Category: System Info
+        KeyPath: ControlSet*\Control\ProductOptions
+        ValueName: ProductType
+        Recursive: false
+        Comment: "LanmanNT = DC"
+    -
         Description: Session Manager Environment
         HiveType: System
         Category: System Info
