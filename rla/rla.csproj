@@ -1,20 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B931C052-18F8-4BE3-99F3-A974D78C46D2}</ProjectGuid>
+    <ProjectGuid>{36B0364B-887E-47EB-8204-8E4164AFB38B}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RECmd</RootNamespace>
-    <AssemblyName>RECmd</AssemblyName>
+    <RootNamespace>rla</RootNamespace>
+    <AssemblyName>rla</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -25,7 +23,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -38,26 +35,14 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Registry256.ico</ApplicationIcon>
+    <ApplicationIcon>RegistryCheck.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="RawCopy_ERZ_2_2_32">
-      <HintPath>Dependencies\RawCopy_ERZ_2_2_32.dll</HintPath>
-    </Reference>
-    <Reference Include="Registry">
-      <HintPath>Dependencies\Registry.dll</HintPath>
-    </Reference>
-    <Reference Include="RegistryPluginBase">
-      <HintPath>Dependencies\RegistryPluginBase.dll</HintPath>
+      <HintPath>..\RECmd\Dependencies\RawCopy_ERZ_2_2_32.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -66,18 +51,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BatchCsvOut.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimpleKey.cs" />
-    <Compile Include="ReBatch.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Changes.txt" />
-    <Content Include="Dependencies\Registry.dll" />
-    <Content Include="Dependencies\RegistryPluginBase.dll" />
-    <Content Include="Registry256.ico" />
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="RegistryCheck.ico" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AlphaFS">
@@ -86,51 +67,21 @@
     <PackageReference Include="Costura.Fody">
       <Version>4.1.0</Version>
     </PackageReference>
-    <PackageReference Include="CsvHelper">
-      <Version>12.1.2</Version>
-    </PackageReference>
     <PackageReference Include="Exceptionless">
       <Version>4.3.2027</Version>
     </PackageReference>
     <PackageReference Include="FluentCommandLineParser">
       <Version>1.4.3</Version>
     </PackageReference>
-    <PackageReference Include="FluentValidation">
-      <Version>8.4.0</Version>
-    </PackageReference>
-    <PackageReference Include="Fody">
-      <Version>6.0.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NLog">
       <Version>4.6.7</Version>
+    </PackageReference>
+    <PackageReference Include="Registry">
+      <Version>1.1.0</Version>
     </PackageReference>
     <PackageReference Include="ServiceStack.Text">
       <Version>5.6.0</Version>
     </PackageReference>
-    <PackageReference Include="System.Buffers">
-      <Version>4.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Numerics.Vectors">
-      <Version>4.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe">
-      <Version>4.5.2</Version>
-    </PackageReference>
-    <PackageReference Include="System.ValueTuple">
-      <Version>4.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="YamlDotNet">
-      <Version>6.1.2</Version>
-    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

@@ -10,6 +10,7 @@ using Alphaleonis.Win32.Filesystem;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
+using Exceptionless;
 using Fclp;
 using FluentValidation.Results;
 using NLog;
@@ -123,6 +124,7 @@ namespace RECmd
 
         private static void Main(string[] args)
         {
+            Exceptionless.ExceptionlessClient.Default.Startup("fTcEOUkt1CxljTyOZfsr8AcSGQwWE4aYaYqk7cE1");
             SetupNLog();
 
             _pluginsDir = Path.Combine(BaseDirectory, "Plugins");
