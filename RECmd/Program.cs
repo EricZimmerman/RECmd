@@ -691,7 +691,7 @@ namespace RECmd
 
                     
                     }
-                    catch (IOException)
+                    catch (IOException ex)
                     {
                         //file is in use
 
