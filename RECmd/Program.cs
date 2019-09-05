@@ -543,7 +543,7 @@ namespace RECmd
                     DirectoryEnumerationOptions.SkipReparsePoints | DirectoryEnumerationOptions.ContinueOnException |
                     DirectoryEnumerationOptions.BasicSearch;
 
-                _logger.Fatal($"Searching 'VSS{_fluentCommandLineParser.Object.Directory}' for hives...");
+                _logger.Fatal($"Searching '{_fluentCommandLineParser.Object.Directory}' for hives...");
 
                 var files2 =
                     Directory.EnumerateFileSystemEntries(_fluentCommandLineParser.Object.Directory, dirEnumOptions, f);
