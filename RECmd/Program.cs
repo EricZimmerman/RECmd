@@ -192,6 +192,11 @@ namespace RECmd
                 .As("MinSize")
                 .WithDescription("Find values with data size >= MinSize (specified in bytes)\r\n");
 
+
+            _fluentCommandLineParser.Setup(arg => arg.SimpleSearchAll)
+                .As("sa")
+                .WithDescription("Search for <string> in keys, values, data, and slack.");
+
             _fluentCommandLineParser.Setup(arg => arg.SimpleSearchKey)
                 .As("sk")
                 .WithDescription("Search for <string> in key names.");
@@ -377,7 +382,7 @@ namespace RECmd
                 if (CheckMinSwitches() == false)
                 {
                     _logger.Error(
-                        "\r\nOne of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
+                        "\r\nOne of the following switches is required: --sa | --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
                     _logger.Info("Verify the command line and try again");
                     return;
                 }
@@ -797,12 +802,21 @@ namespace RECmd
 
                     //hive is ready for searching/interaction
 
-                    if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0 ||
+                    if (_fluentCommandLineParser.Object.SimpleSearchAll.Length > 0 ||
+                        _fluentCommandLineParser.Object.SimpleSearchKey.Length > 0 ||
                         _fluentCommandLineParser.Object.SimpleSearchValue.Length > 0 ||
                         _fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0 ||
                         _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                     {
                         searchUsed = true;
+
+                        if (_fluentCommandLineParser.Object.SimpleSearchAll.IsNullOrEmpty() == false)
+                        {
+                            _fluentCommandLineParser.Object.SimpleSearchKey =_fluentCommandLineParser.Object.SimpleSearchAll;
+                            _fluentCommandLineParser.Object.SimpleSearchValue =_fluentCommandLineParser.Object.SimpleSearchAll;
+                            _fluentCommandLineParser.Object.SimpleSearchValueData =_fluentCommandLineParser.Object.SimpleSearchAll;
+                            _fluentCommandLineParser.Object.SimpleSearchValueSlack =_fluentCommandLineParser.Object.SimpleSearchAll;
+                        }
 
                         var hits = new List<SearchHit>();
 
@@ -871,15 +885,19 @@ namespace RECmd
                         var words = new HashSet<string>();
                         foreach (var searchHit in hits)
                         {
+                            if (_fluentCommandLineParser.Object.SimpleSearchAll.Length > 0)
+                            {
+                                words.Add(_fluentCommandLineParser.Object.SimpleSearchAll);
+                            }
                             if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
                             {
                                 words.Add(_fluentCommandLineParser.Object.SimpleSearchKey);
-                            }
-                            else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
+                            } 
+                            if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
                             {
                                 words.Add(_fluentCommandLineParser.Object.SimpleSearchValue);
-                            }
-                            else if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
+                            } 
+                            if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
                             {
                                 if (_fluentCommandLineParser.Object.RegEx)
                                 {
@@ -887,7 +905,7 @@ namespace RECmd
                                 }
                                 else
                                 {
-                                    if (searchHit.Value.VkRecord.DataType == VkCellRecord.DataTypeEnum.RegBinary)
+                                    if (searchHit.Value?.VkRecord.DataType == VkCellRecord.DataTypeEnum.RegBinary)
                                     {
                                         words.Add(searchHit.HitString);
                                     }
@@ -896,8 +914,8 @@ namespace RECmd
                                         words.Add(_fluentCommandLineParser.Object.SimpleSearchValueData);
                                     }
                                 }
-                            }
-                            else if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                            } 
+                            if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
                             {
                                 if (_fluentCommandLineParser.Object.RegEx)
                                 {
@@ -916,15 +934,44 @@ namespace RECmd
                         {
                             searchHit.StripRootKeyName = true;
 
+                            var display = string.Empty;
+
                             var keyIsDeleted = (searchHit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
                                                RegistryKey.KeyFlagsEnum.Deleted;
+
+                            switch (searchHit.HitLocation)
                             {
-                                if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0 ||
-                                    _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
-                                {
+                                case SearchHit.HitType.KeyName:
+                                     display =
+                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
+
+                                    if (keyIsDeleted)
+                                    {
+                                        _logger.Fatal(display);
+                                    }
+                                    else
+                                    {
+                                        _logger.Info(display);
+                                    }
+
+                                    break;
+                                case SearchHit.HitType.ValueName:
+                                     display =
+                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+
+                                    if (keyIsDeleted)
+                                    {
+                                        _logger.Fatal(display);
+                                    }
+                                    else
+                                    {
+                                        _logger.Info(display);
+                                    }
+                                    break;
+                                case SearchHit.HitType.ValueData:
                                     if (_fluentCommandLineParser.Object.SuppressData)
                                     {
-                                        var display =
+                                         display =
                                             $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
                                         if (keyIsDeleted)
                                         {
@@ -937,23 +984,9 @@ namespace RECmd
                                     }
                                     else
                                     {
-                                        if (_fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                                        if (searchHit.Value != null &&  _fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
                                         {
-                                            var display =
-                                                $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
-
-                                            if (keyIsDeleted)
-                                            {
-                                                _logger.Fatal(display);
-                                            }
-                                            else
-                                            {
-                                                _logger.Info(display);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            var display =
+                                             display =
                                                 $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
                                             if (keyIsDeleted)
                                             {
@@ -965,36 +998,122 @@ namespace RECmd
                                             }
                                         }
                                     }
-                                }
-                                else if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
-                                {
-                                    var display =
-                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
-
-                                    if (keyIsDeleted)
+                                    break;
+                                case SearchHit.HitType.ValueSlack:
+                                    if (_fluentCommandLineParser.Object.SuppressData)
                                     {
-                                        _logger.Fatal(display);
+                                         display =
+                                            $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+                                        if (keyIsDeleted)
+                                        {
+                                            _logger.Fatal(display);
+                                        }
+                                        else
+                                        {
+                                            _logger.Info(display);
+                                        }
                                     }
                                     else
                                     {
-                                        _logger.Info(display);
-                                    }
-                                }
-                                else if (_fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
-                                {
-                                    var display =
-                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+                                        if (searchHit.Value != null &&
+                                            _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+                                        {
+                                             display =
+                                                $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
 
-                                    if (keyIsDeleted)
-                                    {
-                                        _logger.Fatal(display);
+                                            if (keyIsDeleted)
+                                            {
+                                                _logger.Fatal(display);
+                                            }
+                                            else
+                                            {
+                                                _logger.Info(display);
+                                            }
+                                        }
                                     }
-                                    else
-                                    {
-                                        _logger.Info(display);
-                                    }
-                                }
+
+                                    break;
+
                             }
+                            
+//                                if (_fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0 ||
+//                                    _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+//                                {
+//                                    if (_fluentCommandLineParser.Object.SuppressData)
+//                                    {
+//                                        var display =
+//                                            $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+//                                        if (keyIsDeleted)
+//                                        {
+//                                            _logger.Fatal(display);
+//                                        }
+//                                        else
+//                                        {
+//                                            _logger.Info(display);
+//                                        }
+//                                    }
+//                                    else
+//                                    {
+//                                        if (searchHit.Value != null && _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
+//                                        {
+//                                            var display =
+//                                                $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
+//
+//                                            if (keyIsDeleted)
+//                                            {
+//                                                _logger.Fatal(display);
+//                                            }
+//                                            else
+//                                            {
+//                                                _logger.Info(display);
+//                                            }
+//                                        }
+//
+//                                        if (searchHit.Value != null &&  _fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
+//                                        {
+//                                            var display =
+//                                                $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
+//                                            if (keyIsDeleted)
+//                                            {
+//                                                _logger.Fatal(display);
+//                                            }
+//                                            else
+//                                            {
+//                                                _logger.Info(display);
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                                
+//                                if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
+//                                {
+//                                    var display =
+//                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
+//
+//                                    if (keyIsDeleted)
+//                                    {
+//                                        _logger.Fatal(display);
+//                                    }
+//                                    else
+//                                    {
+//                                        _logger.Info(display);
+//                                    }
+//                                } 
+//                                if (searchHit.Value != null && _fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
+//                                {
+//                                    var display =
+//                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+//
+//                                    if (keyIsDeleted)
+//                                    {
+//                                        _logger.Fatal(display);
+//                                    }
+//                                    else
+//                                    {
+//                                        _logger.Info(display);
+//                                    }
+//                                }
+                            
                         }
 
                         var target = (ColoredConsoleTarget) LogManager.Configuration.FindTargetByName("console");
@@ -1002,8 +1121,8 @@ namespace RECmd
 
 //                    //TODO search deleted?? should only need to look in reg.UnassociatedRegistryValues
                     } //End s* options
-
-                    else if (_fluentCommandLineParser.Object.KeyName.IsNullOrEmpty() == false)
+                    
+                    if (_fluentCommandLineParser.Object.KeyName.IsNullOrEmpty() == false)
                     {
                         //dumping key and/or values
                         searchUsed = true;
@@ -1533,6 +1652,7 @@ namespace RECmd
                 _fluentCommandLineParser.Object.SimpleSearchValue.IsNullOrEmpty() &&
                 _fluentCommandLineParser.Object.SimpleSearchValueData.IsNullOrEmpty() &&
                 _fluentCommandLineParser.Object.SimpleSearchValueSlack.IsNullOrEmpty() &&
+                _fluentCommandLineParser.Object.SimpleSearchAll.IsNullOrEmpty() &&
                 _fluentCommandLineParser.Object.KeyName.IsNullOrEmpty() &&
                 _fluentCommandLineParser.Object.MinimumSize == 0 &&
                 _fluentCommandLineParser.Object.Base64 == 0 &&
@@ -2053,6 +2173,7 @@ namespace RECmd
 
         public bool Detailed { get; set; } = false;
 
+        public string SimpleSearchAll { get; set; } = string.Empty;
         public string SimpleSearchKey { get; set; } = string.Empty;
 
         public string SimpleSearchValue { get; set; } = string.Empty;
