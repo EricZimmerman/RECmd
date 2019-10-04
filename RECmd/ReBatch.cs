@@ -21,6 +21,15 @@ namespace RECmd
 
     public class Key
     {
+
+
+        public enum BinConvert
+        {
+            [Description("64 bit Windows FILETIME")] None = 0,
+            [Description("64 bit Windows FILETIME")] Filetime = 1,
+            [Description("IPv4 address")] Ip = 2
+        }
+
         public enum HiveType_
         {
             [Description("Other")] Other = 0,
@@ -46,6 +55,8 @@ namespace RECmd
 
         public bool Recursive { get; set; }
         public bool DisablePlugin { get; set; }
+        public bool IncludeBinary { get; set; }
+        public BinConvert BinaryConvert { get; set; }
 
         public string Comment { get; set; }
     }

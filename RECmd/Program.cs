@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1938,6 +1939,50 @@ namespace RECmd
             if (regVal.ValueType == "RegBinary")
             {
                 rebOut.ValueData = "(Binary data)";
+
+                if (key.IncludeBinary)
+                {
+                    
+
+                    if (key.BinaryConvert != 0)
+                    {
+                        switch (key.BinaryConvert)
+                        {
+                 
+                            case Key.BinConvert.Filetime:
+                                try
+                                {
+                                    var ft = DateTimeOffset.FromFileTime((long) BitConverter.ToUInt64(regVal.ValueDataRaw,  0));
+                                    rebOut.ValueData = ft.ToUniversalTime()
+                                        .ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.Warn($"Error converting to FILETIME. Using bytes instead!");
+                                    rebOut.ValueData = regVal.ValueData;
+                                }
+                               
+                                break;
+                            case Key.BinConvert.Ip:
+                                try
+                                {
+                                    var ipNumeric = BitConverter.ToUInt32(regVal.ValueDataRaw, 0);
+                                    var ipString = new IPAddress(ipNumeric).ToString();
+                                    rebOut.ValueData = ipString;
+                                }
+                                catch (Exception e)
+                                {
+                                    _logger.Warn($"Error converting to IP address. Using bytes instead!");
+                                    rebOut.ValueData = regVal.ValueData;
+                                }
+                                break;
+                            default:
+                                rebOut.ValueData = regVal.ValueData;
+                                break;
+                        }
+                    }
+                }
+               
             }
             else
             {
