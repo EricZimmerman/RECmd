@@ -1944,8 +1944,6 @@ namespace RECmd
                 {
                     
 
-                    if (key.BinaryConvert != 0)
-                    {
                         switch (key.BinaryConvert)
                         {
                  
@@ -1980,7 +1978,7 @@ namespace RECmd
                                 rebOut.ValueData = regVal.ValueData;
                                 break;
                         }
-                    }
+                    
                 }
                
             }
