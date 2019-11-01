@@ -91,7 +91,7 @@ Keys:
         Description: Search RecentApps
         HiveType: NtUser
         Category: Executables
-        KeyPath: Software\Microsoft\Windows\Current Version\Search\RecentApps\*
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Search\RecentApps\*
         Recursive: false
         Comment: 
     -
