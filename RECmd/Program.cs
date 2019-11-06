@@ -125,7 +125,7 @@ namespace RECmd
 
         private static void Main(string[] args)
         {
-            Exceptionless.ExceptionlessClient.Default.Startup("fTcEOUkt1CxljTyOZfsr8AcSGQwWE4aYaYqk7cE1");
+            ExceptionlessClient.Default.Startup("fTcEOUkt1CxljTyOZfsr8AcSGQwWE4aYaYqk7cE1");
             SetupNLog();
 
             _pluginsDir = Path.Combine(BaseDirectory, "Plugins");
@@ -935,7 +935,7 @@ namespace RECmd
                         {
                             searchHit.StripRootKeyName = true;
 
-                            var display = string.Empty;
+                            string display;
 
                             var keyIsDeleted = (searchHit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
                                                RegistryKey.KeyFlagsEnum.Deleted;
@@ -2078,6 +2078,7 @@ namespace RECmd
 
         private static SimpleKey BuildJson(RegistryKey key)
         {
+          
             var sk = new SimpleKey
             {
                 KeyName = key.KeyName,
