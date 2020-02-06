@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -1482,7 +1483,7 @@ namespace RECmd
                     _logger.Info($"\r\nSaving batch mode CSV file to '{outFile}'");
 
                     var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
-                    var csvWriter = new CsvWriter(swCsv);
+                    var csvWriter = new CsvWriter(swCsv,CultureInfo.InvariantCulture);
 
                     var foo = csvWriter.Configuration.AutoMap<BatchCsvOut>();
 
@@ -1862,7 +1863,7 @@ namespace RECmd
 
             using (var sw = new StreamWriter(outFile, true))
             {
-                var csvWriter = new CsvWriter(sw);
+                var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
 
                 var foo = csvWriter.Configuration.AutoMap(plugin.Values[0].GetType());
 

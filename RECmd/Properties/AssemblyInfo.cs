@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("RECmd")]
 [assembly: AssemblyDescription("Command line Registry access")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Eric Zimmerman")]
+[assembly: AssemblyCompany("Eric Zimmerman 501-313-3778")]
 [assembly: AssemblyProduct("RECmd")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
+[assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("saericzimmerman@gmail.com")]
 [assembly: AssemblyCulture("")]
 

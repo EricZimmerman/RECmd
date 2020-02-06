@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("rla")]
 [assembly: AssemblyDescription("Registry Transaction Log Apply")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Eric Zimmerman")]
+[assembly: AssemblyCompany("Eric Zimmerman 501-313-3778")]
 [assembly: AssemblyProduct("rla")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
+[assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("Eric Zimmerman")]
 [assembly: AssemblyCulture("")]
 
