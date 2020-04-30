@@ -280,3 +280,43 @@ Keys:
         ValueName: ShutdownTime
         Recursive: false
         Comment: Shutdown Time
+    -
+        Description: ProfileList Flags
+        HiveType: Software
+        Category: ProfileList
+        KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
+        ValueName: Flags
+        Recursive: false
+        Comment: 
+    -
+        Description: ProfileList ProfileImagepath
+        HiveType: Software
+        Category: ProfileList
+        KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
+        ValueName: ProfileImagepath
+        Recursive: false
+        Comment: 
+    -
+        Description: ProfileList RunLogonScriptsync
+        HiveType: Software
+        Category: ProfileList
+        KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
+        ValueName: RunLogonScriptsync
+        Recursive: false
+        Comment: 
+    -
+        Description: ProfileList Sid
+        HiveType: Software
+        Category: ProfileList
+        KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
+        ValueName: Sid
+        Recursive: false
+        Comment: 
+    -
+        Description: ProfileList State
+        HiveType: Software
+        Category: ProfileList
+        KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
+        ValueName: State
+        Recursive: false
+        Comment: 
