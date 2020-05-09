@@ -123,3 +123,10 @@ Keys:
         ValueName: EulaAccepted
         Recursive: false
         Comment: 
+    -
+        Description: FeatureUsage
+        HiveType: NtUser
+        Category: Executables
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage
+        Recursive: true
+        Comment: 
