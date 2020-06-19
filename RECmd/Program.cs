@@ -1589,7 +1589,20 @@ namespace RECmd
                 _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
                 _logger.Trace(key.Dump);
 
-                if (key.KeyPath.Contains("*"))
+                if (key.KeyPath.Equals("*"))
+                {
+                    
+                    var regKey = regHive.Root;
+
+                    if (regKey == null)
+                    {
+                        _logger.Debug($"Key '{key.KeyPath}' not found in '{regHive.HivePath}'");
+                        continue;
+                    }
+
+                    ProcessBatchKey(regKey, key, regHive.HivePath);
+                }
+                else if (key.KeyPath.Contains("*"))
                 {
                     var keysToProcess = regHive.ExpandKeyPath(key.KeyPath);
                     _logger.Trace($"Expanded '{key.KeyPath}' to '{string.Join(" | ", keysToProcess)}'");
