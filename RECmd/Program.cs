@@ -1556,6 +1556,11 @@ namespace RECmd
                 }
             }
 
+            if (key.KeyPath.Contains("Software\\Sysinternals"))
+            {
+                Debug.WriteLine(1);
+            }
+
             if (regVal == null && batchKey.ValueName.IsNullOrEmpty())
             {
                 //do not need to find a value, 
@@ -1828,6 +1833,15 @@ namespace RECmd
                 }
                 else
                 {
+                    if (regKey.Values.Any() == false)
+                    {
+                        //dump the key itself since there are no values to pull in the times, etc.
+                        var keyOut = BuildBatchCsvOut(regKey, key, hivePath, null);
+
+                        _batchCsvOutList.Add(keyOut);
+                    }
+                    
+
                     //dump all values from current key
                     foreach (var regKeyValue in regKey.Values)
                     {
@@ -1937,7 +1951,7 @@ namespace RECmd
             
             var rebOut = new BatchCsvOut
             {
-                ValueName = regVal.ValueName,
+                ValueName = regVal == null ? "": regVal.ValueName,
                 Deleted = regKey.NkRecord.IsDeleted,
                 Description = key.Description,
                 Category = key.Category,
@@ -1947,10 +1961,10 @@ namespace RECmd
                 KeyPath = regKey.KeyPath,
                 LastWriteTimestamp = regKey.LastWriteTime.Value,
                 Recursive = key.Recursive,
-                ValueType = regVal.ValueType
+                ValueType = regVal == null ? "": regVal.ValueType
             };
 
-            if (regVal.ValueType == "RegBinary")
+            if (regVal?.ValueType == "RegBinary")
             {
                 rebOut.ValueData = "(Binary data)";
 
@@ -1998,7 +2012,7 @@ namespace RECmd
             }
             else
             {
-                rebOut.ValueData = regVal.ValueData;
+                rebOut.ValueData = regVal == null ? "" : regVal.ValueData;
             }
 
             return rebOut;
