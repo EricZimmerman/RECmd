@@ -1888,7 +1888,7 @@ namespace RECmd
 
             var exists = File.Exists(outFile);
 
-            using (var sw = new StreamWriter(outFile, true))
+            using (var sw = new StreamWriter(outFile, true,Encoding.UTF8))
             {
                 var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
 
