@@ -266,7 +266,7 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\CPC\LocalMOF
         Comment: ""
     -
-        Description: Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs
+        Description: RecentDocs
         HiveType: NtUser
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs
