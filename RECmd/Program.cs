@@ -1485,12 +1485,12 @@ namespace RECmd
                     var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
                     var csvWriter = new CsvWriter(swCsv,CultureInfo.InvariantCulture);
 
-                    var foo = csvWriter.Configuration.AutoMap<BatchCsvOut>();
+                    var foo = csvWriter.Context.AutoMap<BatchCsvOut>();
 
-                    foo.Map(t => t.LastWriteTimestamp).ConvertUsing(t =>
+                    foo.Map(t => t.LastWriteTimestamp).Convert(t =>
                         $"{t.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
 
-                    csvWriter.Configuration.RegisterClassMap(foo);
+                    csvWriter.Context.RegisterClassMap(foo);
 
                     csvWriter.WriteHeader<BatchCsvOut>();
                     csvWriter.NextRecord();
@@ -1892,7 +1892,7 @@ namespace RECmd
             {
                 var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
 
-                var foo = csvWriter.Configuration.AutoMap(plugin.Values[0].GetType());
+                var foo = csvWriter.Context.AutoMap(plugin.Values[0].GetType());
 
                 foreach (var fooMemberMap in foo.MemberMaps)
                 {
@@ -1918,7 +1918,7 @@ namespace RECmd
                     }
                 }
 
-                csvWriter.Configuration.RegisterClassMap(foo);
+                csvWriter.Context.RegisterClassMap(foo);
 
                 if (exists == false)
                 {
