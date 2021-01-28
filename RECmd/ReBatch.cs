@@ -25,9 +25,11 @@ namespace RECmd
 
         public enum BinConvert
         {
-            [Description("64 bit Windows FILETIME")] None = 0,
+            [Description("None")] None = 0,
             [Description("64 bit Windows FILETIME")] Filetime = 1,
-            [Description("IPv4 address")] Ip = 2
+            [Description("IPv4 address")] Ip = 2,
+            [Description("DWord to Epoch")] Epoch = 3,
+            [Description("Binary to SID")] Sid = 4
         }
 
         public enum HiveType_

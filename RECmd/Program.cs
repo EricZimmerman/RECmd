@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using Alphaleonis.Win32.Filesystem;
@@ -1970,8 +1971,6 @@ namespace RECmd
 
                 if (key.IncludeBinary)
                 {
-                    
-
                         switch (key.BinaryConvert)
                         {
                  
@@ -2002,17 +2001,75 @@ namespace RECmd
                                     rebOut.ValueData = regVal.ValueData;
                                 }
                                 break;
+                       
+                            case Key.BinConvert.Epoch:
+                                try
+                                {
+                                    var ft = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToUInt32(regVal.ValueDataRaw,  0));
+                                    rebOut.ValueData = ft.ToUniversalTime()
+                                        .ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.Warn($"Error converting to Epoch. Using bytes instead!");
+                                    rebOut.ValueData = regVal.ValueData;
+                                }
+                                break;
+                            case Key.BinConvert.Sid:
+                                try
+                                {
+                                    var sid = new SecurityIdentifier(regVal.ValueDataRaw, 0);
+
+                                    rebOut.ValueData = sid.ToString();
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.Warn($"Error converting to SID. Using bytes instead!");
+                                    rebOut.ValueData = regVal.ValueData;
+                                }
+
+                                break;
                             default:
                                 rebOut.ValueData = regVal.ValueData;
                                 break;
                         }
-                    
                 }
-               
             }
             else
             {
                 rebOut.ValueData = regVal == null ? "" : regVal.ValueData;
+
+                switch (key.BinaryConvert)
+                {
+                    case Key.BinConvert.Epoch:
+                        try
+                        {
+                            var ft = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToUInt32(regVal.ValueDataRaw,  0));
+                            rebOut.ValueData = ft.ToUniversalTime()
+                                .ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                        }
+                        catch (Exception)
+                        {
+                            _logger.Warn($"Error converting to Epoch. Using bValueDataytes instead!");
+                            rebOut.ValueData = regVal.ValueData;
+                        }
+                        break;
+
+                    case Key.BinConvert.Filetime:
+                        try
+                        {
+                            var ft = DateTimeOffset.FromFileTime((long) BitConverter.ToUInt64(regVal.ValueDataRaw,  0));
+                            rebOut.ValueData = ft.ToUniversalTime()
+                                .ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                        }
+                        catch (Exception)
+                        {
+                            _logger.Warn($"Error converting to FILETIME. Using bytes instead!");
+                            rebOut.ValueData = regVal.ValueData;
+                        }
+                               
+                        break;
+                }
             }
 
             return rebOut;
