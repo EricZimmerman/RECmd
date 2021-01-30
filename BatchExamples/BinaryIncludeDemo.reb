@@ -13,9 +13,9 @@ Keys:
         BinaryConvert: IP
 
 
-#IncludeBinary: true
+# IncludeBinary: true
 # if true, include bytes vs showing (binary data) in format 0A-11-AB-09
 
-#BinaryConvert: IP
+# BinaryConvert: IP
 # if present, convert binary data to either Ipv4 address (IP) or 64 bit FILETIME (FILETIME)
-#Conversion happens from offset 0. if an error happens, the unconverted data is included
+# Conversion happens from offset 0. if an error happens, the unconverted data is included

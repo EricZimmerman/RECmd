@@ -36,14 +36,14 @@ Keys:
         Description: Recent File List
         HiveType: NtUser
         Category: User Activity
-        KeyPath: Software\*\*\Recent File List  
+        KeyPath: Software\*\*\Recent File List
         Recursive: false
         Comment: ""
     -
         Description: Recent Folder List
         HiveType: NtUser
         Category: User Activity
-        KeyPath: Software\*\*\Recent Folder List 
+        KeyPath: Software\*\*\Recent Folder List
         Recursive: false
         Comment: ""
     -
@@ -80,7 +80,7 @@ Keys:
         Description: Recent
         HiveType: NtUser
         Category: User Activity
-        KeyPath: Software\Microsoft\*\*\Recent  
+        KeyPath: Software\Microsoft\*\*\Recent
         Recursive: false
         Comment: ""
     -
@@ -94,7 +94,7 @@ Keys:
         Description: Recent File List
         HiveType: NtUser
         Category: User Activity
-        KeyPath: Software\Microsoft\*\Recent File List 
+        KeyPath: Software\Microsoft\*\Recent File List
         Recursive: false
         Comment: ""
     -
@@ -122,7 +122,7 @@ Keys:
         Description: Office MRU
         HiveType: NtUser
         Category: User Activity
-        KeyPath: Software\Microsoft\Office\*\*\User MRU\*\File MRU 
+        KeyPath: Software\Microsoft\Office\*\*\User MRU\*\File MRU
         Recursive: false
         Comment: ""
     -
@@ -169,7 +169,7 @@ Keys:
         Recursive: false
         Comment: ""
     -
-        Description: VisualStudio MRUItems 
+        Description: VisualStudio MRUItems
         HiveType: NtUser
         Category: User Activity
         KeyPath: Software\Microsoft\VisualStudio\*\MRUItems\*\Items
@@ -235,7 +235,7 @@ Keys:
         Description: ComDlg32 OpenSaveMRU
         HiveType: NtUser
         Category: User Activity
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSaveMRU 
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSaveMRU
         Recursive: true
         Comment: ""
     -
