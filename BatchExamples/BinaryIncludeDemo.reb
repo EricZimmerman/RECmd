@@ -12,7 +12,6 @@ Keys:
         IncludeBinary: true
         BinaryConvert: IP
 
-
 # IncludeBinary: true
 # if true, include bytes vs showing (binary data) in format 0A-11-AB-09
 

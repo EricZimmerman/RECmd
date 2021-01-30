@@ -26,7 +26,7 @@ Keys:
         KeyPath: ControlSet*\Control\LSA
         ValueName: Authentication Packages
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: LSA Notification Packages
         HiveType: SYSTEM
@@ -34,7 +34,7 @@ Keys:
         KeyPath: ControlSet*\Control\LSA
         ValueName: Notification Packages
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: LSA Security Packages
         HiveType: SYSTEM
@@ -42,7 +42,7 @@ Keys:
         KeyPath: ControlSet*\Control\LSA
         ValueName: Security Packages
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: LSA OsConfig
         HiveType: SYSTEM
@@ -50,7 +50,7 @@ Keys:
         KeyPath: ControlSet*\Control\LSA\OsConfig
         ValueName: Security Packages
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkProvider Order
         HiveType: SYSTEM
@@ -58,7 +58,7 @@ Keys:
         KeyPath: \ControlSet*\Control\NetworkProvider\Order
         ValueName: ProviderOrder
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Print Driver
         HiveType: SYSTEM
@@ -66,14 +66,14 @@ Keys:
         KeyPath: ControlSet*\Control\Print\Monitors\*
         ValueName: Driver
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Print Providers
         HiveType: SYSTEM
         Category: ASEP
         KeyPath: ControlSet*\Control\Print\Providers\*
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: SafeBoot
         HiveType: SYSTEM
@@ -81,21 +81,21 @@ Keys:
         KeyPath: \ControlSet*\Control\SafeBoot
         ValueName: AlternateShell
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: SafeBoot Minimal
         HiveType: SYSTEM
         Category: ASEP
         KeyPath: ControlSet*\Control\SafeBoot\Minimal\*
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: SafeBoot Network
         HiveType: SYSTEM
         Category: ASEP
         KeyPath: ControlSet*\Control\SafeBoot\Network\*
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: SecurityProviders
         HiveType: SYSTEM
@@ -103,7 +103,7 @@ Keys:
         KeyPath: ControlSet*\Control\SecurityProviders
         ValueName: SecurityProviders
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Session Manager BootExecute
         HiveType: SYSTEM
@@ -111,7 +111,7 @@ Keys:
         KeyPath: ControlSet*\Control\Session Manager
         ValueName: BootExecute
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Session Manager PendingFileRenameOperations
         HiveType: SYSTEM
@@ -119,7 +119,7 @@ Keys:
         KeyPath: ControlSet*\Control\Session Manager
         ValueName: PendingFileRenameOperations*
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Session Manager SETUPEXECUTE
         HiveType: SYSTEM
@@ -127,21 +127,21 @@ Keys:
         KeyPath: ControlSet*\Control\Session Manager
         ValueName: SETUPEXECUTE
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Session Manager KnownDLLs
         HiveType: SYSTEM
         Category: ASEP
         KeyPath: ControlSet*\Control\Session Manager\KnownDLLs
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Session Manager SubSystems
         HiveType: SYSTEM
         Category: ASEP
         KeyPath: ControlSet*\Control\Session Manager\SubSystems
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Terminal Server StartupPrograms
         HiveType: SYSTEM
@@ -149,14 +149,14 @@ Keys:
         KeyPath: ControlSet*\Control\Terminal Server\Wds\rdpwd
         ValueName: StartupPrograms
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Terminal Server WinStations RDP-Tcp
         HiveType: SYSTEM
         Category: ASEP
         KeyPath: \ControlSet*\Control\Terminal Server\WinStations\RDP-Tcp\*
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: WOW KnownDLLs
         HiveType: SYSTEM
@@ -164,14 +164,14 @@ Keys:
         KeyPath: ControlSet*\Control\WOW
         ValueName: KnownDLLs
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Services
         HiveType: SYSTEM
         Category: ASEP
         KeyPath: ControlSet*\Services
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Setup
         HiveType: SYSTEM
@@ -179,4 +179,4 @@ Keys:
         KeyPath: Setup
         ValueName: CmdLine
         Recursive: true
-        Comment: 
+        Comment:
