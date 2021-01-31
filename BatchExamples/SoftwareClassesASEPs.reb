@@ -26,7 +26,7 @@ Keys:
         KeyPath: Classes\*\shell\Runas\command
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shell Runas command
         HiveType: Software
@@ -34,7 +34,7 @@ Keys:
         KeyPath: Classes\*\shell\Runas\command
         ValueName: IsolatedCommand
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shell Runas command
         HiveType: Software
@@ -42,22 +42,22 @@ Keys:
         KeyPath: Classes\*\shell\Runas\command
         ValueName: DelegateExecute
         Recursive: true
-        Comment: 
+        Comment:
     -
-        Description:  ShellEx {*}
+        Description: ShellEx {*}
         HiveType: Software
         Category: ASEP Classes
         KeyPath: Classes\*\ShellEx\{*}
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: ShellEX ColumnHandlers
         HiveType: Software
         Category: ASEP Classes
         KeyPath: Classes\*\ShellEX\ColumnHandlers
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex ContextMenuHandlers
         HiveType: Software
@@ -65,7 +65,7 @@ Keys:
         KeyPath: Classes\*\shellex\ContextMenuHandlers\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex ContextMenuHandlers InstallFont
         HiveType: Software
@@ -73,7 +73,7 @@ Keys:
         KeyPath: Classes\*\shellex\ContextMenuHandlers\InstallFont
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex ContextMenuHandlers Open With
         HiveType: Software
@@ -81,7 +81,7 @@ Keys:
         KeyPath: Classes\*\shellex\ContextMenuHandlers\Open With
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex ContextMenuHandlers Open With EncryptionMenu
         HiveType: Software
@@ -89,7 +89,7 @@ Keys:
         KeyPath: Classes\*\shellex\ContextMenuHandlers\Open With EncryptionMenu
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: ShellEx ContextMenuHandlers OpenContainingFolderMenu
         HiveType: Software
@@ -97,7 +97,7 @@ Keys:
         KeyPath: Classes\*\ShellEx\ContextMenuHandlers\OpenContainingFolderMenu
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex ContextMenuHandlers PlayTo
         HiveType: Software
@@ -105,7 +105,7 @@ Keys:
         KeyPath: Classes\*\shellex\ContextMenuHandlers\PlayTo
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex CopyHookHandlers
         HiveType: Software
@@ -113,7 +113,7 @@ Keys:
         KeyPath: Classes\*\shellex\CopyHookHandlers\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: ShellEX DataHandler
         HiveType: Software
@@ -121,7 +121,7 @@ Keys:
         KeyPath: Classes\*\ShellEX\DataHandler
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex DragDropHandlers
         HiveType: Software
@@ -129,7 +129,7 @@ Keys:
         KeyPath: Classes\*\shellex\DragDropHandlers\{*}
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex DropHandler
         HiveType: Software
@@ -137,14 +137,14 @@ Keys:
         KeyPath: Classes\*\shellex\DropHandler
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: ShellEX IconHandler
         HiveType: Software
         Category: ASEP Classes
         KeyPath: Classes\*\ShellEX\IconHandler
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: ShellEx PropertyHandler
         HiveType: Software
@@ -152,7 +152,7 @@ Keys:
         KeyPath: Classes\*\ShellEx\PropertyHandler
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: shellex PropertySheetHandlers
         HiveType: Software
@@ -160,7 +160,7 @@ Keys:
         KeyPath: Classes\*\shellex\PropertySheetHandlers\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: AllFilesystemObjects shellex ContextMenuHandlers
         HiveType: Software
@@ -168,7 +168,7 @@ Keys:
         KeyPath: Classes\AllFilesystemObjects\shellex\ContextMenuHandlers\{*}
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: AllFilesystemObjects shellex PropertySheetHandlers
         HiveType: Software
@@ -176,7 +176,7 @@ Keys:
         KeyPath: Classes\AllFilesystemObjects\shellex\PropertySheetHandlers\{*}
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: CLSID
         HiveType: Software
@@ -184,7 +184,7 @@ Keys:
         KeyPath: Classes\CLSID\{*}
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: CLSID InprocServer32
         HiveType: Software
@@ -192,7 +192,7 @@ Keys:
         KeyPath: Classes\CLSID\{*}\InprocServer32
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: CLSID Instance
         HiveType: Software
@@ -200,7 +200,7 @@ Keys:
         KeyPath: Classes\CLSID\{*}\Instance\{*}
         ValueName: CLISID
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: CLSID Instance
         HiveType: Software
@@ -208,7 +208,7 @@ Keys:
         KeyPath: Classes\CLSID\{*}\Instance\{*}
         ValueName: FriendlyName
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: CLSID PersistentHandler
         HiveType: Software
@@ -216,7 +216,7 @@ Keys:
         KeyPath: Classes\CLSID\{*}\PersistentHandler
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: CLSID ProgID
         HiveType: Software
@@ -224,7 +224,7 @@ Keys:
         KeyPath: Classes\CLSID\{*}\ProgID
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Directory background shellex ContextMenuHandlers
         HiveType: Software
@@ -232,7 +232,7 @@ Keys:
         KeyPath: Classes\Directory\background\shellex\ContextMenuHandlers\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Directory shellex CopyHookHandlers
         HiveType: Software
@@ -240,7 +240,7 @@ Keys:
         KeyPath: Classes\Directory\shellex\CopyHookHandlers\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Directory shellex DragDropHandlers
         HiveType: Software
@@ -248,7 +248,7 @@ Keys:
         KeyPath: Classes\Directory\shellex\DragDropHandlers\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Directory shellex PropertySheetHandlers
         HiveType: Software
@@ -256,7 +256,7 @@ Keys:
         KeyPath: Classes\Directory\shellex\PropertySheetHandlers\{*}
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Drive shellex ContextMenuHandlers
         HiveType: Software
@@ -264,7 +264,7 @@ Keys:
         KeyPath: Classes\Drive\shellex\ContextMenuHandlers\{*}
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Folder shellex ContextMenuHandlers
         HiveType: Software
@@ -272,7 +272,7 @@ Keys:
         KeyPath: Classes\Folder\shellex\ContextMenuHandlers\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Folder shellex DragDropHandlers
         HiveType: Software
@@ -280,7 +280,7 @@ Keys:
         KeyPath: Classes\Folder\shellex\DragDropHandlers\{*}
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Folder shellex PropertySheetHandlers
         HiveType: Software
@@ -288,7 +288,7 @@ Keys:
         KeyPath: Classes\Folder\shellex\PropertySheetHandlers\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: htmlfile shell open command
         HiveType: Software
@@ -296,7 +296,7 @@ Keys:
         KeyPath: Classes\htmlfile\shell\open\command
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Interface ProxyStubClsid32
         HiveType: Software
@@ -304,7 +304,7 @@ Keys:
         KeyPath: Classes\Interface\{*}\ProxyStubClsid32
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Protocols Filter
         HiveType: Software
@@ -312,7 +312,7 @@ Keys:
         KeyPath: Classes\Protocols\Filter\*
         ValueName: CLSID
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Protocols Handler
         HiveType: Software
@@ -320,7 +320,7 @@ Keys:
         KeyPath: Classes\Protocols\Handler\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Protocols Handler
         HiveType: Software
@@ -328,7 +328,7 @@ Keys:
         KeyPath: Classes\Protocols\Handler\*
         ValueName: CLSID
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Protocols Name-Space Handler
         HiveType: Software
@@ -336,15 +336,15 @@ Keys:
         KeyPath: Classes\Protocols\Name-Space Handler\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Protocols Name-Space Handler
         HiveType: Software
         Category: ASEP Classes
         KeyPath: Classes\Protocols\Name-Space Handler\*\*
         ValueName: CLSID
-        Recursive: 
-        Comment: 
+        Recursive:
+        Comment:
     -
         Description: SystemFileAssociations ShellEx ContextMenuHandlers ShellImagePreview
         HiveType: Software
@@ -352,7 +352,7 @@ Keys:
         KeyPath: Classes\SystemFileAssociations\*\ShellEx\ContextMenuHandlers\ShellImagePreview
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Classes TypeLib
         HiveType: Software
@@ -360,7 +360,7 @@ Keys:
         KeyPath: Classes\TypeLib\{*}\*
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: TypeLib win32
         HiveType: Software
@@ -368,7 +368,7 @@ Keys:
         KeyPath: Classes\TypeLib\{*}\*\*\win32
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: TypeLib win64
         HiveType: Software
@@ -376,4 +376,4 @@ Keys:
         KeyPath: \Classes\TypeLib\{*}\*\*\win64
         ValueName: (default)
         Recursive: true
-        Comment: 
+        Comment:

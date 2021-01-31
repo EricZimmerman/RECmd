@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using Alphaleonis.Win32.Filesystem;
@@ -1485,12 +1486,12 @@ namespace RECmd
                     var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
                     var csvWriter = new CsvWriter(swCsv,CultureInfo.InvariantCulture);
 
-                    var foo = csvWriter.Configuration.AutoMap<BatchCsvOut>();
+                    var foo = csvWriter.Context.AutoMap<BatchCsvOut>();
 
-                    foo.Map(t => t.LastWriteTimestamp).ConvertUsing(t =>
+                    foo.Map(t => t.LastWriteTimestamp).Convert(t =>
                         $"{t.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
 
-                    csvWriter.Configuration.RegisterClassMap(foo);
+                    csvWriter.Context.RegisterClassMap(foo);
 
                     csvWriter.WriteHeader<BatchCsvOut>();
                     csvWriter.NextRecord();
@@ -1892,7 +1893,7 @@ namespace RECmd
             {
                 var csvWriter = new CsvWriter(sw,CultureInfo.InvariantCulture);
 
-                var foo = csvWriter.Configuration.AutoMap(plugin.Values[0].GetType());
+                var foo = csvWriter.Context.AutoMap(plugin.Values[0].GetType());
 
                 foreach (var fooMemberMap in foo.MemberMaps)
                 {
@@ -1918,7 +1919,7 @@ namespace RECmd
                     }
                 }
 
-                csvWriter.Configuration.RegisterClassMap(foo);
+                csvWriter.Context.RegisterClassMap(foo);
 
                 if (exists == false)
                 {
@@ -1970,8 +1971,6 @@ namespace RECmd
 
                 if (key.IncludeBinary)
                 {
-                    
-
                         switch (key.BinaryConvert)
                         {
                  
@@ -2002,17 +2001,75 @@ namespace RECmd
                                     rebOut.ValueData = regVal.ValueData;
                                 }
                                 break;
+                       
+                            case Key.BinConvert.Epoch:
+                                try
+                                {
+                                    var ft = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToUInt32(regVal.ValueDataRaw,  0));
+                                    rebOut.ValueData = ft.ToUniversalTime()
+                                        .ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.Warn($"Error converting to Epoch. Using bytes instead!");
+                                    rebOut.ValueData = regVal.ValueData;
+                                }
+                                break;
+                            case Key.BinConvert.Sid:
+                                try
+                                {
+                                    var sid = new SecurityIdentifier(regVal.ValueDataRaw, 0);
+
+                                    rebOut.ValueData = sid.ToString();
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.Warn($"Error converting to SID. Using bytes instead!");
+                                    rebOut.ValueData = regVal.ValueData;
+                                }
+
+                                break;
                             default:
                                 rebOut.ValueData = regVal.ValueData;
                                 break;
                         }
-                    
                 }
-               
             }
             else
             {
                 rebOut.ValueData = regVal == null ? "" : regVal.ValueData;
+
+                switch (key.BinaryConvert)
+                {
+                    case Key.BinConvert.Epoch:
+                        try
+                        {
+                            var ft = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToUInt32(regVal.ValueDataRaw,  0));
+                            rebOut.ValueData = ft.ToUniversalTime()
+                                .ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                        }
+                        catch (Exception)
+                        {
+                            _logger.Warn($"Error converting to Epoch. Using bValueDataytes instead!");
+                            rebOut.ValueData = regVal.ValueData;
+                        }
+                        break;
+
+                    case Key.BinConvert.Filetime:
+                        try
+                        {
+                            var ft = DateTimeOffset.FromFileTime((long) BitConverter.ToUInt64(regVal.ValueDataRaw,  0));
+                            rebOut.ValueData = ft.ToUniversalTime()
+                                .ToString(_fluentCommandLineParser.Object.DateTimeFormat);
+                        }
+                        catch (Exception)
+                        {
+                            _logger.Warn($"Error converting to FILETIME. Using bytes instead!");
+                            rebOut.ValueData = regVal.ValueData;
+                        }
+                               
+                        break;
+                }
             }
 
             return rebOut;

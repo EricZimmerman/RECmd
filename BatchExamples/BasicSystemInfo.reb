@@ -10,7 +10,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: IsCloudDomainJoined
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ServerFeatures
         HiveType: Amcache
@@ -18,7 +18,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: ServerFeatures
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: AzureVMType
         HiveType: Amcache
@@ -26,7 +26,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: AzureVMType
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: AzureOSIDPresent
         HiveType: Amcache
@@ -34,7 +34,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: AzureOSIDPresent
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: IsDomainJoined
         HiveType: Amcache
@@ -42,7 +42,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: IsDomainJoined
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: SystemCenterID
         HiveType: Amcache
@@ -50,7 +50,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: SystemCenterID
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: MPNId
         HiveType: Amcache
@@ -58,7 +58,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: MPNId
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: SCCMClientId
         HiveType: Amcache
@@ -66,7 +66,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: SCCMClientId
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: IsDeviceProtected
         HiveType: Amcache
@@ -74,7 +74,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: IsDeviceProtected
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: IsDERequirementMet
         HiveType: Amcache
@@ -82,7 +82,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: IsDERequirementMet
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: IsEDPEnabled
         HiveType: Amcache
@@ -90,7 +90,7 @@ Keys:
         KeyPath: DeviceCensus\Enterprise
         ValueName: IsEDPEnabled
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ComputerHardwareID
         HiveType: Amcache
@@ -98,7 +98,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: ComputerHardwareID
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: DeviceName
         HiveType: Amcache
@@ -106,7 +106,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: DeviceName
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: OEMManufacturerName
         HiveType: Amcache
@@ -114,7 +114,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: OEMManufacturerName
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: OEMModelNumber
         HiveType: Amcache
@@ -122,7 +122,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: OEMModelNumber
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: OEMSerialNumber
         HiveType: Amcache
@@ -130,7 +130,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: OEMSerialNumber
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: InventoryId
         HiveType: Amcache
@@ -138,7 +138,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: InventoryId
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: TPMVersion
         HiveType: Amcache
@@ -146,7 +146,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: TPMVersion
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: PowerPlatformRole
         HiveType: Amcache
@@ -154,7 +154,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: PowerPlatformRole
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: TelemetryLevel
         HiveType: Amcache
@@ -162,7 +162,7 @@ Keys:
         KeyPath: DeviceCensus\Hardware
         ValueName: TelemetryLevel
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: TotalPhysicalRAM
         HiveType: Amcache
@@ -170,7 +170,7 @@ Keys:
         KeyPath: DeviceCensus\Memory
         ValueName: TotalPhysicalRAM
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: TotalVisibleMemory
         HiveType: Amcache
@@ -178,7 +178,7 @@ Keys:
         KeyPath: DeviceCensus\Memory
         ValueName: TotalVisibleMemory
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkAdapterGUID
         HiveType: Amcache
@@ -186,7 +186,7 @@ Keys:
         KeyPath: DeviceCensus\Network
         ValueName: NetworkAdapterGUID
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: IsPortableOperatingSystem
         HiveType: Amcache
@@ -194,7 +194,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: IsPortableOperatingSystem
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: IsSecureBootEnabled
         HiveType: Amcache
@@ -202,7 +202,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: IsSecureBootEnabled
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: OSEdition
         HiveType: Amcache
@@ -210,7 +210,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: OSEdition
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: InstallationType
         HiveType: Amcache
@@ -218,7 +218,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: InstallationType
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: OSOOBEDateTime
         HiveType: Amcache
@@ -226,7 +226,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: OSOOBEDateTime
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: OSUILocale
         HiveType: Amcache
@@ -234,7 +234,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: OSUILocale
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: CompactOS
         HiveType: Amcache
@@ -242,7 +242,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: CompactOS
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProductKeyID2
         HiveType: Amcache
@@ -250,7 +250,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: ProductKeyID2
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ServiceMachineIP
         HiveType: Amcache
@@ -258,7 +258,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: ServiceMachineIP
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ServiceProductKeyID
         HiveType: Amcache
@@ -266,7 +266,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: ServiceProductKeyID
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: LanguagePacks
         HiveType: Amcache
@@ -274,7 +274,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: LanguagePacks
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: InstallLanguage
         HiveType: Amcache
@@ -282,7 +282,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: InstallLanguage
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ActivationChannel
         HiveType: Amcache
@@ -290,7 +290,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: ActivationChannel
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: GenuineState
         HiveType: Amcache
@@ -298,7 +298,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: GenuineState
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: OSSKU
         HiveType: Amcache
@@ -306,7 +306,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: OSSKU
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: OSInstallType
         HiveType: Amcache
@@ -314,7 +314,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: OSInstallType
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: DeviceTimeZone
         HiveType: Amcache
@@ -322,7 +322,7 @@ Keys:
         KeyPath: DeviceCensus\OS
         ValueName: DeviceTimeZone
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProcessorCores
         HiveType: Amcache
@@ -330,7 +330,7 @@ Keys:
         KeyPath: DeviceCensus\Processor
         ValueName: ProcessorCores
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProcessorPhysicalCores
         HiveType: Amcache
@@ -338,7 +338,7 @@ Keys:
         KeyPath: DeviceCensus\Processor
         ValueName: ProcessorPhysicalCores
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: SocketCount
         HiveType: Amcache
@@ -346,7 +346,7 @@ Keys:
         KeyPath: DeviceCensus\Processor
         ValueName: SocketCount
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProcessorArchitecture
         HiveType: Amcache
@@ -354,7 +354,7 @@ Keys:
         KeyPath: DeviceCensus\Processor
         ValueName: ProcessorArchitecture
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProcessorClockSpeed
         HiveType: Amcache
@@ -362,7 +362,7 @@ Keys:
         KeyPath: DeviceCensus\Processor
         ValueName: ProcessorClockSpeed
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProcessorManufacturer
         HiveType: Amcache
@@ -370,7 +370,7 @@ Keys:
         KeyPath: DeviceCensus\Processor
         ValueName: ProcessorManufacturer
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProcessorIdentifier
         HiveType: Amcache
@@ -378,7 +378,7 @@ Keys:
         KeyPath: DeviceCensus\Processor
         ValueName: ProcessorIdentifier
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProcessorModel
         HiveType: Amcache
@@ -386,21 +386,21 @@ Keys:
         KeyPath: DeviceCensus\Processor
         ValueName: ProcessorModel
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Account Aliases
         HiveType: Sam
         Category: System Info
         KeyPath: Domains\Account\Aliases
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Account Users
         HiveType: Sam
         Category: System Info
         KeyPath: Domains\Account\Users
         Recursive: true
-        Comment: 
+        Comment:
     -
         Description: Machine SID
         HiveType: Security
@@ -408,7 +408,7 @@ Keys:
         KeyPath: (Default)
         ValueName: Policy\PolAcDmS
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Domain SID
         HiveType: Security
@@ -416,7 +416,7 @@ Keys:
         KeyPath: Policy\PolPrDmS
         ValueName: (Default)
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: VM DhcpWithFabricAddressTime
         HiveType: Software
@@ -424,7 +424,7 @@ Keys:
         KeyPath: Microsoft\Virtual Machine\Guest
         ValueName: DhcpWithFabricAddressTime
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: VM GuestAgentVersion
         HiveType: Software
@@ -432,7 +432,7 @@ Keys:
         KeyPath: Microsoft\Virtual Machine\Guest
         ValueName: GuestAgentVersion
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: VM OSVersion
         HiveType: Software
@@ -440,7 +440,7 @@ Keys:
         KeyPath: Microsoft\Virtual Machine\Guest
         ValueName: OSVersion
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: VM GuestAgentStartTime
         HiveType: Software
@@ -448,7 +448,7 @@ Keys:
         KeyPath: Microsoft\Virtual Machine\Guest
         ValueName: GuestAgentStartTime
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: VM oobeSystem_PA_CompletionTime
         HiveType: Software
@@ -456,7 +456,7 @@ Keys:
         KeyPath: Microsoft\Virtual Machine\Guest
         ValueName: oobeSystem_PA_CompletionTime
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: VM oobeSystem_PA_OSVersion
         HiveType: Software
@@ -464,21 +464,21 @@ Keys:
         KeyPath: Microsoft\Virtual Machine\Guest
         ValueName: oobeSystem_PA_OSVersion
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Windows Defender Exclusions
         HiveType: Software
         Category: System Info
         KeyPath: Microsoft\Windows Defender\Exclusions\*
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Defender Real-Time Protection
         HiveType: Software
         Category: System Info
         KeyPath: Microsoft\Windows Defender\Real-Time Protection
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: BuildLab
         HiveType: Software
@@ -486,7 +486,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: BuildLab
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: BuildLabEx
         HiveType: Software
@@ -494,7 +494,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: BuildLabEx
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: BuildBranch
         HiveType: Software
@@ -502,7 +502,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: BuildBranch
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: BuildGUID
         HiveType: Software
@@ -510,7 +510,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: BuildGUID
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: CompositionEditionID
         HiveType: Software
@@ -518,7 +518,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: CompositionEditionID
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: CurrentBuild
         HiveType: Software
@@ -526,7 +526,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: CurrentBuild
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: CurrentBuildNumber
         HiveType: Software
@@ -534,7 +534,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: CurrentBuildNumber
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: CurrentMajorVersionNumber
         HiveType: Software
@@ -542,7 +542,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: CurrentMajorVersionNumber
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: CurrentMinorVersionNumber
         HiveType: Software
@@ -550,7 +550,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: CurrentMinorVersionNumber
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: CurrentType
         HiveType: Software
@@ -558,7 +558,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: CurrentType
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: CurrentVersion
         HiveType: Software
@@ -566,7 +566,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: CurrentVersion
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Customizations
         HiveType: Software
@@ -574,7 +574,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: Customizations
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: EditionID
         HiveType: Software
@@ -582,7 +582,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: EditionID
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: InstallDate
         HiveType: Software
@@ -590,7 +590,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: InstallDate
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProductID
         HiveType: Software
@@ -598,7 +598,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: ProductID
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProductName
         HiveType: Software
@@ -606,7 +606,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: ProductName
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: RegisteredOrganization
         HiveType: Software
@@ -614,7 +614,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: RegisteredOrganization
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: RegisteredOwner
         HiveType: Software
@@ -622,7 +622,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: RegisteredOwner
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkCards ServiceName
         HiveType: Software
@@ -630,7 +630,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkCards
         ValueName: ServiceName
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkCards Description
         HiveType: Software
@@ -638,7 +638,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkCards\*
         ValueName: Description
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkList Profiles Category
         HiveType: Software
@@ -646,7 +646,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles\*
         ValueName: Category
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkList Profiles Description
         HiveType: Software
@@ -654,7 +654,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles\*
         ValueName: Description
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkList Profiles Managed
         HiveType: Software
@@ -662,7 +662,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles\*
         ValueName: Managed
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkList Profiles NameType
         HiveType: Software
@@ -670,7 +670,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles\*
         ValueName: NameType
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: NetworkList Profiles ProfileName
         HiveType: Software
@@ -678,7 +678,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles\*
         ValueName: ProfileName
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList Flags
         HiveType: Software
@@ -686,7 +686,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: Flags
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList ProfileImagepath
         HiveType: Software
@@ -694,7 +694,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: ProfileImagepath
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList RunLogonScriptsync
         HiveType: Software
@@ -702,7 +702,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: RunLogonScriptsync
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList Sid
         HiveType: Software
@@ -710,7 +710,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: Sid
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList State
         HiveType: Software
@@ -718,7 +718,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: State
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: FirmwareBootDevice
         HiveType: System
@@ -726,7 +726,7 @@ Keys:
         KeyPath: ControlSet*\Control
         ValueName: FirmwareBootDevice
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: SystemBootDevice
         HiveType: System
@@ -734,7 +734,7 @@ Keys:
         KeyPath: ControlSet*\Control
         ValueName: SystemBootDevice
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ComputerName
         HiveType: System
@@ -742,7 +742,7 @@ Keys:
         KeyPath: ControlSet*\Control\ComputerName\*
         ValueName: ComputerName
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: DisableDeleteNotification
         HiveType: System
@@ -758,7 +758,7 @@ Keys:
         KeyPath: ControlSet*\Control\FileSystem
         ValueName: NtfsEncryptPagingFile
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: InstallLanguage
         HiveType: System
@@ -766,14 +766,14 @@ Keys:
         KeyPath: ControlSet*\Control\Nls\Language
         ValueName: InstallLanguage
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Session Manager Environment
         HiveType: System
         Category: System Info
         KeyPath: ControlSet*\Control\Session Manager\Environment
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: TimeZone Bias
         HiveType: System
@@ -781,7 +781,7 @@ Keys:
         KeyPath: ControlSet*\Control\TimeZoneInformation
         ValueName: Bias
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: TimeZoneKeyName
         HiveType: System
@@ -789,14 +789,14 @@ Keys:
         KeyPath: ControlSet*\Control\TimeZoneInformation
         ValueName: TimeZoneKeyName
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Shares
         HiveType: System
         Category: System Info
         KeyPath: ControlSet*\Services\Lanmanserver\Shares
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Tcpip Domain
         HiveType: System
@@ -804,7 +804,7 @@ Keys:
         KeyPath: ControlSet*\Services\Tcpip\Parameters
         ValueName: Domain
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Tcpip Hostname
         HiveType: System
@@ -812,28 +812,28 @@ Keys:
         KeyPath: ControlSet*\Services\Tcpip\Parameters
         ValueName: Hostname
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Tcpip4 Interfaces
         HiveType: System
         Category: System Info
         KeyPath: ControlSet*\Services\Tcpip\Parameters\Interfaces\*
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Tcpip6 Interfaces
         HiveType: System
         Category: System Info
         KeyPath: ControlSet*\Services\Tcpip6\Parameters\Interfaces\*
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Mounted Devices
         HiveType: System
         Category: System Info
         KeyPath: MountedDevices
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: SystemPartition
         HiveType: System
@@ -841,11 +841,11 @@ Keys:
         KeyPath: Setup
         ValueName: SystemPartition
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: Tcpip Interfaces
         HiveType: System
         Category: System Info
         KeyPath: Select
         Recursive: false
-        Comment: 
+        Comment:

@@ -16,19 +16,19 @@ Keys:
         Category: Browser history
         KeyPath: Software\Microsoft\Internet Explorer\TypedURLs
         Recursive: false
-        Comment: IE/Edge Typed URLs 
+        Comment: IE/Edge Typed URLs
     -
         Description: MS Office MRU
         HiveType: NTUSER
         Category: File and Folder Opening
         KeyPath: SOFTWARE\Microsoft\Office\*\*\User MRU\*\*
         Recursive: true
-        Comment: MS Office MRU   
+        Comment: MS Office MRU
     -
         Description: Terminal Server Client
         HiveType: NTUSER
         Category: Terminal Server Client
-        KeyPath: Software\Microsoft\Terminal Server Client 
+        KeyPath: Software\Microsoft\Terminal Server Client
         Recursive: false
         Comment: Terminal Server Client
     -
@@ -136,7 +136,7 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Search\RecentApps
         Recursive: true
         Comment: RecentApps
-    -    
+    -
         Description: SAM Users
         HiveType: SAM
         Category: Users
@@ -151,7 +151,7 @@ Keys:
         Recursive: false
         Comment: OS version and install info
     -
-        Description: Network List 
+        Description: Network List
         HiveType: SOFTWARE
         Category: Autoruns
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkList
@@ -185,7 +185,7 @@ Keys:
         KeyPath: Microsoft\Windows Portable Devices\Devices\
         Recursive: true
         Comment: Portable Devices
-    -    
+    -
         Description: ComputerName
         HiveType: SYSTEM
         Category: System Info
@@ -193,14 +193,14 @@ Keys:
         ValueName: ComputerName
         Recursive: false
         Comment: Computer name
-    -    
+    -
         Description: AppCompatCache
         HiveType: SYSTEM
         Category: Program Execution
         KeyPath: ControlSet00*\Control\Session Manager\AppCompatCache
         Recursive: false
         Comment: AppCompatCache
-    -    
+    -
         Description: TimeZoneInformation
         HiveType: SYSTEM
         Category: System Info
@@ -214,42 +214,42 @@ Keys:
         KeyPath: ControlSet00*\Services
         Recursive: true
         Comment: Services
-    -    
+    -
         Description: BAM
         HiveType: SYSTEM
         Category: Program Execution
         KeyPath: ControlSet00*\Services\bam\UserSettings
         Recursive: true
         Comment: BAM
-    -    
+    -
         Description: DAM
         HiveType: SYSTEM
         Category: Program Execution
         KeyPath: ControlSet00*\Services\dam\UserSettings
         Recursive: true
         Comment: DAM
-    -    
+    -
         Description: Network Shares
         HiveType: SYSTEM
         Category: Network
         KeyPath: ControlSet00*\Services\lanmanserver\Shares
         Recursive: false
         Comment: Network Shares
-    -    
+    -
         Description: DHCP Network Hints
         HiveType: SYSTEM
         Category: Network Configuration
         KeyPath: ControlSet00*\Services\Tcpip\Parameters\Interfaces
         Recursive: true
-        Comment: DHCP Hints 
-    -    
+        Comment: DHCP Hints
+    -
         Description: Network Interfaces
         HiveType: SYSTEM
         Category: Network Configuration
         KeyPath: ControlSet00*\Services\Tcpip\Parameters\Interfaces\*
         Recursive: true
         DisablePlugin: true
-        Comment: Network Interfaces       
+        Comment: Network Interfaces
     -
         Description: MountedDevices
         HiveType: SYSTEM
@@ -287,7 +287,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: Flags
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList ProfileImagepath
         HiveType: Software
@@ -295,7 +295,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: ProfileImagepath
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList RunLogonScriptsync
         HiveType: Software
@@ -303,7 +303,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: RunLogonScriptsync
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList Sid
         HiveType: Software
@@ -311,7 +311,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: Sid
         Recursive: false
-        Comment: 
+        Comment:
     -
         Description: ProfileList State
         HiveType: Software
@@ -319,4 +319,4 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
         ValueName: State
         Recursive: false
-        Comment: 
+        Comment:
