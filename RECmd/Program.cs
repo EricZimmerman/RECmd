@@ -181,7 +181,11 @@ namespace RECmd
             _fluentCommandLineParser.Setup(arg => arg.Json)
                 .As("json")
                 .WithDescription(
-                    "Export --kn to directory specified by --json. Ignored when --vn is specified\r\n");
+                    "Export --kn to directory specified by --json. Ignored when --vn is specified");
+            _fluentCommandLineParser.Setup(arg => arg.JsonName)
+                .As("jsonf")
+                .WithDescription(
+                    "File name to save JSON formatted results to. When present, overrides default name\r\n");
 
             _fluentCommandLineParser.Setup(arg => arg.Detailed)
                 .As("details")
@@ -1195,6 +1199,11 @@ namespace RECmd
                                 {
                                     var outFile = Path.Combine(_fluentCommandLineParser.Object.Json,
                                         $"{StripInvalidCharsFromFileName(key.KeyName, "_")}.json");
+
+                                    if (_fluentCommandLineParser.Object.JsonName.IsNullOrEmpty() == false)
+                                    {
+                                        outFile = Path.Combine(_fluentCommandLineParser.Object.Json,Path.GetFileName(_fluentCommandLineParser.Object.JsonName));
+                                    }
 
                                     _logger.Warn($"Saving key to json file '{outFile}'\r\n");
                                     File.WriteAllText(outFile, jso.ToJson());
@@ -2318,6 +2327,7 @@ namespace RECmd
         public string EndDate { get; set; }
         public string CsvDirectory { get; set; }
         public string CsvName { get; set; }
+        public string JsonName { get; set; }
 
         public bool RegEx { get; set; }
         public bool Literal { get; set; }
