@@ -13,7 +13,7 @@ namespace RECmd
 
         public string Description { get; set; }
         public string Author { get; set; }
-        public int Version { get; set; }
+        public long Version { get; set; }
         public string Id { get; set; }
 
         public List<Key> Keys { get; set; }
