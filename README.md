@@ -6,7 +6,7 @@ Command line Registry access, including batch mode!
 
 See the manual for more examples.
 
-Use the following command to unblock the DLLs using PowerShell after downloading them
+If you get an error message like "error loading plugin" when running RECmd after downloading the ZIP archive and extracting it using Windows' ZIP tool, use the following command to unblock the DLLs using PowerShell
 
 ``` PowerShell
 PS> Unblock-File .\Plugins\*.dll
