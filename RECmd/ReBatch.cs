@@ -13,7 +13,7 @@ namespace RECmd
 
         public string Description { get; set; }
         public string Author { get; set; }
-        public long Version { get; set; }
+        public string Version { get; set; }
         public string Id { get; set; }
 
         public List<Key> Keys { get; set; }
@@ -70,7 +70,7 @@ namespace RECmd
         {
             RuleFor(target => target.Description).NotNull();
             RuleFor(target => target.Author).NotNull();
-            RuleFor(target => target.Version).NotNull().GreaterThan(0);
+            RuleFor(target => target.Version).NotNull();
 
             RuleFor(target => target.Id).NotNull();
             RuleFor(target => target.Keys).NotNull();
