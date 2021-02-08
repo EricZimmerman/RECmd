@@ -1,387 +1,387 @@
-Description: CIS Software\Classes ASEPs
-Author: Troyla
+Description: UsrClass ASEPs
+Author: Andreas Hunkeler (@Karneades)
 Version: 1
-Id: c43433a2-9b81-4cf4-b701-dd717da57bd9
+Id: 6be84c3b-8142-4fc8-8bc1-5e8e20790348
 Keys:
     -
         Description: shell Open Command
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shell\Open\Command
+        KeyPath: \*\shell\Open\Command
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shell Open Command
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shell\Open\Command
+        KeyPath: \*\shell\Open\Command
         ValueName: DelegateExecute
         Recursive: true
         Comment:
     -
         Description: shell Runas command
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shell\Runas\command
+        KeyPath: \*\shell\Runas\command
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shell Runas command
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shell\Runas\command
+        KeyPath: \*\shell\Runas\command
         ValueName: IsolatedCommand
         Recursive: true
         Comment:
     -
         Description: shell Runas command
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shell\Runas\command
+        KeyPath: \*\shell\Runas\command
         ValueName: DelegateExecute
         Recursive: true
         Comment:
     -
-        Description: ShellEx {*}
-        HiveType: Software
+        Description:  ShellEx {*}
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\ShellEx\{*}
+        KeyPath: \*\ShellEx\{*}
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: ShellEX ColumnHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\ShellEX\ColumnHandlers
+        KeyPath: \*\ShellEX\ColumnHandlers
         Recursive: true
         Comment:
     -
         Description: shellex ContextMenuHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\ContextMenuHandlers\*
+        KeyPath: \*\shellex\ContextMenuHandlers\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shellex ContextMenuHandlers InstallFont
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\ContextMenuHandlers\InstallFont
+        KeyPath: \*\shellex\ContextMenuHandlers\InstallFont
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shellex ContextMenuHandlers Open With
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\ContextMenuHandlers\Open With
+        KeyPath: \*\shellex\ContextMenuHandlers\Open With
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shellex ContextMenuHandlers Open With EncryptionMenu
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\ContextMenuHandlers\Open With EncryptionMenu
+        KeyPath: \*\shellex\ContextMenuHandlers\Open With EncryptionMenu
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: ShellEx ContextMenuHandlers OpenContainingFolderMenu
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\ShellEx\ContextMenuHandlers\OpenContainingFolderMenu
+        KeyPath: \*\ShellEx\ContextMenuHandlers\OpenContainingFolderMenu
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shellex ContextMenuHandlers PlayTo
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\ContextMenuHandlers\PlayTo
+        KeyPath: \*\shellex\ContextMenuHandlers\PlayTo
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shellex CopyHookHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\CopyHookHandlers\*
+        KeyPath: \*\shellex\CopyHookHandlers\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: ShellEX DataHandler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\ShellEX\DataHandler
+        KeyPath: \*\ShellEX\DataHandler
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shellex DragDropHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\DragDropHandlers\{*}
+        KeyPath: \*\shellex\DragDropHandlers\{*}
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shellex DropHandler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\DropHandler
+        KeyPath: \*\shellex\DropHandler
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: ShellEX IconHandler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\ShellEX\IconHandler
+        KeyPath: \*\ShellEX\IconHandler
         Recursive: true
         Comment:
     -
         Description: ShellEx PropertyHandler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\ShellEx\PropertyHandler
+        KeyPath: \*\ShellEx\PropertyHandler
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: shellex PropertySheetHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\*\shellex\PropertySheetHandlers\*
+        KeyPath: \*\shellex\PropertySheetHandlers\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: AllFilesystemObjects shellex ContextMenuHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\AllFilesystemObjects\shellex\ContextMenuHandlers\{*}
+        KeyPath: AllFilesystemObjects\shellex\ContextMenuHandlers\{*}
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: AllFilesystemObjects shellex PropertySheetHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\AllFilesystemObjects\shellex\PropertySheetHandlers\{*}
+        KeyPath: AllFilesystemObjects\shellex\PropertySheetHandlers\{*}
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: CLSID
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\CLSID\{*}
+        KeyPath: CLSID\{*}
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: CLSID InprocServer32
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\CLSID\{*}\InprocServer32
+        KeyPath: CLSID\{*}\InprocServer32
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: CLSID LocalServer32
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\CLSID\{*}\LocalServer32
+        KeyPath: CLSID\{*}\LocalServer32
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: CLSID Instance
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\CLSID\{*}\Instance\{*}
+        KeyPath: CLSID\{*}\Instance\{*}
         ValueName: CLISID
         Recursive: true
         Comment:
     -
         Description: CLSID Instance
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\CLSID\{*}\Instance\{*}
+        KeyPath: CLSID\{*}\Instance\{*}
         ValueName: FriendlyName
         Recursive: true
         Comment:
     -
         Description: CLSID PersistentHandler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\CLSID\{*}\PersistentHandler
+        KeyPath: CLSID\{*}\PersistentHandler
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: CLSID ProgID
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\CLSID\{*}\ProgID
+        KeyPath: CLSID\{*}\ProgID
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Directory background shellex ContextMenuHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Directory\background\shellex\ContextMenuHandlers\*
+        KeyPath: Directory\background\shellex\ContextMenuHandlers\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Directory shellex CopyHookHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Directory\shellex\CopyHookHandlers\*
+        KeyPath: Directory\shellex\CopyHookHandlers\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Directory shellex DragDropHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Directory\shellex\DragDropHandlers\*
+        KeyPath: Directory\shellex\DragDropHandlers\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Directory shellex PropertySheetHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Directory\shellex\PropertySheetHandlers\{*}
+        KeyPath: Directory\shellex\PropertySheetHandlers\{*}
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Drive shellex ContextMenuHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Drive\shellex\ContextMenuHandlers\{*}
+        KeyPath: Drive\shellex\ContextMenuHandlers\{*}
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Folder shellex ContextMenuHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Folder\shellex\ContextMenuHandlers\*
+        KeyPath: Folder\shellex\ContextMenuHandlers\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Folder shellex DragDropHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Folder\shellex\DragDropHandlers\{*}
+        KeyPath: Folder\shellex\DragDropHandlers\{*}
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Folder shellex PropertySheetHandlers
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Folder\shellex\PropertySheetHandlers\*
+        KeyPath: Folder\shellex\PropertySheetHandlers\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: htmlfile shell open command
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\htmlfile\shell\open\command
+        KeyPath: htmlfile\shell\open\command
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Interface ProxyStubClsid32
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Interface\{*}\ProxyStubClsid32
+        KeyPath: Interface\{*}\ProxyStubClsid32
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Protocols Filter
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Protocols\Filter\*
+        KeyPath: Protocols\Filter\*
         ValueName: CLSID
         Recursive: true
         Comment:
     -
         Description: Protocols Handler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Protocols\Handler\*
+        KeyPath: Protocols\Handler\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Protocols Handler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Protocols\Handler\*
+        KeyPath: Protocols\Handler\*
         ValueName: CLSID
         Recursive: true
         Comment:
     -
         Description: Protocols Name-Space Handler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Protocols\Name-Space Handler\*
+        KeyPath: Protocols\Name-Space Handler\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Protocols Name-Space Handler
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\Protocols\Name-Space Handler\*\*
+        KeyPath: Protocols\Name-Space Handler\*\*
         ValueName: CLSID
         Recursive:
         Comment:
     -
         Description: SystemFileAssociations ShellEx ContextMenuHandlers ShellImagePreview
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\SystemFileAssociations\*\ShellEx\ContextMenuHandlers\ShellImagePreview
+        KeyPath: SystemFileAssociations\*\ShellEx\ContextMenuHandlers\ShellImagePreview
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: Classes TypeLib
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\TypeLib\{*}\*
+        KeyPath: TypeLib\{*}\*
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: TypeLib win32
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: Classes\TypeLib\{*}\*\*\win32
+        KeyPath: TypeLib\{*}\*\*\win32
         ValueName: (default)
         Recursive: true
         Comment:
     -
         Description: TypeLib win64
-        HiveType: Software
+        HiveType: UsrClass
         Category: ASEP Classes
-        KeyPath: \Classes\TypeLib\{*}\*\*\win64
+        KeyPath: TypeLib\{*}\*\*\win64
         ValueName: (default)
         Recursive: true
         Comment:
