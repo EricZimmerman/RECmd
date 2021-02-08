@@ -44,7 +44,7 @@ Keys:
         Recursive: true
         Comment:
     -
-        Description:  ShellEx {*}
+        Description: ShellEx {*}
         HiveType: UsrClass
         Category: ASEP Classes
         KeyPath: \*\ShellEx\{*}
