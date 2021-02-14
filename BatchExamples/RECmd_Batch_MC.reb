@@ -125,7 +125,7 @@ Keys:
     -
         Description: WordWheelQuery
         HiveType: NTUSER
-        Category: User searches
+        Category: User Searches
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery
         Recursive: true
         Comment: User Searches
