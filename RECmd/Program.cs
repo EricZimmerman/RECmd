@@ -10,12 +10,14 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using Alphaleonis.Win32.Filesystem;
+using Alphaleonis.Win32.Security;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Exceptionless;
 using Fclp;
 using FluentValidation.Results;
+using ICSharpCode.SharpZipLib.Zip;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -264,7 +266,11 @@ namespace RECmd
                     "Deduplicate -f or -d & VSCs based on SHA-1. First file found wins. Default is TRUE\r\n")
                 .SetDefault(true);
 
-
+            _fluentCommandLineParser.Setup(arg => arg.Sync)
+                .As("sync")
+                .WithDescription(
+                    "If true, the latest batch files from https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples are downloaded and local files updated. Default is FALSE\r\n")
+                .SetDefault(false);
             _fluentCommandLineParser.Setup(arg => arg.Debug)
                 .As("debug")
                 .WithDescription("Show debug information during processing").SetDefault(false);
@@ -332,6 +338,21 @@ namespace RECmd
                 _fluentCommandLineParser.HelpOption.ShowHelp(_fluentCommandLineParser.Options);
 
                 return;
+            }
+
+            if (_fluentCommandLineParser.Object.Sync)
+            {
+                try
+                {
+                    _logger.Info(header);
+                    UpdateFromRepo();
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, $"There was an error checking for updates: {e.Message}");
+                }
+
+                Environment.Exit(0);
             }
 
             var hivesToProcess = new List<string>();
@@ -1544,6 +1565,124 @@ namespace RECmd
             }
         }
 
+         private static void UpdateFromRepo()
+        {
+            Console.WriteLine();
+
+            _logger.Info(
+                "Checking for updated batch files at https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples...");
+            Console.WriteLine();
+            var archivePath = Path.Combine(BaseDirectory, "____master.zip");
+
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+
+            using (var client = new WebClient())
+            {
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                client.DownloadFile("https://github.com/EricZimmerman/RECmd/archive/master.zip", archivePath);
+            }
+
+            var fff = new FastZip();
+
+            if (Directory.Exists(Path.Combine(BaseDirectory, "BatchExamples")) == false)
+            {
+                Directory.CreateDirectory(Path.Combine(BaseDirectory, "BatchExamples"));
+            }
+
+            var directoryFilter = "BatchExamples";
+
+            // Will prompt to overwrite if target file names already exist
+            fff.ExtractZip(archivePath, BaseDirectory, FastZip.Overwrite.Always, null,
+                null, directoryFilter, true);
+
+            if (File.Exists(archivePath))
+            {
+                File.Delete(archivePath);
+            }
+
+            var newMapPath = Path.Combine(BaseDirectory, "RECmd-master","BatchExamples");
+
+            var orgMapPath = Path.Combine(BaseDirectory, "BatchExamples");
+
+            var newMaps = Directory.GetFiles(newMapPath);
+
+            var newlocalMaps = new List<string>();
+
+            var updatedlocalMaps = new List<string>();
+
+           
+            foreach (var newMap in newMaps)
+            {
+                var mName = Path.GetFileName(newMap);
+                var dest = Path.Combine(orgMapPath, mName);
+
+                if (File.Exists(dest) == false)
+                {
+                    //new target
+                    newlocalMaps.Add(mName);
+                }
+                else
+                {
+                    //current destination file exists, so compare to new
+                    var fiNew = new FileInfo(newMap);
+                    var fi = new FileInfo(dest);
+
+                    if (fiNew.GetHash(HashType.SHA1) != fi.GetHash(HashType.SHA1))
+                    {
+                        //updated file
+                        updatedlocalMaps.Add(mName);
+                      
+                    }
+                }
+
+                File.Copy(newMap, dest, CopyOptions.None);
+            }
+
+            
+
+            if (newlocalMaps.Count > 0 || updatedlocalMaps.Count > 0)
+            {
+                _logger.Fatal("Updates found!");
+                Console.WriteLine();
+
+                if (newlocalMaps.Count > 0)
+                {
+                    _logger.Error("New batch files");
+                    foreach (var newLocalMap in newlocalMaps)
+                    {
+                        _logger.Info(Path.GetFileNameWithoutExtension(newLocalMap));
+                    }
+
+                    Console.WriteLine();
+                }
+
+                if (updatedlocalMaps.Count > 0)
+                {
+                    _logger.Error("Updated batch files");
+                    foreach (var um in updatedlocalMaps)
+                    {
+                        _logger.Info(Path.GetFileNameWithoutExtension(um));
+                    }
+
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine();
+            }
+            else
+            {
+                Console.WriteLine();
+                _logger.Info("No new batch files available");
+                Console.WriteLine();
+            }
+
+            Directory.Delete(Path.Combine(BaseDirectory, "RECmd-master"), true);
+        }
+
         private static void ProcessBatchKey(RegistryKey key, Key batchKey, string hivePath)
         {
             var regKey = key;
@@ -2332,7 +2471,7 @@ namespace RECmd
         public bool RegEx { get; set; }
         public bool Literal { get; set; }
         public bool SuppressData { get; set; }
-
+         public bool Sync { get; set; }
         public bool NoTransLogs { get; set; }
         public bool DisablePlugins { get; set; }
         public bool Debug { get; set; }
