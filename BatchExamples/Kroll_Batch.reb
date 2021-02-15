@@ -247,6 +247,18 @@ Keys:
 
 # KnownNetworks plugin
 
+    -
+        Description: Device Classes
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\DeviceClasses
+        Recursive: true
+        Comment: "Displays a list of PnP devices (Plug and Play) that were connected to this system"
+
+# DeviceClasses plugin
+# https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-device-specific-registry-settings
+# https://www.hecfblog.com/2013/08/daily-blog-67-understanding-artifacts.html
+
 # System Info -> System Info (Current)
 
     -
@@ -503,6 +515,16 @@ Keys:
 # System Info -> Network Configuration (IPv4)
 
 # DHCPNetworkHints plugin not used
+
+    -
+        Description: Network Adapters
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}
+        Recursive: true
+        Comment: "Displays list of network adapters connected to this system"
+
+# NetworkAdapters plugin
 
     -
         Description: Network Configuration (IPv4)
@@ -1087,55 +1109,31 @@ Keys:
 # https://docs.microsoft.com/en-us/dotnet/api/system.io.drivetype?view=net-5.0
 
 # Devices -> USBSTOR
-    -
-        Description: USBSTOR
-        HiveType: SYSTEM
-        Category: Devices
-        KeyPath: ControlSet*\Enum\USBSTOR\*\*\Properties\*\0004
-        Recursive: false
-        Comment: "USB device name"
-    -
-        Description: USBSTOR
-        HiveType: SYSTEM
-        Category: Devices
-        KeyPath: ControlSet*\Enum\USBSTOR\*\*\Properties\*\0064
-        Recursive: false
-        Comment: "USB device install date"
 
+    -
+        Description: USBSTOR
+        HiveType: SYSTEM
+        Category: Devices
+        KeyPath: ControlSet*\Enum\USBSTOR
+        Recursive: true
+        Comment: "Displays list of USB devices that have been plugged into this system. If & is second character within serial number, serial number is only unique on the system"
+
+# USBSTOR plugin
 # https://www.jaiminton.com/cheatsheet/DFIR/#usb-information-1
 # https://www.13cubed.com/downloads/dfir_cheat_sheet.pdf
-
-    -
-        Description: USBSTOR
-        HiveType: SYSTEM
-        Category: Devices
-        KeyPath: ControlSet*\Enum\USBSTOR\*\*\Properties\*\0065
-        Recursive: false
-        Comment: "USB device first install date"
-
 # https://www.swiftforensics.com/2013/11/windows-8-new-registry-artifacts-part-1.html
+# https://www.tristiansforensicsecurity.com/2018/11/28/basic-usb-forensics-in-windows/
 
     -
-        Description: USBSTOR
+        Description: USB
         HiveType: SYSTEM
         Category: Devices
-        KeyPath: ControlSet*\Enum\USBSTOR\*\*\Properties\*\0066
-        Recursive: false
-        Comment: "USB device last connected"
+        KeyPath: ControlSet*\Enum\USB
+        Recursive: true
+        Comment: "Provides VID and PID numbers of USB devices. Match serial number from USBSTOR and search for VID and PID across the system"
 
-# https://www.jaiminton.com/cheatsheet/DFIR/#usb-information-1
-# https://www.13cubed.com/downloads/dfir_cheat_sheet.pdf
-
-    -
-        Description: USBSTOR
-        HiveType: SYSTEM
-        Category: Devices
-        KeyPath: ControlSet*\Enum\USBSTOR\*\*\Properties\*\0067
-        Recursive: false
-        Comment: "USB device last removal"
-
-# https://www.jaiminton.com/cheatsheet/DFIR/#usb-information-1
-# https://www.13cubed.com/downloads/dfir_cheat_sheet.pdf
+# USB plugin
+# https://www.tristiansforensicsecurity.com/2018/11/28/basic-usb-forensics-in-windows/
 
     -
         Description: MountPoints2
@@ -1175,6 +1173,16 @@ Keys:
         Comment: "Portable Devices"
 
 # https://df-stream.com/2017/10/amcache-and-usb-device-tracking/
+
+    -
+        Description: Portable Devices
+        HiveType: SOFTWARE
+        Category: Devices
+        KeyPath: Microsoft\Windows Portable Devices
+        Recursive: true
+        Comment: "Displays list of USB devices previously connected to this system"
+
+# WindowsPortableDevices plugin
 
 # --------------------
 # Network Shares
@@ -1237,21 +1245,11 @@ Keys:
         Description: User Accounts (SOFTWARE)
         HiveType: SOFTWARE
         Category: User Accounts
-        KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
-        ValueName: Sid
-        IncludeBinary: true
-        BinaryConvert: SID
+        KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList
         Recursive: true
-        Comment: "Displays user SIDs found on system"
-    -
-        Description: User Accounts (SOFTWARE)
-        HiveType: SOFTWARE
-        Category: User Accounts
-        KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList\*
-        ValueName: ProfileImagePath
-        Recursive: true
-        Comment: "Displays path to user's folder"
+        Comment: "User accounts in SOFTWARE hive"
 
+# ProfileList plugin
 # https://content-calpoly-edu.s3.amazonaws.com/cci/1/documents/ccic_forensics_manual/CCIC%20Chapter%204%20-%20Understanding%20the%20Registry.pdf
 
     -
@@ -1260,7 +1258,7 @@ Keys:
         Category: User Accounts
         KeyPath: Policy\Accounts\*
         Recursive: false
-        Comment: "SIDs for Windows built-in accounts"
+        Comment: "Built-in accounts in SECURITY hive"
 
 # https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/security-identifiers-in-windows
 
@@ -2369,17 +2367,11 @@ Keys:
         Description: App Paths
         HiveType: SOFTWARE
         Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\App Paths\*
-        Recursive: false
-        Comment: "App Paths"
-
-    -
-        Description: App Paths
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\*
+        KeyPath: Microsoft\Windows\CurrentVersion\App Paths
         Recursive: true
-        Comment: "App Paths"
+        Comment: "Displays list of installed software and the associated application paths"
+
+# AppPaths plugin
 
     -
         Description: File Extensions
@@ -2444,6 +2436,17 @@ Keys:
         Comment: "Displays install location of installed software"
 
 # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/find-installed-software
+
+    -
+        Description: Installed Software (Windows Installer)
+        HiveType: SOFTWARE
+        Category: Installed Software
+        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products
+        Recursive: true
+        Comment: "Displays list of each Windows Installer-based product installed on the system"
+
+# Products plugin
+# https://support.microsoft.com/en-us/topic/description-of-the-patch-registration-cleanup-tool-f3cd8e0b-43a3-ee5c-927b-055465a5a500
 
 # Installed Software -> InstallProperties
     -
