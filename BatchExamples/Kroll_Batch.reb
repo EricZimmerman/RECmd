@@ -226,6 +226,19 @@ Keys:
 # https://or10nlabs.tech/prefetch-forensics/
 
     -
+        Description: Clear Page File at Shutdown Status
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet00*\Control\Session Manager\Memory Management
+        ValueName: ClearPageFileAtShutdown
+        Recursive: false
+        Comment: "0 = Disabled, 1 = Enabled"
+
+# https://tweaks.com/windows/37350/clear-pagefile-111n-shutdown/
+# https://www.majorgeeks.com/content/page/clear_page_file.html
+# https://docs.microsoft.com/en-us/windows/client-management/introduction-page-file
+
+    -
         Description: System Time Zone Information
         HiveType: SYSTEM
         Category: System Info
