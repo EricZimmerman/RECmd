@@ -1305,12 +1305,18 @@ Keys:
         HiveType: SYSTEM
         Category: Program Execution
         KeyPath: ControlSet00*\Control\Session Manager\AppCompatCache
-        IncludeBinary: true
-        BinaryConvert: FILETIME
+        ValueName: AppCompatCache
         Recursive: false
-        Comment: "AppCompatCache, review AppCompatCacheParser output"
+        Comment: "AKA ShimCache, data is only written to this value at reboot by winlogon.exe"
 
+# AppCompat plugin
 # https://medium.com/@bromiley/windows-wednesday-shim-cache-1997ba8b13e7
+# https://www.youtube.com/watch?v=ZKlyu-HOvxY
+# https://www.fireeye.com/blog/threat-research/2015/06/caching_out_the_val.html
+# https://www.andreafortuna.org/2017/10/16/amcache-and-shimcache-in-forensic-analysis/
+# https://www.sans.org/blog/mass-triage-part-4-processing-returned-files-appcache-shimcache/
+# https://countuponsecurity.com/tag/shimcache/
+# https://techcommunity.microsoft.com/t5/ask-the-performance-team/demystifying-shims-or-using-the-app-compat-toolkit-to-make-your/ba-p/374947
 
     -
         Description: CIDSizeMRU
