@@ -1705,10 +1705,10 @@ namespace RECmd
                 }
             }
 
-            if (key.KeyPath.Contains("Software\\Sysinternals"))
+            /*if (key.KeyPath.Contains("Software\\Sysinternals"))
             {
                 Debug.WriteLine(1);
-            }
+            }*/
 
             if (regVal == null && batchKey.ValueName.IsNullOrEmpty())
             {
@@ -2033,7 +2033,12 @@ namespace RECmd
                     $"{Path.GetFileNameWithoutExtension(_fluentCommandLineParser.Object.CsvName)}_{pluginType.Name}{Path.GetExtension(_fluentCommandLineParser.Object.CsvName)}";
             }
 
-            var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, outbase);
+            var outFile = Path.Combine(_fluentCommandLineParser.Object.CsvDirectory, RunTimestamp,outbase);
+
+            if (Directory.Exists(Path.GetDirectoryName(outFile)) == false)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(outFile));
+            }
 
             var exists = File.Exists(outFile);
 
