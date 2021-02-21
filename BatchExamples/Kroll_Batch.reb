@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.0
+Version: 1.1
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -18,6 +18,7 @@ Keys:
 # Third Party Applications
 # Cloud Storage
 # Services
+# Event Logs
 # Microsoft Office/Office 365
 # Web Browsers
 # Installed Software
@@ -35,6 +36,7 @@ Keys:
 # --------------------
 #
 # | 1.0 | 2021-02-14 | Initial release |
+# | 1.1 | 2021-02-20 | [Third-Party Applications] Added Total Commander. [Web Browsers] Added CCleaner Browser. [Event Logs] Created category |
 #
 # --------------------
 # DOCUMENTATION
@@ -1915,7 +1917,25 @@ Keys:
 # Sometimes, there are values for third-party applications not covered under the standard DisplayVersion, Publisher, InstallLocation, InstallDate, and DisplayName entries. I've seen Inno Setup: User, Inno Setup: Language, and Inno Setup: App Path
 # For this section, please include a subheader and a URL, even if its only one entry per program
 
+# Third-Party Applications -> Total Commander - https://www.ghisler.com/
+
+    -
+        Description: Total Commander
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: Ghisler\Total Commander
+        Recursive: false
+        Comment: "Total Commander registry artifacts"
+    -
+        Description: Total Commander
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\Ghisler\Total Commander
+        Recursive: false
+        Comment: "Total Commander registry artifacts"
+
 # Third-Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
+
 
     -
         Description: TeamViewer
@@ -2264,6 +2284,22 @@ Keys:
 # Services plugin
 
 # --------------------
+# Event Logs
+# --------------------
+
+    -
+        Description: Event Logs Logging Status
+        HiveType: SOFTWARE
+        Category: Event Logs
+        KeyPath: Microsoft\Windows\CurrentVersion\WINEVT\Channels
+        ValueName: Enabled
+        Recursive: true
+        Comment: "Displays the status of Windows Event Log Channels (Key Path) on this system, 0 = Disabled, 1 - Enabled"
+
+# https://www.ibm.com/mysupport/s/question/0D50z000062kolQ/how-to-monitor-custom-event-log?language=en_US
+# SYSTEM\\ControlSet00*\Services\EventLog\* will display the Provider GUID for each Event Log channel listed here. This recursive key is not enabled here
+
+# --------------------
 # Microsoft Office/Office 365
 # --------------------
 
@@ -2377,6 +2413,14 @@ Keys:
         KeyPath: Software\Microsoft\Edge
         Recursive: true
         Comment: "Microsoft Edge registry artifacts"
+    -
+        Description: CCleaner Browser
+        HiveType: SOFTWARE
+        Category: Web Browsers
+        KeyPath: WOW6432Node\Piriform\Browser
+        IncludeBinary: true
+        Recursive: true
+        Comment: "CCleaner Browser registry artifacts"
 
 # --------------------
 # Installed Software
