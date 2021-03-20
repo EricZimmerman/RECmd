@@ -1519,7 +1519,7 @@ namespace RECmd
                     var foo = csvWriter.Context.AutoMap<BatchCsvOut>();
 
                     foo.Map(t => t.LastWriteTimestamp).Convert(t =>
-                        $"{t.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
+                        $"{t.Value.LastWriteTimestamp?.ToString(_fluentCommandLineParser.Object.DateTimeFormat)}");
 
                     csvWriter.Context.RegisterClassMap(foo);
 
