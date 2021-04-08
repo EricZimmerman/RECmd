@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.1
+Version: 1.2
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -24,6 +24,7 @@ Keys:
 # Installed Software
 # Antivirus
 # Volume Shadow Copies
+# Threat Hunting
 #
 # --------------------
 # ACKNOWLEDGEMENT
@@ -37,6 +38,7 @@ Keys:
 #
 # | 1.0 | 2021-02-14 | Initial release |
 # | 1.1 | 2021-02-20 | [Third-Party Applications] Added Total Commander. [Web Browsers] Added CCleaner Browser. [Event Logs] Created category |
+# | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, added ShadowRDP and Threat Hunting Category |
 #
 # --------------------
 # DOCUMENTATION
@@ -1261,7 +1263,7 @@ Keys:
         HiveType: SOFTWARE
         Category: User Accounts
         KeyPath: Microsoft\Windows NT\CurrentVersion\ProfileList
-        Recursive: true
+        Recursive: false
         Comment: "User accounts in SOFTWARE hive"
 
 # ProfileList plugin
@@ -2712,5 +2714,20 @@ Keys:
 
 # https://medium.com/@bromiley/windows-wednesday-volume-shadow-copies-d20b60997c22#.11p1cb258
 # https://docs.microsoft.com/en-us/windows/win32/backup/registry-keys-for-backup-and-restore#filesnottobackup
+
+# --------------------
+# Threat Hunting
+# --------------------
+
+    -
+        Description: Shadow RDP Sessions
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows NT\Terminal Services
+        ValueName: Shadow
+        Recursive: true
+        Comment: "Shadow RDP sessions, 2 = Full Control without user's permission, 4 = View Session without user's permissions"
+
+# https://twitter.com/inversecos/status/1380006149479559170
 
 # More to come...stay tuned!
