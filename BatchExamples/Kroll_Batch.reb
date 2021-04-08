@@ -2726,7 +2726,7 @@ Keys:
         KeyPath: Policies\Microsoft\Windows NT\Terminal Services
         ValueName: Shadow
         Recursive: true
-        Comment: "Shadow RDP sessions, 2 = Full Control without user's permission, 4 = View Session without user's permissions"
+        Comment: "Shadow RDP sessions, 0 = Disabled, 1 = Full Control with user's permission, 2 = Full Control without user's permission, 3 = View Session with user's permission, 4 = View Session without user's permission"
 
 # https://twitter.com/inversecos/status/1380006149479559170
 
