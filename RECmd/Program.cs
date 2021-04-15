@@ -154,6 +154,10 @@ namespace RECmd
                 .As('f')
                 .WithDescription("Hive to search. -f or -d is required.\r\n");
 
+            _fluentCommandLineParser.Setup(arg => arg.Quiet)
+                .As('q')
+                .WithDescription("Quiet mode. When true, hide processing details. Default is FALSE\r\n").SetDefault(false);
+
             _fluentCommandLineParser.Setup(arg => arg.KeyName)
                 .As("kn")
                 .WithDescription(
@@ -663,6 +667,8 @@ namespace RECmd
 
             LoadPlugins();
 
+            var hiveInfoWithHits = new List<string>();
+
             foreach (var hiveToProcess in hivesToProcess)
             {
                 _logger.Info("");
@@ -896,10 +902,13 @@ namespace RECmd
                             if (hiveToProcess.StartsWith(VssDir))
                             {
                                 _logger.Fatal($"\tFound {hits.Count:N0} search hit{suffix2} in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                                hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hit{suffix2} in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+
                             }
                             else
                             {
                                 _logger.Fatal($"\tFound {hits.Count:N0} search hit{suffix2} in '{hiveToProcess}'");
+                                hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hit{suffix2} in '{hiveToProcess}'");
                             }
 
                             hivesWithHits += 1;
@@ -1545,9 +1554,21 @@ namespace RECmd
                 
                 _logger.Info("---------------------------------------------");
                 _logger.Info($"Directory: {_fluentCommandLineParser.Object.Directory}{suffix5}");
+                _logger.Info("");
                 _logger.Info(
-                    $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}");
+                    $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}:");
+
+                foreach (var hiveInfoWithHit in hiveInfoWithHits)
+                {
+                    _logger.Fatal(hiveInfoWithHit);
+                }
+
+                _logger.Info("");
+
                 _logger.Info($"Total search time: {totalSeconds:N3} seconds");
+
+
+             
             }
 
             _logger.Info("");
@@ -2477,6 +2498,7 @@ namespace RECmd
         public bool Literal { get; set; }
         public bool SuppressData { get; set; }
          public bool Sync { get; set; }
+         public bool Quiet { get; set; }
         public bool NoTransLogs { get; set; }
         public bool DisablePlugins { get; set; }
         public bool Debug { get; set; }
