@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.2
+Version: 1.3
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -39,6 +39,7 @@ Keys:
 # | 1.0 | 2021-02-14 | Initial release |
 # | 1.1 | 2021-02-20 | [Third-Party Applications] Added Total Commander. [Web Browsers] Added CCleaner Browser. [Event Logs] Created category |
 # | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, added ShadowRDP and Threat Hunting Category |
+# | 1.3 | 2021-04-20 | Fixed an issue with Cloud Storage -> DropBox previously mapping to OneDrive |
 #
 # --------------------
 # DOCUMENTATION
@@ -2267,9 +2268,9 @@ Keys:
         Description: Dropbox
         HiveType: SOFTWARE
         Category: Cloud Storage
-        KeyPath: Microsoft\Windows\CurrentVersion\Explorer\SyncRootManager\OneDrive*\UserSyncRoots
+        KeyPath: Microsoft\Windows\CurrentVersion\Explorer\SyncRootManager\Dropbox*\UserSyncRoots
         Recursive: true
-        Comment: "Displays the user's specified storage location for OneDrive"
+        Comment: "Displays the user's specified storage location for Dropbox"
 
 # --------------------
 # Services
