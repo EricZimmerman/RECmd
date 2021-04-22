@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.3
+Version: 1.4
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -40,6 +40,7 @@ Keys:
 # | 1.1 | 2021-02-20 | [Third-Party Applications] Added Total Commander. [Web Browsers] Added CCleaner Browser. [Event Logs] Created category |
 # | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, added ShadowRDP and Threat Hunting Category |
 # | 1.3 | 2021-04-20 | Fixed an issue with Cloud Storage -> DropBox previously mapping to OneDrive |
+# | 1.4 | 2021-04-22 | Added more artifacts for Cloud Storage -> OneDrive |
 #
 # --------------------
 # DOCUMENTATION
@@ -2261,6 +2262,64 @@ Keys:
         KeyPath: Microsoft\Windows\CurrentVersion\Explorer\SyncRootManager\Dropbox*\UserSyncRoots
         Recursive: true
         Comment: "Displays the user's specified storage location for Dropbox"
+    -
+        Description: OneDrive
+        HiveType: NTUSER
+        Category: Cloud Storage
+        KeyPath: Software\SyncEngines\Providers\OneDrive\*\
+        ValueName: LastModifiedTime
+        Recursive: true
+        Comment: "Displays the Last Modified time for the OneDrive registry key"
+    -
+        Description: OneDrive
+        HiveType: NTUSER
+        Category: Cloud Storage
+        KeyPath: Software\SyncEngines\Providers\OneDrive\*\
+        ValueName: MountPoint
+        Recursive: true
+        Comment: "Displays where the OneDrive folder is mounted"
+    -
+        Description: OneDrive
+        HiveType: NTUSER
+        Category: Cloud Storage
+        KeyPath: Software\SyncEngines\Providers\OneDrive\*\
+        ValueName: UrlNamespace
+        Recursive: true
+        Comment: "Displays the URL Namespace for OneDrive"
+    -
+        Description: OneDrive
+        HiveType: NTUSER
+        Category: Cloud Storage
+        KeyPath: Software\SyncEngines\Providers\OneDrive\*\
+        ValueName: IsOfficeSyncIntegrationEnabled
+        Recursive: true
+        Comment: "Office Sync Integration, 0 = Disabled, 1 = Enabled"
+    -
+        Description: OneDrive
+        HiveType: NTUSER
+        Category: Cloud Storage
+        KeyPath: Software\SyncEngines\Providers\OneDrive\*\
+        ValueName: LibraryType
+        Recursive: true
+        Comment: ""
+    -
+        Description: OneDrive
+        HiveType: NTUSER
+        Category: Cloud Storage
+        KeyPath: Software\Microsoft\OneDrive\*\
+        ValueName: InstallPath
+        Recursive: true
+        Comment: "Displays the installation path from the user's AppData folder for OneDrive"
+    -
+        Description: OneDrive
+        HiveType: NTUSER
+        Category: Cloud Storage
+        KeyPath: Software\Microsoft\OneDrive\Accounts
+        ValueName: LastUpdate
+        IncludeBinary: true
+        BinaryConvert: EPOCH
+        Recursive: true
+        Comment: "Displays the last update time oof the Accounts OneDrive registry key"
 
 # Cloud Storage -> Dropbox
 
