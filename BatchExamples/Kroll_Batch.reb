@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.4
+Version: 1.5
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -41,6 +41,8 @@ Keys:
 # | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, added ShadowRDP and Threat Hunting Category |
 # | 1.3 | 2021-04-20 | Fixed an issue with Cloud Storage -> DropBox previously mapping to OneDrive |
 # | 1.4 | 2021-04-22 | Added more artifacts for Cloud Storage -> OneDrive |
+# | 1.5 | 2021-04-23 | Added more Threat Hunting artifacts |
+
 #
 # --------------------
 # DOCUMENTATION
@@ -2789,5 +2791,27 @@ Keys:
         Comment: "Shadow RDP sessions, 0 = Disabled, 1 = Full Control with user's permission, 2 = Full Control without user's permission, 3 = View Session with user's permission, 4 = View Session without user's permission"
 
 # https://twitter.com/inversecos/status/1380006149479559170
+
+    -
+        Description: RDP Connections Status
+        HiveType: System
+        Category: Threat Hunting
+        KeyPath: ControlSet*\Control\Terminal Server
+        ValueName: fDenyTSConnections
+        Recursive: true
+        Comment: "Displays the status of whether the system can accept Terminal Server (RDP) connections, 0 = Disabled (Inbound RDP enabled), 1 = Enabled (Inbound RDP disabled)"
+
+# https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/microsoft-windows-terminalservices-localsessionmanager-fdenytsconnections
+
+    -
+        Description: RDP User Authentication Status
+        HiveType: SYSTEM
+        Category: Threat Hunting
+        KeyPath: ControlSet*\Control\Terminal Server\WinStations\RDP-Tcp
+        ValueName: UserAuthentication
+        Recursive: true
+        Comment: "Displays whether a Network-Level user authentication is required before a remote desktop connection is established. 0 = Disabled (no authentication required), 1 = Enabled (authentication required)"
+
+# https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/microsoft-windows-terminalservices-rdp-winstationextensions-userauthentication
 
 # More to come...stay tuned!
