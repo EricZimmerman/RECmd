@@ -2814,4 +2814,16 @@ Keys:
 
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/microsoft-windows-terminalservices-rdp-winstationextensions-userauthentication
 
+    -
+        Description: Windows Defender Status
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows Defender
+        ValueName: DisableAntiSpyware
+        Recursive: true
+        Comment: "Displays the status of whether Windows Defender is enabled or not. 0 = Enabled, 1 = Disabled"
+
+# https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
+# https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
+
 # More to come...stay tuned!
