@@ -2794,7 +2794,7 @@ Keys:
 
     -
         Description: RDP Connections Status
-        HiveType: System
+        HiveType: SYSTEM
         Category: Threat Hunting
         KeyPath: ControlSet*\Control\Terminal Server
         ValueName: fDenyTSConnections
