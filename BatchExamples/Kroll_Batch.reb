@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.5
+Version: 1.6
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -42,7 +42,7 @@ Keys:
 # | 1.3 | 2021-04-20 | Fixed an issue with Cloud Storage -> DropBox previously mapping to OneDrive |
 # | 1.4 | 2021-04-22 | Added more artifacts for Cloud Storage -> OneDrive |
 # | 1.5 | 2021-04-23 | Added more Threat Hunting artifacts |
-
+# | 1.6 | 2021-05-04 | Added more Network Share artifacts |
 #
 # --------------------
 # DOCUMENTATION
@@ -1105,7 +1105,7 @@ Keys:
 # https://www.majorgeeks.com/content/page/how_to_disable_or_enable_timeline_in_windows_10.html
 
 # --------------------
-# Devices
+# DEVICES
 # --------------------
 
     -
@@ -1206,7 +1206,7 @@ Keys:
 # WindowsPortableDevices plugin
 
 # --------------------
-# Network Shares
+# NETWORK SHARES
 # --------------------
 
 # Network Shares -> Network Shares
@@ -1248,8 +1248,19 @@ Keys:
 # https://community.spiceworks.com/topic/137045-remove-previously-mapped-network-drive-paths
 # https://answers.microsoft.com/en-us/windows/forum/windows_7-networking/cleanup-network-drives-list/1247aca3-deb6-493d-b937-24b40087cbc7?auth=1
 
+    -
+        Description: Network Shares
+        HiveType: SYSTEM
+        Category: Network Shares
+        KeyPath: ControlSet00*\Services\LanmanServer\Shares
+        Recursive: true
+        Comment: "Displays the share names and permissions of network shares"
+
+# https://www.coretechnologies.com/blog/windows-services/lanmanserver/
+# https://docs.microsoft.com/en-us/troubleshoot/windows-client/networking/saving-restoring-existing-windows-shares
+
 # --------------------
-# User Accounts
+# USER ACCOUNTS
 # --------------------
 
     -
@@ -1284,7 +1295,7 @@ Keys:
 # https://docs.microsoft.com/en-us/troubleshoot/windows-server/identity/security-identifiers-in-windows
 
 # --------------------
-# Program Execution
+# PROGRAM EXECUTION
 # --------------------
 
     -
@@ -1455,7 +1466,7 @@ Keys:
 # https://www.cellebrite.com/en/analyzing-program-execution-windows-artifacts/
 
 # --------------------
-# User Activity
+# USER ACTIVITY
 # --------------------
 
     -
@@ -1801,7 +1812,7 @@ Keys:
 # https://answers.microsoft.com/en-us/windows/forum/windows_7-networking/cleanup-network-drives-list/1247aca3-deb6-493d-b937-24b40087cbc7?auth=1
 
 # --------------------
-# Autoruns
+# AUTORUNS
 # --------------------
 
 # https://www.microsoftpressstore.com/articles/article.aspx?p=2762082
@@ -1916,7 +1927,7 @@ Keys:
 # https://dfirtnt.wordpress.com/registry-persistence-paths/
 
 # --------------------
-# Third Party Applications
+# THIRD PARTY APPLICATIONS
 # --------------------
 
 # Do not include anything in NTUSER or SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall as that is covered already by Installed Software entries
@@ -2237,7 +2248,7 @@ Keys:
         Comment: "Displays the user's primary monitor"
 
 # --------------------
-# Cloud Storage
+# CLOUD STORAGE
 # --------------------
 
 # Cloud Storage -> OneDrive
@@ -2334,7 +2345,7 @@ Keys:
         Comment: "Displays the user's specified storage location for Dropbox"
 
 # --------------------
-# Services
+# SERVICES
 # --------------------
 
     -
@@ -2348,7 +2359,7 @@ Keys:
 # Services plugin
 
 # --------------------
-# Event Logs
+# EVENT LOGS
 # --------------------
 
     -
@@ -2364,7 +2375,7 @@ Keys:
 # SYSTEM\\ControlSet00*\Services\EventLog\* will display the Provider GUID for each Event Log channel listed here. This recursive key is not enabled here
 
 # --------------------
-# Microsoft Office/Office 365
+# MICROSOFT OFFICE/OFFICE 365
 # --------------------
 
 #    -
@@ -2453,7 +2464,7 @@ Keys:
 # TrustedDocuments plugin
 
 # --------------------
-# Web Browsers
+# WEB BROWSERS
 # --------------------
 
     -
@@ -2487,7 +2498,7 @@ Keys:
         Comment: "CCleaner Browser registry artifacts"
 
 # --------------------
-# Installed Software
+# INSTALLED SOFTWARE
 # --------------------
 
     -
@@ -2728,7 +2739,7 @@ Keys:
 # https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
 
 # --------------------
-# Volume Shadow Copies
+# VOLUME SHADOW COPIES
 # --------------------
 
 # https://docs.microsoft.com/en-us/windows/win32/vss/volume-shadow-copy-service-portal
