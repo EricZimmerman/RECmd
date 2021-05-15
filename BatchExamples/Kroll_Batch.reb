@@ -1132,7 +1132,7 @@ Keys:
         HiveType: SOFTWARE
         Category: System Info
         KeyPath: Software\Policies\Microsoft\Windows\System
-        ValueName: AllowCrossDeviceClipboard 
+        ValueName: AllowCrossDeviceClipboard
         Recursive: False
         Comment: "Displays the status of Clipboard Sync Across Devices, 0 = Disabled, 1 = Enabled"
 
