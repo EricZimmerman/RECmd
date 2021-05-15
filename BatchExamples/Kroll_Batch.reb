@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.6
+Version: 1.7
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -43,6 +43,7 @@ Keys:
 # | 1.4 | 2021-04-22 | Added more artifacts for Cloud Storage -> OneDrive |
 # | 1.5 | 2021-04-23 | Added more Threat Hunting artifacts |
 # | 1.6 | 2021-05-04 | Added more Network Share artifacts |
+# | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts |
 #
 # --------------------
 # DOCUMENTATION
@@ -1103,6 +1104,50 @@ Keys:
         Comment: "Windows 10 Activity Timeline status, 0 = Disabled, 1 = Enabled"
 
 # https://www.majorgeeks.com/content/page/how_to_disable_or_enable_timeline_in_windows_10.html
+
+    -
+        Description: Windows 10 Timeline Status
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\PolicyManager\default\Privacy\EnableActivityFeed
+        ValueName: value
+        Recursive: false
+        Comment: "Windows 10 Activity Timeline status, 0 = Disabled, 1 = Enabled"
+
+# The above location is where this value exists on my personal machine. Adding it in case the other one doesn't get a hit.
+
+    -
+        Description: Clipboard History Status
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\PolicyManager\default\Privacy
+        ValueName: EnableClipboardHistory
+        Recursive: False
+        Comment: "Displays the status of Clipboard History, 0 = Disabled, 1 = Enabled"
+
+# The above location is where this value exists on my personal machine. Adding it in case the other one doesn't get a hit.
+
+    -
+        Description: Clipboard History Status
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Software\Policies\Microsoft\Windows\System
+        ValueName: AllowCrossDeviceClipboard
+        Recursive: False
+        Comment: "Displays the status of Clipboard Sync Across Devices, 0 = Disabled, 1 = Enabled"
+
+# https://www.tenforums.com/tutorials/110048-enable-disable-clipboard-sync-across-devices-windows-10-a.html
+
+    -
+        Description: Clipboard History Status
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\PolicyManager\default\Privacy\AllowCrossDeviceClipboard
+        ValueName: value
+        Recursive: False
+        Comment: "Displays the status of Clipboard Sync Across Devices, 0 = Disabled, 1 = Enabled"
+
+# The above location is where this value exists on my personal machine. Adding it in case the other one doesn't get a hit.
 
 # --------------------
 # DEVICES
