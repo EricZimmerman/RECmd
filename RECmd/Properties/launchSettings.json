@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RECmd": {
+      "commandName": "Project",
+      "commandLineArgs": "-f C:\\temp\\system\\system --bn .\\bamdamtest.reb --csv c:\\temp\\system"
+    }
+  }
+}

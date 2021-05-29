@@ -720,6 +720,8 @@ namespace RECmd
                                 _seenHashes.Add(sha);
                             }
 
+                            fs.Seek(0, SeekOrigin.Begin);
+
                             reg = new RegistryHive(fs.ReadFully(),hiveToProcess)
                             {
                                 RecoverDeleted = true
@@ -1726,11 +1728,6 @@ namespace RECmd
                 }
             }
 
-            /*if (key.KeyPath.Contains("Software\\Sysinternals"))
-            {
-                Debug.WriteLine(1);
-            }*/
-
             if (regVal == null && batchKey.ValueName.IsNullOrEmpty())
             {
                 //do not need to find a value, 
@@ -1818,7 +1815,10 @@ namespace RECmd
                         }
 
                         //TODO test this with all conditions
-                        BatchDumpKey(regKey, key, regHive.HivePath);
+                        //BatchDumpKey(regKey, key, regHive.HivePath);
+
+                        ///switch to this for better recursive support vs BatchDumpKey
+                        ProcessBatchKey(regKey, key, regHive.HivePath);
                     }
                 }
                 else
@@ -1865,44 +1865,28 @@ namespace RECmd
             {
                 if (path.Contains("*"))
                 {
-                    var segs = path.Split('*');
 
-                    if (keyPath.ToLowerInvariant().StartsWith(segs[0].ToLowerInvariant()))
+                    var rPath = path.Replace("*", ".+?").Replace("\\","\\\\");
+
+                    if (!Regex.IsMatch(keyPath, $@"{rPath}\z", RegexOptions.IgnoreCase))
                     {
-                        if (segs.Length > 1)
+                        continue;
+                    }
+
+                   
+                    if (registryPluginBase.ValueName == null)
+                    {
+                        pluginsToActivate.Add(registryPluginBase);
+                    }
+                    else
+                    {
+                        if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() ==
+                                             key.ValueName?.ToLowerInvariant())
                         {
-                            if (keyPath.ToLowerInvariant().EndsWith(segs[1].ToLowerInvariant()))
-                            {
-                                if (registryPluginBase.ValueName == null)
-                                {
-                                    pluginsToActivate.Add(registryPluginBase);
-                                }
-                                else
-                                {
-                                    if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() ==
-                                        key.ValueName?.ToLowerInvariant())
-                                    {
-                                        pluginsToActivate.Add(registryPluginBase);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (registryPluginBase.ValueName == null)
-                            {
-                                pluginsToActivate.Add(registryPluginBase);
-                            }
-                            else
-                            {
-                                if (key.ValueName != null && registryPluginBase.ValueName.ToLowerInvariant() ==
-                                    key.ValueName?.ToLowerInvariant())
-                                {
-                                    pluginsToActivate.Add(registryPluginBase);
-                                }
-                            }
+                            pluginsToActivate.Add(registryPluginBase);
                         }
                     }
+                    
                 }
                 else
                 {
