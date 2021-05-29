@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.7
+Version: 1.8
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -44,6 +44,7 @@ Keys:
 # | 1.5 | 2021-04-23 | Added more Threat Hunting artifacts |
 # | 1.6 | 2021-05-04 | Added more Network Share artifacts |
 # | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts |
+# | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts. Fixed FirstFolder mislabeling. Cleaned up Internet Explorer artifacts. Added binary values to replace (Binary data) entries, when possible. |
 #
 # --------------------
 # DOCUMENTATION
@@ -264,7 +265,7 @@ Keys:
         HiveType: SOFTWARE
         Category: System Info
         KeyPath: Microsoft\Windows NT\CurrentVersion\NetworkList
-        Recursive: true
+        Recursive: false
         Comment: "Displays list of network connections"
 
 # KnownNetworks plugin
@@ -274,7 +275,7 @@ Keys:
         HiveType: SYSTEM
         Category: System Info
         KeyPath: ControlSet*\Control\DeviceClasses
-        Recursive: true
+        Recursive: false
         Comment: "Displays a list of PnP devices (Plug and Play) that were connected to this system"
 
 # DeviceClasses plugin
@@ -543,7 +544,7 @@ Keys:
         HiveType: SYSTEM
         Category: System Info
         KeyPath: ControlSet*\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}
-        Recursive: true
+        Recursive: false
         Comment: "Displays list of network adapters connected to this system"
 
 # NetworkAdapters plugin
@@ -1167,7 +1168,7 @@ Keys:
         Description: Volume Info Cache
         HiveType: SOFTWARE
         Category: Devices
-        KeyPath: Microsoft\Windows Search\VolumeInfoCache\*
+        KeyPath: Microsoft\Windows Search\VolumeInfoCache
         Recursive: false
         Comment: "2 = Removable, 3 = Fixed, 4 = Network, 5 = Optical, 6 = RAM disk, 0 = Unknown"
 
@@ -1181,7 +1182,7 @@ Keys:
         HiveType: SYSTEM
         Category: Devices
         KeyPath: ControlSet*\Enum\USBSTOR
-        Recursive: true
+        Recursive: false
         Comment: "Displays list of USB devices that have been plugged into this system. If & is second character within serial number, serial number is only unique on the system"
 
 # USBSTOR plugin
@@ -1195,7 +1196,7 @@ Keys:
         HiveType: SYSTEM
         Category: Devices
         KeyPath: ControlSet*\Enum\USB
-        Recursive: true
+        Recursive: false
         Comment: "Provides VID and PID numbers of USB devices. Match serial number from USBSTOR and search for VID and PID across the system"
 
 # USB plugin
@@ -1231,24 +1232,15 @@ Keys:
 # https://windowsir.blogspot.com/2004/12/mounted-devices.html
 
     -
-        Description: Portable Devices
+        Description: Windows Portable Devices
         HiveType: SOFTWARE
         Category: Devices
-        KeyPath: Microsoft\Windows Portable Devices\Devices\
-        Recursive: true
-        Comment: "Portable Devices"
-
-# https://df-stream.com/2017/10/amcache-and-usb-device-tracking/
-
-    -
-        Description: Portable Devices
-        HiveType: SOFTWARE
-        Category: Devices
-        KeyPath: Microsoft\Windows Portable Devices
-        Recursive: true
+        KeyPath: Microsoft\Windows Portable Devices\*
+        Recursive: false
         Comment: "Displays list of USB devices previously connected to this system"
 
 # WindowsPortableDevices plugin
+# https://df-stream.com/2017/10/amcache-and-usb-device-tracking/
 
 # --------------------
 # NETWORK SHARES
@@ -1334,6 +1326,7 @@ Keys:
         HiveType: SECURITY
         Category: User Accounts
         KeyPath: Policy\Accounts\*
+        IncludeBinary: true
         Recursive: false
         Comment: "Built-in accounts in SECURITY hive"
 
@@ -1551,12 +1544,12 @@ Keys:
 # https://tzworks.net/prototype_page.php?proto_id=19
 
     -
-        Description: MS Office MRU
+        Description: Microsoft Office MRU
         HiveType: NTUSER
         Category: User Activity
-        KeyPath: SOFTWARE\Microsoft\Office\*\*\User MRU\*\*
-        Recursive: true
-        Comment: "MS Office Recent Files, lower Item value (Value Name) = more recent"
+        KeyPath: SOFTWARE\Microsoft\Office\*\*\User MRU\*\File MRU
+        Recursive: false
+        Comment: "Microsoft Office Recent Files, lower Item value (Value Name) = more recent"
 
 # OfficeMRU plugin
 # https://www.eshlomo.us/windows-forensics-analysis-evidence/
@@ -1577,11 +1570,11 @@ Keys:
 # https://www.forensicfocus.com/forums/general/how-to-check-what-words-have-been-searched-in-computer/
 
     -
-        Description: OpenSavePidlMRU
+        Description: FirstFolder
         HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\FirstFolder
-        Recursive: false
+        Recursive: true
         Comment: "FirstFolder, tracks the application's first folder that is presented to the user during an Open or Save As operation"
 
 # FirstFolder plugin
@@ -1917,6 +1910,7 @@ Keys:
         HiveType: NTUSER
         Category: Autoruns
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
+        IncludeBinary: true
         Recursive: true
         Comment: "Displays list of programs that start up upon system boot"
     -
@@ -1924,6 +1918,7 @@ Keys:
         HiveType: NTUSER
         Category: Autoruns
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32
+        IncludeBinary: true
         Recursive: true
         Comment: "Displays list of programs that start up upon system boot"
     -
@@ -1931,6 +1926,7 @@ Keys:
         HiveType: NTUSER
         Category: Autoruns
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder
+        IncludeBinary: true
         Recursive: true
         Comment: "Displays list of programs that start up upon system boot"
     -
@@ -1938,6 +1934,7 @@ Keys:
         HiveType: SOFTWARE
         Category: Autoruns
         KeyPath: Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
+        IncludeBinary: true
         Recursive: true
         Comment: "Displays list of programs that start up upon system boot"
     -
@@ -1945,6 +1942,7 @@ Keys:
         HiveType: SOFTWARE
         Category: Autoruns
         KeyPath: Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32
+        IncludeBinary: true
         Recursive: true
         Comment: "Displays list of programs that start up upon system boot"
     -
@@ -1952,6 +1950,7 @@ Keys:
         HiveType: SOFTWARE
         Category: Autoruns
         KeyPath: Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder
+        IncludeBinary: true
         Recursive: true
         Comment: "Displays list of programs that start up upon system boot"
 
@@ -2044,6 +2043,30 @@ Keys:
         ValueName: tDIText
         Recursive: false
         Comment: "Displays folders where Adobe Reader opened a PDF file from"
+
+# Third-Party Applications ->Visual Studio - https://visualstudio.microsoft.com/
+
+    -
+        Description: VisualStudio FileMRUList
+        HiveType: NtUser
+        Category: User Activity
+        KeyPath: Software\Microsoft\VisualStudio\*\FileMRUList
+        Recursive: false
+        Comment: ""
+    -
+        Description: VisualStudio MRUItems
+        HiveType: NtUser
+        Category: User Activity
+        KeyPath: Software\Microsoft\VisualStudio\*\MRUItems\*\Items
+        Recursive: false
+        Comment: ""
+    -
+        Description: VisualStudio MRUSettings
+        HiveType: NtUser
+        Category: User Activity
+        KeyPath: Software\Microsoft\VisualStudio\*\NewProjectDialog\MRUSettingsLocalProjectLocationEntries
+        Recursive: false
+        Comment: ""
 
 # Third-Party Applications -> 7-Zip - https://www.7-zip.org/
 
@@ -2398,7 +2421,7 @@ Keys:
         HiveType: SYSTEM
         Category: Services
         KeyPath: ControlSet*\Services
-        Recursive: true
+        Recursive: false
         Comment: "Displays list of services running on this computer"
 
 # Services plugin
@@ -2523,8 +2546,61 @@ Keys:
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
+        KeyPath: Software\Microsoft\Internet Explorer\Main
+        IncludeBinary: true
+        Recursive: false
+        Comment: "Internet Explorer registry artifacts"
+    -
+        Description: Internet Explorer
+        HiveType: NTUSER
+        Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer
+        ValueName: Download Directory
+        Recursive: false
+        Comment: "Internet Explorer registry artifacts"
+    -
+        Description: Internet Explorer
+        HiveType: NTUSER
+        Category: Web Browsers
+        KeyPath: Software\Microsoft\Internet Explorer\NewWindows
+        Recursive: false
+        Comment: "Internet Explorer registry artifacts"
+    -
+        Description: Internet Explorer
+        HiveType: NTUSER
+        Category: Web Browsers
+        KeyPath: Software\Microsoft\Internet Explorer\Suggested Sites\*
+        IncludeBinary: true
+        Recursive: false
+        Comment: "Internet Explorer registry artifacts"
+    -
+        Description: Internet Explorer
+        HiveType: NTUSER
+        Category: Web Browsers
+        KeyPath: Software\Microsoft\Internet Explorer\ProtocolExecute\*
+        Recursive: false
+        Comment: "Internet Explorer registry artifacts"
+    -
+        Description: Internet Explorer
+        HiveType: NTUSER
+        Category: Web Browsers
+        KeyPath: Software\Microsoft\Internet Explorer\LowRegistry\IEShims
         Recursive: true
+        Comment: "Internet Explorer registry artifacts"
+    -
+        Description: Internet Explorer
+        HiveType: NTUSER
+        Category: Web Browsers
+        KeyPath: Software\Microsoft\Internet Explorer\Main\WindowsSearch
+        Recursive: true
+        Comment: "Internet Explorer registry artifacts"
+    -
+        Description: Internet Explorer
+        HiveType: NTUSER
+        Category: Web Browsers
+        KeyPath: Software\Microsoft\Internet Explorer\Main\WindowsSearch
+        IncludeBinary: true
+        Recursive: false
         Comment: "Internet Explorer registry artifacts"
     -
         Description: Microsoft Edge
@@ -2551,7 +2627,7 @@ Keys:
         HiveType: SOFTWARE
         Category: Installed Software
         KeyPath: Microsoft\Windows\CurrentVersion\App Paths
-        Recursive: true
+        Recursive: false
         Comment: "Displays list of installed software and the associated application paths"
 
 # AppPaths plugin
@@ -2573,51 +2649,34 @@ Keys:
         Description: Add/Remove Programs Entries
         HiveType: SOFTWARE
         Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: DisplayName
+        KeyPath: Microsoft\Windows\CurrentVersion\Uninstall
         Recursive: false
-        Comment: "Displays name of installed software"
-    -
-        Description: Add/Remove Programs Entries
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: InstallDate
-        Recursive: false
-        Comment: "Displays date of software install, usually stored as YYYYMMDD"
-    -
-        Description: Add/Remove Programs Entries
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: Publisher
-        Recursive: false
-        Comment: "Displays developer of installed software"
-    -
-        Description: Add/Remove Programs Entries
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: DisplayVersion
-        Recursive: false
-        Comment: "Displays version of installed software"
-    -
-        Description: Add/Remove Programs Entries
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: EstimatedSize
-        Recursive: false
-        Comment: "Displays estimated size of installed software in kilobytes"
-    -
-        Description: Add/Remove Programs Entries
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: InstallLocation
-        Recursive: false
-        Comment: "Displays install location of installed software"
+        Comment: "Displays installed software"
 
+# Uninstall plugin
+# https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/find-installed-software
+
+    -
+        Description: Add/Remove Programs Entries
+        HiveType: SOFTWARE
+        Category: Installed Software
+        KeyPath: WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+        Recursive: false
+        Comment: "Displays installed software"
+
+# Uninstall plugin
+# https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/find-installed-software
+
+
+    -
+        Description: Add/Remove Programs Entries
+        HiveType: NTUSER
+        Category: Installed Software
+        KeyPath: SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall
+        Recursive: false
+        Comment: "Displays installed software"
+
+# Uninstall plugin
 # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/find-installed-software
 
     -
@@ -2625,71 +2684,12 @@ Keys:
         HiveType: SOFTWARE
         Category: Installed Software
         KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products
-        Recursive: true
+        Recursive: false
         Comment: "Displays list of each Windows Installer-based product installed on the system"
 
 # Products plugin
 # https://support.microsoft.com/en-us/topic/description-of-the-patch-registration-cleanup-tool-f3cd8e0b-43a3-ee5c-927b-055465a5a500
-
-# Installed Software -> InstallProperties
-    -
-        Description: Installed Software (InstallProperties)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties
-        ValueName: DisplayName
-        Recursive: false
-        Comment: "Displays the product name of the installed software"
-
 # https://www.digitalforensics.com/blog/coreldraw-forensics-step-by-step/
-    -
-        Description: Installed Software (InstallProperties)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties
-        ValueName: InstallDate
-        Recursive: false
-        Comment: "Displays date of software install, usually stored as YYYYMMDD"
-    -
-        Description: Installed Software (InstallProperties)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties
-        ValueName: InstallSource
-        Recursive: false
-        Comment: "Displays the install source of the installed software (DisplayName)"
-    -
-        Description: Installed Software (InstallProperties)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties
-        ValueName: Publisher
-        Recursive: false
-        Comment: "Displays the Publisher of the installed software (DisplayName)"
-    -
-        Description: Installed Software (InstallProperties)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties
-        ValueName: RegCompany
-        Recursive: false
-        Comment: "Displays the Registered Company of the installed software (DisplayName)"
-    -
-        Description: Installed Software (InstallProperties)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties
-        ValueName: RegOwner
-        Recursive: false
-        Comment: "Displays the Registered Owner of the installed software (DisplayName)"
-    -
-        Description: Installed Software (InstallProperties)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products\*\InstallProperties
-        ValueName: DisplayVersion
-        Recursive: false
-        Comment: "Displays the version of the installed software (DisplayName)"
 
 # Installed Software - Wow6432 (32-bit software installed on 64-bit OS)
     -
