@@ -356,6 +356,8 @@ Keys:
         Category: System Info
         KeyPath: Microsoft\Windows NT\CurrentVersion
         ValueName: InstallDate
+        IncludeBinary: true
+        BinaryConvert: EPOCH
         Recursive: false
         Comment: "Current OS install date"
     -
@@ -473,6 +475,8 @@ Keys:
         Category: System Info
         KeyPath: Setup\Source OS*
         ValueName: InstallDate
+        IncludeBinary: true
+        BinaryConvert: EPOCH
         Recursive: false
         Comment: "Historical OS install date"
     -
@@ -1997,7 +2001,6 @@ Keys:
 
 # Third-Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
 
-
     -
         Description: TeamViewer
         HiveType: NTUSER
@@ -2104,7 +2107,6 @@ Keys:
         KeyPath: Software\WinRAR\DialogEditHistory\ExtrPath
         Recursive: true
         Comment: "Displays history of extraction paths that were used with WinRAR"
-
     -
         Description: WinRAR
         HiveType: SOFTWARE
@@ -2666,7 +2668,6 @@ Keys:
 
 # Uninstall plugin
 # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/find-installed-software
-
 
     -
         Description: Add/Remove Programs Entries
