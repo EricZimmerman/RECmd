@@ -2,7 +2,7 @@
   "profiles": {
     "RECmd": {
       "commandName": "Project",
-      "commandLineArgs": "-f C:\\temp\\system\\system --bn .\\bamdamtest.reb --csv c:\\temp\\system"
+      "commandLineArgs": "-f C:\\temp\\system\\system --bn D:\\Tools\\RegistryExplorer\\BatchExamples\\Kroll_Batch.reb --csv c:\\temp"
     }
   }
 }
