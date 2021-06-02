@@ -2771,7 +2771,7 @@ Keys:
         Comment:
 
 # --------------------
-# Antivirus
+# ANTIVIRUS
 # --------------------
 
     -
@@ -2835,7 +2835,7 @@ Keys:
 # https://docs.microsoft.com/en-us/windows/win32/backup/registry-keys-for-backup-and-restore#filesnottobackup
 
 # --------------------
-# Threat Hunting
+# THREAT HUNTING
 # --------------------
 
     -
