@@ -2016,7 +2016,7 @@ namespace RECmd
                 return null;
             }
 
-            var hiveName1 = hivePath.Replace(":", "").Replace("\\", "_");
+            var hiveName1 = hivePath.Replace(_fluentCommandLineParser.Object.Directory,"").Replace(":", "").Replace("\\", "_");
 
             if (hivePath.StartsWith(VssDir))
             {
