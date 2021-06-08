@@ -734,6 +734,9 @@ namespace RECmd
                     }
                     catch (IOException ex)
                     {
+
+                        _logger.Debug($"IO exception! Error message: {ex.Message}");
+
                         //file is in use
 
                         if (Helper.IsAdministrator() == false)
@@ -2162,7 +2165,7 @@ namespace RECmd
                                 }
                                 catch (Exception e)
                                 {
-                                    _logger.Warn($"Error converting to IP address. Using bytes instead!");
+                                    _logger.Warn($"Error converting to IP address. Using bytes instead! Error: {e.Message}");
                                     rebOut.ValueData = regVal.ValueData;
                                 }
                                 break;
