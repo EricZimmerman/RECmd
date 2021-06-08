@@ -1239,7 +1239,7 @@ Keys:
         Description: Windows Portable Devices
         HiveType: SOFTWARE
         Category: Devices
-        KeyPath: Microsoft\Windows Portable Devices\*
+        KeyPath: Microsoft\Windows Portable Devices
         Recursive: false
         Comment: "Displays list of USB devices previously connected to this system"
 
