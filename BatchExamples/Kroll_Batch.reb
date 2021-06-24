@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.8
+Version: 1.9
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -45,6 +45,7 @@ Keys:
 # | 1.6 | 2021-05-04 | Added more Network Share artifacts |
 # | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts |
 # | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts. Fixed FirstFolder mislabeling. Cleaned up Internet Explorer artifacts. Added binary values to replace (Binary data) entries, when possible. |
+# | 1.9 | 2021-06-24 | Added PortProxy to Threat Hunting artifacts, Andreas Hunkeler (@Karneades) |
 #
 # --------------------
 # DOCUMENTATION
@@ -1239,7 +1240,7 @@ Keys:
         Description: Windows Portable Devices
         HiveType: SOFTWARE
         Category: Devices
-        KeyPath: Microsoft\Windows Portable Devices\*
+        KeyPath: Microsoft\Windows Portable Devices
         Recursive: false
         Comment: "Displays list of USB devices previously connected to this system"
 
@@ -2882,5 +2883,17 @@ Keys:
 
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
 # https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
+
+    -
+        Description: PortProxy Configuration
+        HiveType: SYSTEM
+        Category: Threat Hunting
+        KeyPath: ControlSet*\Services\PortProxy\v4tov4\tcp
+        Recursive: true
+        Comment: "Display current port proxy configuration."
+
+# https://www.fireeye.com/blog/threat-research/2019/01/bypassing-network-restrictions-through-rdp-tunneling.html
+# https://adepts.of0x.cc/netsh-portproxy-code/
+# https://www.dfirnotes.net/portproxy_detection/
 
 # More to come...stay tuned!
