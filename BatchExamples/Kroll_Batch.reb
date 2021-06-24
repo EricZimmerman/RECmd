@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.8
+Version: 1.9
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -45,6 +45,7 @@ Keys:
 # | 1.6 | 2021-05-04 | Added more Network Share artifacts |
 # | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts |
 # | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts. Fixed FirstFolder mislabeling. Cleaned up Internet Explorer artifacts. Added binary values to replace (Binary data) entries, when possible. |
+# | 1.9 | 2021-06-24 | Added PortProxy to Threat Hunting artifacts, Andreas Hunkeler (@Karneades) |
 #
 # --------------------
 # DOCUMENTATION
