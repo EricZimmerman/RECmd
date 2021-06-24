@@ -2883,4 +2883,16 @@ Keys:
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
 # https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
 
+    -
+        Description: PortProxy Configuration
+        HiveType: SYSTEM
+        Category: Threat Hunting
+        KeyPath: ControlSet*\Services\PortProxy\v4tov4\tcp
+        Recursive: true
+        Comment: "Display current port proxy configuration."
+
+# https://www.fireeye.com/blog/threat-research/2019/01/bypassing-network-restrictions-through-rdp-tunneling.html
+# https://adepts.of0x.cc/netsh-portproxy-code/
+# https://www.dfirnotes.net/portproxy_detection/
+
 # More to come...stay tuned!
