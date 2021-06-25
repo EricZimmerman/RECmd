@@ -72,6 +72,7 @@ Keys:
 # --------------------
 
 # System Info -> Basic System Info
+
     -
         Description: WinLogon
         HiveType: SOFTWARE
@@ -82,6 +83,7 @@ Keys:
         Comment: "Displays the username of the last user logged in to this system"
 
 # https://windowsir.blogspot.com/2013/04/plugin-winlogon.html
+
     -
         Description: WinLogon
         HiveType: SOFTWARE
