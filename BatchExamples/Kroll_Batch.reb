@@ -32,20 +32,26 @@ Keys:
 #
 # Special thanks to Mike Cary and Troy Larson for their work on the other RECmd Batch files that helped inspire development of this Batch file
 #
+# Special thanks to those who have contributed to this Batch file:
+# Andreas Hunkeler (@Karneades)
+#
 # --------------------
 # VERSION HISTORY
 # --------------------
 #
+# Example entry, please follow this format:
+# | X.X | YYYY-MM-DD | Added Google Chrome [Web Browsers]. Added *insert Threat Hunting artifact here* [Threat Hunting]. Added 1Password [Installed Software] |
+#
 # | 1.0 | 2021-02-14 | Initial release |
-# | 1.1 | 2021-02-20 | [Third-Party Applications] Added Total Commander. [Web Browsers] Added CCleaner Browser. [Event Logs] Created category |
-# | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, added ShadowRDP and Threat Hunting Category |
+# | 1.1 | 2021-02-20 | Added Total Commander [Third-Party Applications]. Added CCleaner Browser [Web Browsers]. Created category [Event Logs] |
+# | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, created Threat Hunting category, added ShadowRDP [Threat Hunting] |
 # | 1.3 | 2021-04-20 | Fixed an issue with Cloud Storage -> DropBox previously mapping to OneDrive |
 # | 1.4 | 2021-04-22 | Added more artifacts for Cloud Storage -> OneDrive |
 # | 1.5 | 2021-04-23 | Added more Threat Hunting artifacts |
 # | 1.6 | 2021-05-04 | Added more Network Share artifacts |
-# | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts |
-# | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts. Fixed FirstFolder mislabeling. Cleaned up Internet Explorer artifacts. Added binary values to replace (Binary data) entries, when possible. |
-# | 1.9 | 2021-06-24 | Added PortProxy to Threat Hunting artifacts, Andreas Hunkeler (@Karneades) |
+# | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts [System Info] |
+# | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts [Installed Software]. Fixed FirstFolder mislabeling [User Activity]. Cleaned up Internet Explorer artifacts [Web Browsers]. Added binary values using BinaryConvert to replace (Binary data) entries, when possible. |
+# | 1.9 | 2021-06-24 | Revised Version History formatting [Version History]. Added running Special Thanks list [Acknowledgement]. Added PortProxy artifacts [Threat Hunting] courtesy of Andreas Hunkeler (@Karneades). Added WinLogon and LogonUI artifacts [System Info]. Added QNAP QFinder, 4K Video Downloader, and TeamViewer artifacts [Third Party Applications]. Added Hades IOCs [Threat Hunting]. Fixed OneDrive UserSyncRoots artifact [Cloud Storage] |
 #
 # --------------------
 # DOCUMENTATION
@@ -66,6 +72,67 @@ Keys:
 # --------------------
 
 # System Info -> Basic System Info
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: LastUsedUsername
+        Recursive: false
+        Comment: "Displays the username of the last user logged in to this system"
+
+# https://windowsir.blogspot.com/2013/04/plugin-winlogon.html
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: AutoLogonSID
+        Recursive: false
+        Comment: "Displays the SID of the user who is set to auto login to Windows"
+
+# https://windowsir.blogspot.com/2013/04/plugin-winlogon.html
+
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: LastLoggedOnUser
+        Recursive: false
+        Comment: "Displays the last logged on SAM user"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: LastLoggedOnSAMUser
+        Recursive: false
+        Comment: "Displays the last logged on user"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: LastLoggedOnDisplayName
+        Recursive: false
+        Comment: "Displays the last logged on user's display name"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: SelectedUserSID
+        Recursive: false
+        Comment: "Displays the selected user's SID"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: LastLoggedOnUserSID
+        Recursive: false
+        Comment: "Displays the last logged on user's SID"
     -
         Description: Windows Boot Volume
         HiveType: SYSTEM
@@ -1983,6 +2050,57 @@ Keys:
 # Sometimes, there are values for third-party applications not covered under the standard DisplayVersion, Publisher, InstallLocation, InstallDate, and DisplayName entries. I've seen Inno Setup: User, Inno Setup: Language, and Inno Setup: App Path
 # For this section, please include a subheader and a URL, even if its only one entry per program
 
+# Third-Party Applications -> QNAP QFinder - https://www.qnap.com/en-us/utilities/essentials
+
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrName
+        Recursive: false
+        Comment: "Displays the name of the QNAP as it was assigned by the user"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrIPAddr
+        Recursive: false
+        Comment: "Displays the IP Address of the QNAP as it was assigned by the user"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrVersion
+        Recursive: false
+        Comment: "Displays the current firmware version of the QNAP"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrType
+        Recursive: false
+        Comment: "Displays the type of the QNAP device"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrModel
+        Recursive: false
+        Comment: "Displays the model of the QNAP device"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder
+        ValueName: InstallDate
+        Recursive: false
+        Comment: "Displays the install date of QNAP QFinder"
+
 # Third-Party Applications -> Total Commander - https://www.ghisler.com/
 
     -
@@ -2026,6 +2144,22 @@ Keys:
         ValueName: BuddyDisplayName
         Recursive: false
         Comment: "User specified TeamViewer display name"
+    -
+        Description: TeamViewer
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\TeamViewer
+        ValueName: OwningManagerAccountName
+        Recursive: false
+        Comment: "Displays the name of the user logged into TeamViewer"
+    -
+        Description: TeamViewer
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\TeamViewer
+        ValueName: PermanentPasswordDate
+        Recursive: false
+        Comment: "Displays the date the password was last set for the user within TeamViewer"
 
 # Third-Party Applications -> Adobe - https://www.adobe.com/
 
@@ -2318,6 +2452,51 @@ Keys:
         Recursive: true
         Comment: "Displays the user's primary monitor"
 
+# Third-Party Applications -> 4K Video Downloader - https://www.4kdownload.com/products/videodownloader/1
+
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Notification
+        ValueName: runCount
+        Recursive: false
+        Comment: "Displays the run count for 4K Video Downloader"
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Notification
+        ValueName: lastVersion
+        Recursive: false
+        Comment: "Displays the last version of 4K Video Downloader installed on this system"
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Limits
+        ValueName: dayDownloadDate
+        IncludeBinary: true
+        BinaryConvert: EPOCH
+        Recursive: false
+        Comment: "Displays the date that 4K Video Downloader was installed"
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Limits
+        ValueName: dayDownloadCount
+        Recursive: false
+        Comment: "Displays the amount of times 4K Video Downloaded was downloaded"
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Download
+        ValueName: downloadedItemsDb
+        Recursive: false
+        Comment: "Displays the location of the SQLite database associated with 4K Video Downloader"
+
 # --------------------
 # CLOUD STORAGE
 # --------------------
@@ -2343,9 +2522,9 @@ Keys:
         Description: OneDrive
         HiveType: SOFTWARE
         Category: Cloud Storage
-        KeyPath: Microsoft\Windows\CurrentVersion\Explorer\SyncRootManager\Dropbox*\UserSyncRoots
+        KeyPath: Microsoft\Windows\CurrentVersion\Explorer\SyncRootManager\OneDrive*\UserSyncRoots
         Recursive: true
-        Comment: "Displays the user's specified storage location for Dropbox"
+        Comment: "Displays the user's specified storage location for OneDrive"
     -
         Description: OneDrive
         HiveType: NTUSER
@@ -2403,7 +2582,7 @@ Keys:
         IncludeBinary: true
         BinaryConvert: EPOCH
         Recursive: true
-        Comment: "Displays the last update time oof the Accounts OneDrive registry key"
+        Comment: "Displays the last update time of the Accounts OneDrive registry key"
 
 # Cloud Storage -> Dropbox
 
@@ -2890,10 +3069,79 @@ Keys:
         Category: Threat Hunting
         KeyPath: ControlSet*\Services\PortProxy\v4tov4\tcp
         Recursive: true
-        Comment: "Display current port proxy configuration."
+        Comment: "Display current port proxy configuration"
 
 # https://www.fireeye.com/blog/threat-research/2019/01/bypassing-network-restrictions-through-rdp-tunneling.html
 # https://adepts.of0x.cc/netsh-portproxy-code/
 # https://www.dfirnotes.net/portproxy_detection/
+
+# Threat Hunting -> Hades - Located within a PowerShell script associated with this group
+
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseAdvancedStartup
+        Recursive: false
+        Comment: "0 = Disabled, 1 = Enabled"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: EnableBDEWithNoTPM
+        Recursive: false
+        Comment: "1 = Default, 0 = Disabled, 1 = Enabled"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseTPM
+        Recursive: false
+        Comment: "0 = Do Not Allow TPM, 1 = Require TPM, 2 = Allow TPM"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseTPMKey
+        Recursive: false
+        Comment: "0 = Do not allow startup key with TPM, 1 = Require startup key with TPM, 2 = Allow startup key with TPM"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseTPMKeyPIN
+        Recursive: false
+        Comment: "0 = Do not allow startup key and PIN with TPM, 1 = Require startup key and PIN with TPM, 2 = Allow startup key and PIN with TPM"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: RecoveryKeyMessage
+        Recursive: false
+        Comment: "Displays the Recovery Key message set by the Threat Actor group"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: RecoveryKeyMessageSource
+        Recursive: false
+        Comment: "2 is set by the Hades group"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseTPMPIN
+        Recursive: false
+        Comment: "0 = Do not allow startup PIN with TPM, 1 = Require startup PIN with TPM, 2 = Allow startup PIN with TPM"
+
+# https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.VolumeEncryption::ConfigureAdvancedStartup_Name
 
 # More to come...stay tuned!
