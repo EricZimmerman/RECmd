@@ -72,6 +72,7 @@ Keys:
 # --------------------
 
 # System Info -> Basic System Info
+
     -
         Description: WinLogon
         HiveType: SOFTWARE
@@ -82,6 +83,7 @@ Keys:
         Comment: "Displays the username of the last user logged in to this system"
 
 # https://windowsir.blogspot.com/2013/04/plugin-winlogon.html
+
     -
         Description: WinLogon
         HiveType: SOFTWARE
@@ -3028,6 +3030,7 @@ Keys:
         Comment: "Shadow RDP sessions, 0 = Disabled, 1 = Full Control with user's permission, 2 = Full Control without user's permission, 3 = View Session with user's permission, 4 = View Session without user's permission"
 
 # https://twitter.com/inversecos/status/1380006149479559170
+# https://bitsadm.in/blog/spying-on-users-using-rdp-shadowing
 
     -
         Description: RDP Connections Status
