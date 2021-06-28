@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.9
+Version: 1.10
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -51,7 +51,8 @@ Keys:
 # | 1.6 | 2021-05-04 | Added more Network Share artifacts |
 # | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts [System Info] |
 # | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts [Installed Software]. Fixed FirstFolder mislabeling [User Activity]. Cleaned up Internet Explorer artifacts [Web Browsers]. Added binary values using BinaryConvert to replace (Binary data) entries, when possible. |
-# | 1.9 | 2021-06-24 | Revised Version History formatting [Version History]. Added running Special Thanks list [Acknowledgement]. Added PortProxy artifacts [Threat Hunting] courtesy of Andreas Hunkeler (@Karneades). Added WinLogon and LogonUI artifacts [System Info]. Added QNAP QFinder, 4K Video Downloader, and TeamViewer artifacts [Third Party Applications]. Added Hades IOCs [Threat Hunting]. Fixed OneDrive UserSyncRoots artifact [Cloud Storage] |
+# | 1.9 | 2021-06-24 | Revised Version History formatting [Version History]. Added running Special Thanks list [Acknowledgement]. Added PortProxy artifacts [Threat Hunting]. Added WinLogon and LogonUI artifacts [System Info]. Added QNAP QFinder, 4K Video Downloader, and TeamViewer artifacts [Third Party Applications]. Added Hades IOCs [Threat Hunting]. Fixed OneDrive UserSyncRoots artifact [Cloud Storage] |
+# | 1.10 | 2021-06-28 | Added Defender Exclusions [Antivirus] |
 #
 # --------------------
 # DOCUMENTATION
@@ -2965,6 +2966,22 @@ Keys:
         Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
 
 # https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Policies\Microsoft\Windows Defender\Exclusions\
+        Recursive: true
+        Comment: "Windows Defender Exclusions through Group Policies (GPOs)"
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Microsoft\Windows Defender\Exclusions\
+        Recursive: true
+        Comment: "Windows Defender Exclusions"
 
 # --------------------
 # VOLUME SHADOW COPIES
