@@ -679,6 +679,7 @@ Keys:
         Category: System Info
         KeyPath: ControlSet*\Services\Tcpip\Parameters\Interfaces\*
         ValueName: DhcpGatewayHardware
+        IncludeBinary: true
         Recursive: false
         Comment: ""
     -
