@@ -53,7 +53,7 @@ Keys:
 # | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts [Installed Software]. Fixed FirstFolder mislabeling [User Activity]. Cleaned up Internet Explorer artifacts [Web Browsers]. Added binary values using BinaryConvert to replace (Binary data) entries, when possible. |
 # | 1.9 | 2021-06-24 | Revised Version History formatting [Version History]. Added running Special Thanks list [Acknowledgement]. Added PortProxy artifacts [Threat Hunting]. Added WinLogon and LogonUI artifacts [System Info]. Added QNAP QFinder, 4K Video Downloader, and TeamViewer artifacts [Third Party Applications]. Added Hades IOCs [Threat Hunting]. Fixed OneDrive UserSyncRoots artifact [Cloud Storage] |
 # | 1.10 | 2021-06-28 | Added Defender Exclusions [Antivirus] |
-# | 1.11 | 2021-07-06 | Added IncludeBinary to DHCPHardwareCount ValueName [System Info], removed duplicate entries (i.e., values being parsed twice) from the Uninstall Key [Installed Software] resulting in 2k less rows in testing |
+# | 1.11 | 2021-07-06 | Added IncludeBinary to DHCPHardwareCount ValueName [System Info]. Removed duplicate entries (i.e., values being parsed twice) from the Uninstall Key [Installed Software] resulting in 2k less rows in testing. Added relevant Key related to Kaseya Ransomware attack of July 2021 [Threat Hunting]. Expanded WinLogon artifacts based on same attack [System Info] |
 #
 # --------------------
 # DOCUMENTATION
@@ -97,6 +97,30 @@ Keys:
 
 # https://windowsir.blogspot.com/2013/04/plugin-winlogon.html
 
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: AutoAdminLogon
+        Recursive: false
+        Comment: "Displays whether the system will automatically login a user as Admin, 0 = Disabled, 1 = Enabled"
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: DefaultUserName
+        Recursive: false
+        Comment: "Displays the default username the system will log in as"
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: DefaultPassword
+        Recursive: false
+        Comment: "Displays the password to be used for the account specified in DefaultUserName"
     -
         Description: LogonUI
         HiveType: SOFTWARE
@@ -2114,14 +2138,14 @@ Keys:
         Category: Third Party Applications
         KeyPath: Ghisler\Total Commander
         Recursive: false
-        Comment: "Total Commander registry artifacts"
+        Comment: "Total Commander Registry artifacts"
     -
         Description: Total Commander
         HiveType: SOFTWARE
         Category: Third Party Applications
         KeyPath: WOW6432Node\Ghisler\Total Commander
         Recursive: false
-        Comment: "Total Commander registry artifacts"
+        Comment: "Total Commander Registry artifacts"
 
 # Third-Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
 
@@ -2537,7 +2561,7 @@ Keys:
         KeyPath: Software\SyncEngines\Providers\OneDrive\*\
         ValueName: LastModifiedTime
         Recursive: true
-        Comment: "Displays the Last Modified time for the OneDrive registry key"
+        Comment: "Displays the Last Modified time for the OneDrive Registry key"
     -
         Description: OneDrive
         HiveType: NTUSER
@@ -2587,7 +2611,7 @@ Keys:
         IncludeBinary: true
         BinaryConvert: EPOCH
         Recursive: true
-        Comment: "Displays the last update time of the Accounts OneDrive registry key"
+        Comment: "Displays the last update time of the Accounts OneDrive Registry key"
 
 # Cloud Storage -> Dropbox
 
@@ -2639,9 +2663,9 @@ Keys:
 #        Category: Microsoft Office
 #        KeyPath: Software\Microsoft\Office
 #        Recursive: true
-#        Comment: "Microsoft Office registry artifacts"
+#        Comment: "Microsoft Office Registry artifacts"
 #
-# Uncomment this if you want ALL registry artifacts for Microsoft Office. Be sure to comment out the below values since you won't need them anymore. On my system, recursive on the entire MS Office key returned 16,000+ lines.
+# Uncomment this if you want ALL Registry artifacts for Microsoft Office. Be sure to comment out the below values since you won't need them anymore. On my system, recursive on the entire MS Office key returned 16,000+ lines.
 
     -
         Description: Microsoft Office
@@ -2728,7 +2752,7 @@ Keys:
         Category: Web Browsers
         KeyPath: Software\Google\Chrome
         Recursive: true
-        Comment: "Google Chrome registry artifacts"
+        Comment: "Google Chrome Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
@@ -2736,7 +2760,7 @@ Keys:
         KeyPath: Software\Microsoft\Internet Explorer\Main
         IncludeBinary: true
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
@@ -2744,14 +2768,14 @@ Keys:
         KeyPath: Software\Microsoft\Internet Explorer
         ValueName: Download Directory
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer\NewWindows
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
@@ -2759,28 +2783,28 @@ Keys:
         KeyPath: Software\Microsoft\Internet Explorer\Suggested Sites\*
         IncludeBinary: true
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer\ProtocolExecute\*
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer\LowRegistry\IEShims
         Recursive: true
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer\Main\WindowsSearch
         Recursive: true
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
@@ -2788,14 +2812,14 @@ Keys:
         KeyPath: Software\Microsoft\Internet Explorer\Main\WindowsSearch
         IncludeBinary: true
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Microsoft Edge
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Edge
         Recursive: true
-        Comment: "Microsoft Edge registry artifacts"
+        Comment: "Microsoft Edge Registry artifacts"
     -
         Description: CCleaner Browser
         HiveType: SOFTWARE
@@ -2803,7 +2827,7 @@ Keys:
         KeyPath: WOW6432Node\Piriform\Browser
         IncludeBinary: true
         Recursive: true
-        Comment: "CCleaner Browser registry artifacts"
+        Comment: "CCleaner Browser Registry artifacts"
 
 # --------------------
 # INSTALLED SOFTWARE
@@ -2931,7 +2955,7 @@ Keys:
         Category: Volume Shadow Copies
         KeyPath: ControlSet*\Control\BackupRestore\KeysNotToRestore
         Recursive: true
-        Comment: "Displays the names of the registry subkeys and values that backup applications should not restore"
+        Comment: "Displays the names of the Registry subkeys and values that backup applications should not restore"
 
 # https://medium.com/@bromiley/windows-wednesday-volume-shadow-copies-d20b60997c22#.11p1cb258
 # https://docs.microsoft.com/en-us/windows/win32/backup/registry-keys-for-backup-and-restore#keysnottorestore
@@ -3077,5 +3101,15 @@ Keys:
         Comment: "0 = Do not allow startup PIN with TPM, 1 = Require startup PIN with TPM, 2 = Allow startup PIN with TPM"
 
 # https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.VolumeEncryption::ConfigureAdvancedStartup_Name
+
+# Threat Hunting -> Kaseya (REvil - July 2021) - Located within Registry hives from an infected system
+
+    -
+        Description: REvil IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Wow6432Node\BlackLivesMatter
+        Recursive: true
+        Comment: "REvil/Kaseya Ransomware attack from July 2021"
 
 # More to come...stay tuned!
