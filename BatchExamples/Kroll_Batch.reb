@@ -3112,4 +3112,8 @@ Keys:
         Recursive: true
         Comment: "REvil/Kaseya Ransomware attack from July 2021"
 
+# https://community.sophos.com/b/security-blog/posts/active-ransomware-attack-on-kaseya-customers
+# https://www.huntress.com/blog/rapid-response-kaseya-vsa-mass-msp-ransomware-incident
+# https://symantec-enterprise-blogs.security.com/blogs/threat-intelligence/kaseya-ransomware-supply-chain
+
 # More to come...stay tuned!
