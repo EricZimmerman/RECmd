@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.10
+Version: 1.11
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -53,6 +53,7 @@ Keys:
 # | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts [Installed Software]. Fixed FirstFolder mislabeling [User Activity]. Cleaned up Internet Explorer artifacts [Web Browsers]. Added binary values using BinaryConvert to replace (Binary data) entries, when possible. |
 # | 1.9 | 2021-06-24 | Revised Version History formatting [Version History]. Added running Special Thanks list [Acknowledgement]. Added PortProxy artifacts [Threat Hunting]. Added WinLogon and LogonUI artifacts [System Info]. Added QNAP QFinder, 4K Video Downloader, and TeamViewer artifacts [Third Party Applications]. Added Hades IOCs [Threat Hunting]. Fixed OneDrive UserSyncRoots artifact [Cloud Storage] |
 # | 1.10 | 2021-06-28 | Added Defender Exclusions [Antivirus] |
+# | 1.11 | 2021-07-06 | Added IncludeBinary to DHCPHardwareCount ValueName [System Info], removed duplicate entries (i.e., values being parsed twice) from the Uninstall Key [Installed Software] resulting in 2k less rows in testing |
 #
 # --------------------
 # DOCUMENTATION
@@ -2863,96 +2864,8 @@ Keys:
 
 # Uninstall plugin
 # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/find-installed-software
-
-    -
-        Description: Installed Software (Windows Installer)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products
-        Recursive: false
-        Comment: "Displays list of each Windows Installer-based product installed on the system"
-
-# Products plugin
-# https://support.microsoft.com/en-us/topic/description-of-the-patch-registration-cleanup-tool-f3cd8e0b-43a3-ee5c-927b-055465a5a500
-# https://www.digitalforensics.com/blog/coreldraw-forensics-step-by-step/
-
-# Installed Software - Wow6432 (32-bit software installed on 64-bit OS)
-    -
-        Description: Installed Software (32-bit)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: DisplayName
-        Recursive: false
-        Comment: "Displays name of 32-bit software installed on 64-bit OS"
-    -
-        Description: Installed Software (32-bit)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: InstallDate
-        Recursive: false
-        Comment: "Displays install date (YYYYMMDD) of 32-bit software installed on 64-bit OS"
-    -
-        Description: Installed Software (32-bit)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: Publisher
-        Recursive: false
-        Comment: "Displays Publisher of 32-bit software installed on 64-bit OS"
-
 # https://www.advancedinstaller.com/user-guide/registry-wow6432-node.html
 # https://docs.microsoft.com/en-us/windows/win32/sysinfo/32-bit-and-64-bit-application-data-in-the-registry
-
-    -
-        Description: Uninstall DisplayName
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: DisplayName
-        Recursive: false
-        Comment:
-    -
-        Description: Uninstall InstallDate
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: InstallDate
-        Recursive: false
-        Comment:
-    -
-        Description: Uninstall Publisher
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: Publisher
-        Recursive: false
-        Comment:
-    -
-        Description: Wow6432Node Uninstall DisplayName
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Wow6432Node\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: DisplayName
-        Recursive: false
-        Comment:
-    -
-        Description: Wow6432Node Uninstall InstallDate
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Wow6432Node\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: InstallDate
-        Recursive: false
-        Comment:
-    -
-        Description: Wow6432Node Uninstall Publisher
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Wow6432Node\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: Publisher
-        Recursive: false
-        Comment:
 
 # --------------------
 # ANTIVIRUS
