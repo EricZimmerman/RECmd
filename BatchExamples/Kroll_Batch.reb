@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.11
+Version: 1.12
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -54,6 +54,7 @@ Keys:
 # | 1.9 | 2021-06-24 | Revised Version History formatting [Version History]. Added running Special Thanks list [Acknowledgement]. Added PortProxy artifacts [Threat Hunting]. Added WinLogon and LogonUI artifacts [System Info]. Added QNAP QFinder, 4K Video Downloader, and TeamViewer artifacts [Third Party Applications]. Added Hades IOCs [Threat Hunting]. Fixed OneDrive UserSyncRoots artifact [Cloud Storage] |
 # | 1.10 | 2021-06-28 | Added Defender Exclusions [Antivirus] |
 # | 1.11 | 2021-07-06 | Added IncludeBinary to DHCPHardwareCount ValueName [System Info]. Removed duplicate entries (i.e., values being parsed twice) from the Uninstall Key [Installed Software] resulting in 2k less rows in testing. Added relevant Key related to Kaseya Ransomware attack of July 2021 [Threat Hunting]. Expanded WinLogon artifacts based on same attack [System Info] |
+# | 1.12 | 2021-07-12 | Added SysInternals Tools [Installed Software] |
 #
 # --------------------
 # DOCUMENTATION
@@ -1436,6 +1437,20 @@ Keys:
 # --------------------
 # PROGRAM EXECUTION
 # --------------------
+
+# Installed Software -> Windows Sysinternals
+
+    -
+        Description: Sysinternals
+        HiveType: NTUSER
+        Category: Installed Software
+        KeyPath: SOFTWARE\Sysinternals\*
+        ValueName: EulaAccepted
+        Recursive: false
+        Comment: "Displays all SysInternals Tools that had the EULA accepted, indicating either execution of the tool or the Registry values were added intentionally prior to execution"
+
+# https://docs.microsoft.com/en-us/sysinternals/
+# https://hahndorf.eu/blog/post/2010/03/07/WorkAroundSysinternalsLicensePopups
 
     -
         Description: JumplistData
