@@ -1,0 +1,73 @@
+Description: RECmd Batch File Template
+Author: Andrew Rathbun
+Version: 1.0
+Id: 9bc106b8-efd0-44bb-b2a7-cbfddd99b2bb
+Keys:
+    -
+        Description: Shutdown Time
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet00*\Control\Windows
+        ValueName: ShutdownTime
+        Recursive: false
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Comment: "Last system shutdown time"
+    -
+        Description: System Info (Current)
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion
+        ValueName: InstallTime
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Current OS install time"
+    -
+        Description: System Info (Current)
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion
+        ValueName: InstallDate
+        IncludeBinary: true
+        BinaryConvert: EPOCH
+        Recursive: false
+        Comment: "Current OS install date"
+    -
+        Description: Virtual Memory Pagefile Encryption Status
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\FileSystem
+        ValueName: NtfsEncryptPagingFile
+        Recursive: false
+        Comment: "Virtual Memory Pagefile Encryption, 0 = Disabled, 1 = Enabled"
+    -
+        Description: MountPoints2
+        HiveType: NTUSER
+        Category: Devices
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
+        Recursive: true
+        Comment: "Mount Points - NTUSER"
+    -
+        Description: 7-Zip
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\7-Zip\Compression
+        ValueName: ArcHistory
+        Recursive: false
+        Comment: "Displays list of files and folders that were used with 7-Zip"
+    -
+        Description: User Accounts (SECURITY)
+        HiveType: SECURITY
+        Category: User Accounts
+        KeyPath: Policy\Accounts\*
+        IncludeBinary: true
+        Recursive: false
+        Comment: "Built-in accounts in SECURITY hive"
+    -
+        Description: User Accounts (SAM)
+        HiveType: SAM
+        Category: User Accounts
+        KeyPath: SAM\Domains\Account\Users
+        Recursive: false
+        Comment: "User accounts in SAM hive"

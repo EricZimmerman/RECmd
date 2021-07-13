@@ -1,0 +1,90 @@
+Description: RECmd Batch File Guide
+Author: Andrew Rathbun
+Version: 1.0
+Id: dcd4e1da-4039-42dc-a7e6-358150dc6fe3
+Keys:
+# A Batch file is used to filter out the contents of the registry and only display the most USEFUL artifacts within the CSV output
+# If you're looking for a raw dump of a registry hive's entire contents, you can dump a hive recursively from the top via ROOT or * to JSON and search freely for any potential artifacts of interest
+# This guide is simply the RECmd Batch Template but populated with many comments to provide further context
+# Mandatory fields: Description, HiveType, Category, KeyPath, and Recursive
+
+# SYSTEM hive with KeyPath wildcard (not explained), IncludeBinary, and BinaryConvert (FILETIME) examples
+
+    -
+        Description: Shutdown Time # This value populates the Description column in the RECmd CSV output for this artifact. It is helpful to the end user to be as descriptive as possible with this value
+        HiveType: SYSTEM # This value must match the hive where the artifact listed in KeyPath below resides
+        Category: System Info # This value populates the Category column in the RECmd CSV output for this artifact. It is helpful to the end user for the purpose of filtering to be as broad as possible with this value. Try to categorize similar artifacts together under the same Category. If you have too many Categories, then why have a Description value?
+        KeyPath: ControlSet00*\Control\Windows # This value should match the KeyPath of the data within the Windows Registry that you want RECmd to parse
+        ValueName: ShutdownTime # This value coincides with the ValueName found at the KeyPath listed above. By specifying this ValueName, you only want the date stored under this specific ValueName to display in the RECmd CSV output
+        Recursive: false # Recursion on the KeyPath specificed will not occur since this is marked false. That means RECmd will not look for data stored within the ValueName specified beyond the KeyPath address specified
+        IncludeBinary: true # Without this value here, RECmd would output (Binary Data) without the actual binary data. If you only had this value without BinaryConvert, as seen below, the raw binary values would be included in the RECmd CSV output. However, in this example, we're setting up for a conversion into a timestamp just below this
+        BinaryConvert: FILETIME # RECmd can handle basic timestamp conversions, including but not limited to Windows Filetime. The particular value stored under the specified ValueName at the KeyPath address specified above happens to be stored in binary as Windows Filetime, therefore, setting FILETIME as our value for BinaryConvert will make this a human readable timestamp within the RECmd CSV output
+        Comment: "Last system shutdown time" # This value populates the Comment column within the RECmd CSV output. This is completely optional and can be deleted entirely, if desired
+
+#SOFTWARE hive with IncludeBinary and BinaryConvert (EPOCH) examples
+
+    -
+        Description: System Info (Current)
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion
+        ValueName: InstallDate
+        IncludeBinary: true
+        BinaryConvert: EPOCH
+        Recursive: false
+        Comment: "Current OS install date"
+
+# SYSTEM hive with KeyPath wildcard (explained) example
+
+    -
+        Description: Virtual Memory Pagefile Encryption Status
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\FileSystem # Notice the *, this serves as a wildcard. That means there exists ControlSet001 and ControlSet002, in this instance, and in one fell swoop we can cover both KeyPaths by using a wildcard at the appropriate location within our KeyPath. Also, note that a wildcard can be used in place of an entire section of a folder path. For instance, Folder1\*\Folder3\
+        ValueName: NtfsEncryptPagingFile
+        Recursive: false
+        Comment: "Virtual Memory Pagefile Encryption, 0 = Disabled, 1 = Enabled"
+
+# NTUSER hive with Recursive:true example
+
+    -
+        Description: MountPoints2
+        HiveType: NTUSER
+        Category: Devices
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
+        Recursive: true # This will grab everything beyond the last Key specified in the KeyPath above, even if there's 10 Keys and SubKeys and 100+ ValueNames beyond that level in the registry, it will grab it and display it within the RECmd CSV output
+        Comment: "Mount Points - NTUSER"
+
+# NTUSER hive with Plugin (SevenZip) example
+
+    -
+        Description: 7-Zip
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\7-Zip\Compression
+        ValueName: ArcHistory
+        Recursive: false # Please note that when you're trying to activate a Plugin's output, you should see (Plugin) in the ValueType column
+        Comment: "Displays list of files and folders that were used with 7-Zip"
+
+# SECURITY hive with KeyPath wildcard example
+
+    -
+        Description: User Accounts (SECURITY)
+        HiveType: SECURITY
+        Category: User Accounts
+        KeyPath: Policy\Accounts\* # This wildcard will grab the Key that is beyond Policy\Accounts\, whatever it may be
+        IncludeBinary: true # Not only will it grab that Key, but also everything beyond whatever Key that * relates to. Please note that sometimes its better to scale back from Recursive:true to limit useless rows of binary data that cannot be converted or even null values
+        Recursive: false
+        Comment: "Built-in accounts in SECURITY hive"
+
+# SAM hive example that utilizes the UserAccounts plugin
+
+    -
+        Description: User Accounts (SAM)
+        HiveType: SAM
+        Category: User Accounts
+        KeyPath: SAM\Domains\Account\Users # There is a plugin for this path, which can be verified either within Registry Explorer (View -> Plugins) or on GitHub (https://github.com/EricZimmerman/RegistryPlugins). Plugins allow for the ValueData2 and ValueData3 columns to be utilized. This saves the amount of rows in the CSV output and allows for relevant data within a KeyPath to be visualized in a more sensible manner within the CSV output
+        Recursive: false
+        Comment: "User accounts in SAM hive"
+
+# When in doubt, try something out and see how it looks in the CSV output and adjust as necessary. Run with --debug to see verbose console output so you know if RECmd was able to locate a KeyPath or ValueName you specified

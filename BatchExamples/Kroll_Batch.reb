@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.8
+Version: 1.12
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -32,19 +32,29 @@ Keys:
 #
 # Special thanks to Mike Cary and Troy Larson for their work on the other RECmd Batch files that helped inspire development of this Batch file
 #
+# Special thanks to those who have contributed to this Batch file:
+# Andreas Hunkeler (@Karneades)
+#
 # --------------------
 # VERSION HISTORY
 # --------------------
 #
+# Example entry, please follow this format:
+# | X.X | YYYY-MM-DD | Added Google Chrome [Web Browsers]. Added *insert Threat Hunting artifact here* [Threat Hunting]. Added 1Password [Installed Software] |
+#
 # | 1.0 | 2021-02-14 | Initial release |
-# | 1.1 | 2021-02-20 | [Third-Party Applications] Added Total Commander. [Web Browsers] Added CCleaner Browser. [Event Logs] Created category |
-# | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, added ShadowRDP and Threat Hunting Category |
+# | 1.1 | 2021-02-20 | Added Total Commander [Third-Party Applications]. Added CCleaner Browser [Web Browsers]. Created category [Event Logs] |
+# | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, created Threat Hunting category, added ShadowRDP [Threat Hunting] |
 # | 1.3 | 2021-04-20 | Fixed an issue with Cloud Storage -> DropBox previously mapping to OneDrive |
 # | 1.4 | 2021-04-22 | Added more artifacts for Cloud Storage -> OneDrive |
 # | 1.5 | 2021-04-23 | Added more Threat Hunting artifacts |
 # | 1.6 | 2021-05-04 | Added more Network Share artifacts |
-# | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts |
-# | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts. Fixed FirstFolder mislabeling. Cleaned up Internet Explorer artifacts. Added binary values to replace (Binary data) entries, when possible. |
+# | 1.7 | 2021-05-15 | Added Windows Clipboard History and Windows 10 Timeline artifacts [System Info] |
+# | 1.8 | 2021-05-29 | Removed duplicative entry via changing from Recursive:true to Recursive:false for multiple artifacts with plugins and ensured plugins are being properly utilized. As a result, greatly reduced CSV output size while increasing amount of useful data parsed. In my testing, 72k lines (33mb) -> 13k lines (6.88mb). Added Visual Studio artifacts [Installed Software]. Fixed FirstFolder mislabeling [User Activity]. Cleaned up Internet Explorer artifacts [Web Browsers]. Added binary values using BinaryConvert to replace (Binary data) entries, when possible. |
+# | 1.9 | 2021-06-24 | Revised Version History formatting [Version History]. Added running Special Thanks list [Acknowledgement]. Added PortProxy artifacts [Threat Hunting]. Added WinLogon and LogonUI artifacts [System Info]. Added QNAP QFinder, 4K Video Downloader, and TeamViewer artifacts [Third Party Applications]. Added Hades IOCs [Threat Hunting]. Fixed OneDrive UserSyncRoots artifact [Cloud Storage] |
+# | 1.10 | 2021-06-28 | Added Defender Exclusions [Antivirus] |
+# | 1.11 | 2021-07-06 | Added IncludeBinary to DHCPHardwareCount ValueName [System Info]. Removed duplicate entries (i.e., values being parsed twice) from the Uninstall Key [Installed Software] resulting in 2k less rows in testing. Added relevant Key related to Kaseya Ransomware attack of July 2021 [Threat Hunting]. Expanded WinLogon artifacts based on same attack [System Info] |
+# | 1.12 | 2021-07-12 | Added SysInternals Tools [Installed Software] |
 #
 # --------------------
 # DOCUMENTATION
@@ -65,6 +75,93 @@ Keys:
 # --------------------
 
 # System Info -> Basic System Info
+
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: LastUsedUsername
+        Recursive: false
+        Comment: "Displays the username of the last user logged in to this system"
+
+# https://windowsir.blogspot.com/2013/04/plugin-winlogon.html
+
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: AutoLogonSID
+        Recursive: false
+        Comment: "Displays the SID of the user who is set to auto login to Windows"
+
+# https://windowsir.blogspot.com/2013/04/plugin-winlogon.html
+
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: AutoAdminLogon
+        Recursive: false
+        Comment: "Displays whether the system will automatically login a user as Admin, 0 = Disabled, 1 = Enabled"
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: DefaultUserName
+        Recursive: false
+        Comment: "Displays the default username the system will log in as"
+    -
+        Description: WinLogon
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: DefaultPassword
+        Recursive: false
+        Comment: "Displays the password to be used for the account specified in DefaultUserName"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: LastLoggedOnUser
+        Recursive: false
+        Comment: "Displays the last logged on SAM user"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: LastLoggedOnSAMUser
+        Recursive: false
+        Comment: "Displays the last logged on user"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: LastLoggedOnDisplayName
+        Recursive: false
+        Comment: "Displays the last logged on user's display name"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: SelectedUserSID
+        Recursive: false
+        Comment: "Displays the selected user's SID"
+    -
+        Description: LogonUI
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Authentication\LogonUI
+        ValueName: LastLoggedOnUserSID
+        Recursive: false
+        Comment: "Displays the last logged on user's SID"
     -
         Description: Windows Boot Volume
         HiveType: SYSTEM
@@ -608,6 +705,7 @@ Keys:
         Category: System Info
         KeyPath: ControlSet*\Services\Tcpip\Parameters\Interfaces\*
         ValueName: DhcpGatewayHardware
+        IncludeBinary: true
         Recursive: false
         Comment: ""
     -
@@ -1340,6 +1438,20 @@ Keys:
 # PROGRAM EXECUTION
 # --------------------
 
+# Installed Software -> Windows Sysinternals
+
+    -
+        Description: Sysinternals
+        HiveType: NTUSER
+        Category: Installed Software
+        KeyPath: SOFTWARE\Sysinternals\*
+        ValueName: EulaAccepted
+        Recursive: false
+        Comment: "Displays all SysInternals Tools that had the EULA accepted, indicating either execution of the tool or the Registry values were added intentionally prior to execution"
+
+# https://docs.microsoft.com/en-us/sysinternals/
+# https://hahndorf.eu/blog/post/2010/03/07/WorkAroundSysinternalsLicensePopups
+
     -
         Description: JumplistData
         HiveType: NTUSER
@@ -1982,6 +2094,57 @@ Keys:
 # Sometimes, there are values for third-party applications not covered under the standard DisplayVersion, Publisher, InstallLocation, InstallDate, and DisplayName entries. I've seen Inno Setup: User, Inno Setup: Language, and Inno Setup: App Path
 # For this section, please include a subheader and a URL, even if its only one entry per program
 
+# Third-Party Applications -> QNAP QFinder - https://www.qnap.com/en-us/utilities/essentials
+
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrName
+        Recursive: false
+        Comment: "Displays the name of the QNAP as it was assigned by the user"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrIPAddr
+        Recursive: false
+        Comment: "Displays the IP Address of the QNAP as it was assigned by the user"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrVersion
+        Recursive: false
+        Comment: "Displays the current firmware version of the QNAP"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrType
+        Recursive: false
+        Comment: "Displays the type of the QNAP device"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder\WOL\*
+        ValueName: SvrModel
+        Recursive: false
+        Comment: "Displays the model of the QNAP device"
+    -
+        Description: QNAP QFinder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\QNAP\Qfinder
+        ValueName: InstallDate
+        Recursive: false
+        Comment: "Displays the install date of QNAP QFinder"
+
 # Third-Party Applications -> Total Commander - https://www.ghisler.com/
 
     -
@@ -1990,14 +2153,14 @@ Keys:
         Category: Third Party Applications
         KeyPath: Ghisler\Total Commander
         Recursive: false
-        Comment: "Total Commander registry artifacts"
+        Comment: "Total Commander Registry artifacts"
     -
         Description: Total Commander
         HiveType: SOFTWARE
         Category: Third Party Applications
         KeyPath: WOW6432Node\Ghisler\Total Commander
         Recursive: false
-        Comment: "Total Commander registry artifacts"
+        Comment: "Total Commander Registry artifacts"
 
 # Third-Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
 
@@ -2025,6 +2188,22 @@ Keys:
         ValueName: BuddyDisplayName
         Recursive: false
         Comment: "User specified TeamViewer display name"
+    -
+        Description: TeamViewer
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\TeamViewer
+        ValueName: OwningManagerAccountName
+        Recursive: false
+        Comment: "Displays the name of the user logged into TeamViewer"
+    -
+        Description: TeamViewer
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\TeamViewer
+        ValueName: PermanentPasswordDate
+        Recursive: false
+        Comment: "Displays the date the password was last set for the user within TeamViewer"
 
 # Third-Party Applications -> Adobe - https://www.adobe.com/
 
@@ -2317,6 +2496,51 @@ Keys:
         Recursive: true
         Comment: "Displays the user's primary monitor"
 
+# Third-Party Applications -> 4K Video Downloader - https://www.4kdownload.com/products/videodownloader/1
+
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Notification
+        ValueName: runCount
+        Recursive: false
+        Comment: "Displays the run count for 4K Video Downloader"
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Notification
+        ValueName: lastVersion
+        Recursive: false
+        Comment: "Displays the last version of 4K Video Downloader installed on this system"
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Limits
+        ValueName: dayDownloadDate
+        IncludeBinary: true
+        BinaryConvert: EPOCH
+        Recursive: false
+        Comment: "Displays the date that 4K Video Downloader was installed"
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Limits
+        ValueName: dayDownloadCount
+        Recursive: false
+        Comment: "Displays the amount of times 4K Video Downloaded was downloaded"
+    -
+        Description: 4K Video Downloader
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: SOFTWARE\4kdownload.com\4K Video Downloader\Download
+        ValueName: downloadedItemsDb
+        Recursive: false
+        Comment: "Displays the location of the SQLite database associated with 4K Video Downloader"
+
 # --------------------
 # CLOUD STORAGE
 # --------------------
@@ -2342,9 +2566,9 @@ Keys:
         Description: OneDrive
         HiveType: SOFTWARE
         Category: Cloud Storage
-        KeyPath: Microsoft\Windows\CurrentVersion\Explorer\SyncRootManager\Dropbox*\UserSyncRoots
+        KeyPath: Microsoft\Windows\CurrentVersion\Explorer\SyncRootManager\OneDrive*\UserSyncRoots
         Recursive: true
-        Comment: "Displays the user's specified storage location for Dropbox"
+        Comment: "Displays the user's specified storage location for OneDrive"
     -
         Description: OneDrive
         HiveType: NTUSER
@@ -2352,7 +2576,7 @@ Keys:
         KeyPath: Software\SyncEngines\Providers\OneDrive\*\
         ValueName: LastModifiedTime
         Recursive: true
-        Comment: "Displays the Last Modified time for the OneDrive registry key"
+        Comment: "Displays the Last Modified time for the OneDrive Registry key"
     -
         Description: OneDrive
         HiveType: NTUSER
@@ -2402,7 +2626,7 @@ Keys:
         IncludeBinary: true
         BinaryConvert: EPOCH
         Recursive: true
-        Comment: "Displays the last update time oof the Accounts OneDrive registry key"
+        Comment: "Displays the last update time of the Accounts OneDrive Registry key"
 
 # Cloud Storage -> Dropbox
 
@@ -2454,9 +2678,9 @@ Keys:
 #        Category: Microsoft Office
 #        KeyPath: Software\Microsoft\Office
 #        Recursive: true
-#        Comment: "Microsoft Office registry artifacts"
+#        Comment: "Microsoft Office Registry artifacts"
 #
-# Uncomment this if you want ALL registry artifacts for Microsoft Office. Be sure to comment out the below values since you won't need them anymore. On my system, recursive on the entire MS Office key returned 16,000+ lines.
+# Uncomment this if you want ALL Registry artifacts for Microsoft Office. Be sure to comment out the below values since you won't need them anymore. On my system, recursive on the entire MS Office key returned 16,000+ lines.
 
     -
         Description: Microsoft Office
@@ -2543,7 +2767,7 @@ Keys:
         Category: Web Browsers
         KeyPath: Software\Google\Chrome
         Recursive: true
-        Comment: "Google Chrome registry artifacts"
+        Comment: "Google Chrome Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
@@ -2551,7 +2775,7 @@ Keys:
         KeyPath: Software\Microsoft\Internet Explorer\Main
         IncludeBinary: true
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
@@ -2559,14 +2783,14 @@ Keys:
         KeyPath: Software\Microsoft\Internet Explorer
         ValueName: Download Directory
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer\NewWindows
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
@@ -2574,28 +2798,28 @@ Keys:
         KeyPath: Software\Microsoft\Internet Explorer\Suggested Sites\*
         IncludeBinary: true
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer\ProtocolExecute\*
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer\LowRegistry\IEShims
         Recursive: true
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Internet Explorer\Main\WindowsSearch
         Recursive: true
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Internet Explorer
         HiveType: NTUSER
@@ -2603,14 +2827,14 @@ Keys:
         KeyPath: Software\Microsoft\Internet Explorer\Main\WindowsSearch
         IncludeBinary: true
         Recursive: false
-        Comment: "Internet Explorer registry artifacts"
+        Comment: "Internet Explorer Registry artifacts"
     -
         Description: Microsoft Edge
         HiveType: NTUSER
         Category: Web Browsers
         KeyPath: Software\Microsoft\Edge
         Recursive: true
-        Comment: "Microsoft Edge registry artifacts"
+        Comment: "Microsoft Edge Registry artifacts"
     -
         Description: CCleaner Browser
         HiveType: SOFTWARE
@@ -2618,7 +2842,7 @@ Keys:
         KeyPath: WOW6432Node\Piriform\Browser
         IncludeBinary: true
         Recursive: true
-        Comment: "CCleaner Browser registry artifacts"
+        Comment: "CCleaner Browser Registry artifacts"
 
 # --------------------
 # INSTALLED SOFTWARE
@@ -2679,99 +2903,11 @@ Keys:
 
 # Uninstall plugin
 # https://community.idera.com/database-tools/powershell/powertips/b/tips/posts/find-installed-software
-
-    -
-        Description: Installed Software (Windows Installer)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products
-        Recursive: false
-        Comment: "Displays list of each Windows Installer-based product installed on the system"
-
-# Products plugin
-# https://support.microsoft.com/en-us/topic/description-of-the-patch-registration-cleanup-tool-f3cd8e0b-43a3-ee5c-927b-055465a5a500
-# https://www.digitalforensics.com/blog/coreldraw-forensics-step-by-step/
-
-# Installed Software - Wow6432 (32-bit software installed on 64-bit OS)
-    -
-        Description: Installed Software (32-bit)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: DisplayName
-        Recursive: false
-        Comment: "Displays name of 32-bit software installed on 64-bit OS"
-    -
-        Description: Installed Software (32-bit)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: InstallDate
-        Recursive: false
-        Comment: "Displays install date (YYYYMMDD) of 32-bit software installed on 64-bit OS"
-    -
-        Description: Installed Software (32-bit)
-        HiveType: SOFTWARE
-        Category: Installed Software
-        KeyPath: Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: Publisher
-        Recursive: false
-        Comment: "Displays Publisher of 32-bit software installed on 64-bit OS"
-
 # https://www.advancedinstaller.com/user-guide/registry-wow6432-node.html
 # https://docs.microsoft.com/en-us/windows/win32/sysinfo/32-bit-and-64-bit-application-data-in-the-registry
 
-    -
-        Description: Uninstall DisplayName
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: DisplayName
-        Recursive: false
-        Comment:
-    -
-        Description: Uninstall InstallDate
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: InstallDate
-        Recursive: false
-        Comment:
-    -
-        Description: Uninstall Publisher
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: Publisher
-        Recursive: false
-        Comment:
-    -
-        Description: Wow6432Node Uninstall DisplayName
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Wow6432Node\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: DisplayName
-        Recursive: false
-        Comment:
-    -
-        Description: Wow6432Node Uninstall InstallDate
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Wow6432Node\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: InstallDate
-        Recursive: false
-        Comment:
-    -
-        Description: Wow6432Node Uninstall Publisher
-        HiveType: NTUSER
-        Category: Installed Software
-        KeyPath: Wow6432Node\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
-        ValueName: Publisher
-        Recursive: false
-        Comment:
-
 # --------------------
-# Antivirus
+# ANTIVIRUS
 # --------------------
 
     -
@@ -2783,6 +2919,22 @@ Keys:
         Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
 
 # https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Policies\Microsoft\Windows Defender\Exclusions\
+        Recursive: true
+        Comment: "Windows Defender Exclusions through Group Policies (GPOs)"
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Microsoft\Windows Defender\Exclusions\
+        Recursive: true
+        Comment: "Windows Defender Exclusions"
 
 # --------------------
 # VOLUME SHADOW COPIES
@@ -2818,7 +2970,7 @@ Keys:
         Category: Volume Shadow Copies
         KeyPath: ControlSet*\Control\BackupRestore\KeysNotToRestore
         Recursive: true
-        Comment: "Displays the names of the registry subkeys and values that backup applications should not restore"
+        Comment: "Displays the names of the Registry subkeys and values that backup applications should not restore"
 
 # https://medium.com/@bromiley/windows-wednesday-volume-shadow-copies-d20b60997c22#.11p1cb258
 # https://docs.microsoft.com/en-us/windows/win32/backup/registry-keys-for-backup-and-restore#keysnottorestore
@@ -2835,7 +2987,7 @@ Keys:
 # https://docs.microsoft.com/en-us/windows/win32/backup/registry-keys-for-backup-and-restore#filesnottobackup
 
 # --------------------
-# Threat Hunting
+# THREAT HUNTING
 # --------------------
 
     -
@@ -2848,6 +3000,7 @@ Keys:
         Comment: "Shadow RDP sessions, 0 = Disabled, 1 = Full Control with user's permission, 2 = Full Control without user's permission, 3 = View Session with user's permission, 4 = View Session without user's permission"
 
 # https://twitter.com/inversecos/status/1380006149479559170
+# https://bitsadm.in/blog/spying-on-users-using-rdp-shadowing
 
     -
         Description: RDP Connections Status
@@ -2882,5 +3035,100 @@ Keys:
 
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
 # https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
+
+    -
+        Description: PortProxy Configuration
+        HiveType: SYSTEM
+        Category: Threat Hunting
+        KeyPath: ControlSet*\Services\PortProxy\v4tov4\tcp
+        Recursive: true
+        Comment: "Display current port proxy configuration"
+
+# https://www.fireeye.com/blog/threat-research/2019/01/bypassing-network-restrictions-through-rdp-tunneling.html
+# https://adepts.of0x.cc/netsh-portproxy-code/
+# https://www.dfirnotes.net/portproxy_detection/
+
+# Threat Hunting -> Hades - Located within a PowerShell script associated with this group
+
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseAdvancedStartup
+        Recursive: false
+        Comment: "0 = Disabled, 1 = Enabled"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: EnableBDEWithNoTPM
+        Recursive: false
+        Comment: "1 = Default, 0 = Disabled, 1 = Enabled"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseTPM
+        Recursive: false
+        Comment: "0 = Do Not Allow TPM, 1 = Require TPM, 2 = Allow TPM"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseTPMKey
+        Recursive: false
+        Comment: "0 = Do not allow startup key with TPM, 1 = Require startup key with TPM, 2 = Allow startup key with TPM"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseTPMKeyPIN
+        Recursive: false
+        Comment: "0 = Do not allow startup key and PIN with TPM, 1 = Require startup key and PIN with TPM, 2 = Allow startup key and PIN with TPM"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: RecoveryKeyMessage
+        Recursive: false
+        Comment: "Displays the Recovery Key message set by the Threat Actor group"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: RecoveryKeyMessageSource
+        Recursive: false
+        Comment: "2 is set by the Hades group"
+    -
+        Description: Hades IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: UseTPMPIN
+        Recursive: false
+        Comment: "0 = Do not allow startup PIN with TPM, 1 = Require startup PIN with TPM, 2 = Allow startup PIN with TPM"
+
+# https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.VolumeEncryption::ConfigureAdvancedStartup_Name
+
+# Threat Hunting -> Kaseya (REvil - July 2021) - Located within Registry hives from an infected system
+
+    -
+        Description: REvil IOCs
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Wow6432Node\BlackLivesMatter
+        Recursive: true
+        Comment: "REvil/Kaseya Ransomware attack from July 2021"
+
+# https://community.sophos.com/b/security-blog/posts/active-ransomware-attack-on-kaseya-customers
+# https://www.huntress.com/blog/rapid-response-kaseya-vsa-mass-msp-ransomware-incident
+# https://symantec-enterprise-blogs.security.com/blogs/threat-intelligence/kaseya-ransomware-supply-chain
 
 # More to come...stay tuned!
