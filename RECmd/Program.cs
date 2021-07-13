@@ -1170,6 +1170,13 @@ namespace RECmd
                         searchUsed = true;
 
                         var key = reg.GetKey(_fluentCommandLineParser.Object.KeyName);
+
+                        if (key == null && _fluentCommandLineParser.Object.KeyName.ToUpperInvariant() == "ROOT")
+                        {
+                            _logger.Info($"\tUsing 'ROOT' alias. Actual ROOT key name: '{reg.Root.KeyName}'");
+                            key = reg.Root;
+                        }
+
                         KeyValue val = null;
 
                         if (key == null)

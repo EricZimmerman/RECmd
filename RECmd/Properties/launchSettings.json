@@ -2,7 +2,7 @@
   "profiles": {
     "RECmd": {
       "commandName": "Project",
-      "commandLineArgs": "-f C:\\temp\\0xfffff8a003ad2010-Syscachehve-A_{cc2c1140-4c63-11e9-996b-000c2958bc5f}.reghive --bn .\\BatchExamples\\BatchExampleSysCache.reb --csv C:\\temp\\"
+      "commandLineArgs": "-f C:\\temp\\SYSTEM --kn root --nl true"
     }
   }
 }
