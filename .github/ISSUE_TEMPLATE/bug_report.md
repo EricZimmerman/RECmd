@@ -7,8 +7,8 @@ assignees: ''
 
 ---
 
-** KAPE version # **
-The version of KAPE you are running
+** RECmd version # **
+The version of RECmd you are running
 
 **Describe the bug**
 A clear and concise description of what the bug is, including the full command line you are using.
