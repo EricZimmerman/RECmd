@@ -12,4 +12,8 @@ If you get an error message like "error loading plugin" when running RECmd after
 PS> Unblock-File .\Plugins\*.dll
 ```
 
+## Batch Files
+
+RECmd uses Batch Files to make your Registry output more actionable. Learn about Batch Files [here](https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples#readme)!
+
 Open Source Development funding and support provided by the following contributors: [SANS Institute](http://sans.org/) and [SANS DFIR](http://dfir.sans.org/).
