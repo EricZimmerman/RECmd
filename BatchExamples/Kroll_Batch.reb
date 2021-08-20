@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.12
+Version: 1.13
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -55,6 +55,7 @@ Keys:
 # | 1.10 | 2021-06-28 | Added Defender Exclusions [Antivirus] |
 # | 1.11 | 2021-07-06 | Added IncludeBinary to DHCPHardwareCount ValueName [System Info]. Removed duplicate entries (i.e., values being parsed twice) from the Uninstall Key [Installed Software] resulting in 2k less rows in testing. Added relevant Key related to Kaseya Ransomware attack of July 2021 [Threat Hunting]. Expanded WinLogon artifacts based on same attack [System Info] |
 # | 1.12 | 2021-07-12 | Added SysInternals Tools [Installed Software] |
+# | 1.13 | 2021-08-20 | Removed duplicate artifacts (LastVisitedMRU), added more documentation to various artifacts,  |
 #
 # --------------------
 # DOCUMENTATION
@@ -366,6 +367,7 @@ Keys:
         Comment: "Displays list of network connections"
 
 # KnownNetworks plugin
+# https://www.forensafe.com/blogs/wirelessnetworks.html
 
     -
         Description: Device Classes
@@ -1411,6 +1413,7 @@ Keys:
         Comment: "User accounts in SAM hive"
 
 # UserAccounts plugin
+# https://www.forensafe.com/blogs/useraccounts.html
 
     -
         Description: User Accounts (SOFTWARE)
@@ -1578,33 +1581,6 @@ Keys:
 # https://renenyffenegger.ch/notes/Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Applets/Regedit/index
 
     -
-        Description: LastVisitedPidlMRU
-        HiveType: NTUSER
-        Category: Program Execution
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedPidlMRU
-        Recursive: false
-        Comment: "ValueData 3 for artifact details"
-
-# LastVisitedPidlMRU plugin
-# https://www.sans.org/blog/opensavemru-and-lastvisitedmru
-# https://digitalf0rensics.wordpress.com/2014/01/17/windows-registry-and-forensics-part2/
-# https://www.eshlomo.us/windows-forensics-analysis-evidence/
-
-    -
-        Description: LastVisitedPidlMRULegacy
-        HiveType: NTUSER
-        Category: Program Execution
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedPidlMRULegacy
-        Recursive: false
-        Comment: "Tracks previously opened folders, Value Data 3 for artifact details"
-
-# LastVisitedPidlMRU plugin
-# https://www.sans.org/blog/opensavemru-and-lastvisitedmru
-# https://digitalf0rensics.wordpress.com/2014/01/17/windows-registry-and-forensics-part2/
-# https://www.eshlomo.us/windows-forensics-analysis-evidence/
-# https://lifars.com/wp-content/uploads/2020/05/NTUSER-Technical-Guide.pdf
-
-    -
         Description: UserAssist
         HiveType: NTUSER
         Category: Program Execution
@@ -1717,7 +1693,11 @@ Keys:
         Comment: "Tracks the specific executable used by an application to open the files documented in OpenSavePidlMRU"
 
 # LastVisitedPidlMRU plugin
-# https://www.sans.org/blog/opensavemru-and-lastvisitedmru/
+# https://www.sans.org/blog/opensavemru-and-lastvisitedmru
+# https://digitalf0rensics.wordpress.com/2014/01/17/windows-registry-and-forensics-part2/
+# https://www.eshlomo.us/windows-forensics-analysis-evidence/
+# https://lifars.com/wp-content/uploads/2020/05/NTUSER-Technical-Guide.pdf
+# https://www.forensafe.com/blogs/opensavemru.html
 
     -
         Description: LastVisitedPidlMRU
@@ -1728,19 +1708,11 @@ Keys:
         Comment: "Tracks the specific executable used by an application to open the files documented in OpenSavePidlMRU"
 
 # LastVisitedPidlMRU plugin
-# https://www.sans.org/blog/opensavemru-and-lastvisitedmru/
-
-    -
-        Description: LastVisitedMRU
-        HiveType: NTUSER
-        Category: User Activity
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedMRU
-        Recursive: false
-        Comment: "Displays list of executables and last visited times"
-
-# LastVisitedMRU plugin
 # https://www.sans.org/blog/opensavemru-and-lastvisitedmru
-# https://www.andreafortuna.org/2017/10/18/windows-registry-in-forensic-analysis/
+# https://digitalf0rensics.wordpress.com/2014/01/17/windows-registry-and-forensics-part2/
+# https://www.eshlomo.us/windows-forensics-analysis-evidence/
+# https://lifars.com/wp-content/uploads/2020/05/NTUSER-Technical-Guide.pdf
+# https://www.forensafe.com/blogs/opensavemru.html
 
     -
         Description: RecentDocs
@@ -2085,6 +2057,7 @@ Keys:
 # https://www.jaiminton.com/cheatsheet/DFIR/#t1060-registry-run-keys--startup-folder
 # https://jpcertcc.github.io/ToolAnalysisResultSheet/details/schtasks.htm
 # https://dfirtnt.wordpress.com/registry-persistence-paths/
+# https://www.forensafe.com/blogs/taskscheduler.html
 
 # --------------------
 # THIRD PARTY APPLICATIONS
@@ -2216,6 +2189,7 @@ Keys:
         Comment: "Displays files which were opened Adobe Reader by the user"
 
 # Adobe plugin
+# https://www.forensafe.com/blogs/adobeacrobatreader.html
 
     -
         Description: Adobe cRecentFolders
@@ -2226,7 +2200,7 @@ Keys:
         Recursive: false
         Comment: "Displays folders where Adobe Reader opened a PDF file from"
 
-# Third-Party Applications ->Visual Studio - https://visualstudio.microsoft.com/
+# Third-Party Applications -> Visual Studio - https://visualstudio.microsoft.com/
 
     -
         Description: VisualStudio FileMRUList
@@ -2651,6 +2625,7 @@ Keys:
         Comment: "Displays list of services running on this computer"
 
 # Services plugin
+# https://www.forensafe.com/blogs/windowsservices.html
 
 # --------------------
 # EVENT LOGS
@@ -2746,7 +2721,6 @@ Keys:
         KeyPath: Software\Microsoft\Office\*\Common\Identity\Profiles\*
         Recursive: true
         Comment: "Displays time user was authenticated to the system's instance of Microsoft 365 for the first time"
-
     -
         Description: Microsoft Office
         HiveType: NTUSER
