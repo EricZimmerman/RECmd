@@ -3109,7 +3109,7 @@ Keys:
 # Threat Hunting -> Lockbit 2.0 - Located within Registry hives from an infected system
 
     -
-        Description: PowerShell Info 
+        Description: PowerShell Info
         HiveType: SOFTWARE
         Category: Threat Hunting
         KeyPath: Microsoft\PowerShell\info
