@@ -34,6 +34,7 @@ Keys:
 #
 # Special thanks to those who have contributed to this Batch file:
 # Andreas Hunkeler (@Karneades)
+# Tony Knutson
 #
 # --------------------
 # VERSION HISTORY
@@ -55,7 +56,7 @@ Keys:
 # | 1.10 | 2021-06-28 | Added Defender Exclusions [Antivirus] |
 # | 1.11 | 2021-07-06 | Added IncludeBinary to DHCPHardwareCount ValueName [System Info]. Removed duplicate entries (i.e., values being parsed twice) from the Uninstall Key [Installed Software] resulting in 2k less rows in testing. Added relevant Key related to Kaseya Ransomware attack of July 2021 [Threat Hunting]. Expanded WinLogon artifacts based on same attack [System Info] |
 # | 1.12 | 2021-07-12 | Added SysInternals Tools [Installed Software] |
-# | 1.13 | 2021-08-20 | Removed duplicate artifacts (LastVisitedMRU), added more documentation to various artifacts,  |
+# | 1.13 | 2021-09-03 | Removed duplicate artifacts (LastVisitedMRU), added more documentation to various artifacts, added LockBit IOC [Threat Hunting] |
 #
 # --------------------
 # DOCUMENTATION
@@ -3104,5 +3105,15 @@ Keys:
 # https://community.sophos.com/b/security-blog/posts/active-ransomware-attack-on-kaseya-customers
 # https://www.huntress.com/blog/rapid-response-kaseya-vsa-mass-msp-ransomware-incident
 # https://symantec-enterprise-blogs.security.com/blogs/threat-intelligence/kaseya-ransomware-supply-chain
+
+# Threat Hunting -> Lockbit 2.0 - Located within Registry hives from an infected system
+
+    -
+        Description: PowerShell Info 
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\PowerShell\info
+        Recursive: false
+        Comment: Cobalt Strike Reflection Attack - Lockbit 2.0
 
 # More to come...stay tuned!
