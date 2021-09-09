@@ -1600,7 +1600,6 @@ Keys:
         Category: Program Execution
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\*\Count
         Recursive: false
-        Recursive: false
         Comment: "GUI-based programs launched from the desktop"
 
 # UserAssist plugin
