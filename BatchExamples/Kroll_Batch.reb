@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.13
+Version: 1.14
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -44,7 +44,7 @@ Keys:
 # | X.X | YYYY-MM-DD | Added Google Chrome [Web Browsers]. Added *insert Threat Hunting artifact here* [Threat Hunting]. Added 1Password [Installed Software] |
 #
 # | 1.0 | 2021-02-14 | Initial release |
-# | 1.1 | 2021-02-20 | Added Total Commander [Third-Party Applications]. Added CCleaner Browser [Web Browsers]. Created category [Event Logs] |
+# | 1.1 | 2021-02-20 | Added Total Commander [Third Party Applications]. Added CCleaner Browser [Web Browsers]. Created category [Event Logs] |
 # | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, created Threat Hunting category, added ShadowRDP [Threat Hunting] |
 # | 1.3 | 2021-04-20 | Fixed an issue with Cloud Storage -> DropBox previously mapping to OneDrive |
 # | 1.4 | 2021-04-22 | Added more artifacts for Cloud Storage -> OneDrive |
@@ -57,6 +57,7 @@ Keys:
 # | 1.11 | 2021-07-06 | Added IncludeBinary to DHCPHardwareCount ValueName [System Info]. Removed duplicate entries (i.e., values being parsed twice) from the Uninstall Key [Installed Software] resulting in 2k less rows in testing. Added relevant Key related to Kaseya Ransomware attack of July 2021 [Threat Hunting]. Expanded WinLogon artifacts based on same attack [System Info] |
 # | 1.12 | 2021-07-12 | Added SysInternals Tools [Installed Software] |
 # | 1.13 | 2021-09-03 | Removed duplicate artifacts (LastVisitedMRU), added more documentation to various artifacts, added LockBit IOC [Threat Hunting] |
+# | 1.14 | 2021-09-09 | Added MuiCache and AppCompatFlags [Program Execution]. Added Restricted Admin Status and more Windows Defender artifacts [Threat Hunting]. Added RealVNC - VNC Viewer, add WinRAR plugin [Third Party Applications]. Added Products artifacts [Installed Software]. Updated Microsoft Office Trusted Documents description [Microsoft Office] |
 #
 # --------------------
 # DOCUMENTATION
@@ -1442,7 +1443,7 @@ Keys:
 # PROGRAM EXECUTION
 # --------------------
 
-# Installed Software -> Windows Sysinternals
+# Porgram Execution -> Windows Sysinternals
 
     -
         Description: Sysinternals
@@ -1455,6 +1456,7 @@ Keys:
 
 # https://docs.microsoft.com/en-us/sysinternals/
 # https://hahndorf.eu/blog/post/2010/03/07/WorkAroundSysinternalsLicensePopups
+# https://twitter.com/JohnLaTwC/status/1414207856220463105
 
     -
         Description: JumplistData
@@ -1507,6 +1509,17 @@ Keys:
 # https://www.sans.org/blog/mass-triage-part-4-processing-returned-files-appcache-shimcache/
 # https://countuponsecurity.com/tag/shimcache/
 # https://techcommunity.microsoft.com/t5/ask-the-performance-team/demystifying-shims-or-using-the-app-compat-toolkit-to-make-your/ba-p/374947
+
+    -
+        Description: AppCompatFlags
+        HiveType: NTUSER
+        Category: Program Execution
+        KeyPath: Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags
+        Recursive: false
+        Comment: "Displays programs that are configured to run in Compatibility Mode in Windows"
+
+# AppCompatFlags2 plugin
+# https://journeyintoir.blogspot.com/2013/12/revealing-program-compatibility.html
 
     -
         Description: CIDSizeMRU
@@ -1595,6 +1608,30 @@ Keys:
 # https://www.andreafortuna.org/2018/05/23/forensic-artifacts-evidences-of-program-execution-on-windows-systems/
 # https://countuponsecurity.com/tag/userassist/
 # https://www.cellebrite.com/en/analyzing-program-execution-windows-artifacts/
+
+    -
+        Description: MuiCache (Vista+)
+        HiveType: UsrClass
+        Category: Program Execution
+        KeyPath: Local Settings\Software\Microsoft\Windows\Shell\MuiCache
+        Recursive: false
+        Comment: "Displays new applications that have been executed within Windows"
+
+# https://www.nirsoft.net/utils/muicache_view.html
+# https://windowsir.blogspot.com/2005/12/mystery-of-muicachesolved.html
+# https://www.fireeye.com/blog/threat-research/2013/08/execute.html
+
+    -
+        Description: MuiCache (2000/XP/2003)
+        HiveType: UsrClass
+        Category: Program Execution
+        KeyPath: Software\Microsoft\Windows\ShellNoRoam\MUICache
+        Recursive: false
+        Comment: "Displays new applications that have been executed within Windows"
+
+# https://www.nirsoft.net/utils/muicache_view.html
+# https://windowsir.blogspot.com/2005/12/mystery-of-muicachesolved.html
+# https://www.fireeye.com/blog/threat-research/2013/08/execute.html
 
 # --------------------
 # USER ACTIVITY
@@ -2065,10 +2102,20 @@ Keys:
 # --------------------
 
 # Do not include anything in NTUSER or SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall as that is covered already by Installed Software entries
-# Sometimes, there are values for third-party applications not covered under the standard DisplayVersion, Publisher, InstallLocation, InstallDate, and DisplayName entries. I've seen Inno Setup: User, Inno Setup: Language, and Inno Setup: App Path
+# Sometimes, there are values for third party applications not covered under the standard DisplayVersion, Publisher, InstallLocation, InstallDate, and DisplayName entries. I've seen Inno Setup: User, Inno Setup: Language, and Inno Setup: App Path
 # For this section, please include a subheader and a URL, even if its only one entry per program
 
-# Third-Party Applications -> QNAP QFinder - https://www.qnap.com/en-us/utilities/essentials
+# Third Party Applications -> VNC Viewer - https://www.realvnc.com/en/connect/download/viewer/
+
+    -
+        Description: VNC Viewer
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\RealVNC\vncviewer
+        Recursive: true
+        Comment: "Displays artifactrs relating to VNC Viewer"
+
+# Third Party Applications -> QNAP QFinder - https://www.qnap.com/en-us/utilities/essentials
 
     -
         Description: QNAP QFinder
@@ -2119,7 +2166,7 @@ Keys:
         Recursive: false
         Comment: "Displays the install date of QNAP QFinder"
 
-# Third-Party Applications -> Total Commander - https://www.ghisler.com/
+# Third Party Applications -> Total Commander - https://www.ghisler.com/
 
     -
         Description: Total Commander
@@ -2136,7 +2183,7 @@ Keys:
         Recursive: false
         Comment: "Total Commander Registry artifacts"
 
-# Third-Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
+# Third Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
 
     -
         Description: TeamViewer
@@ -2179,7 +2226,7 @@ Keys:
         Recursive: false
         Comment: "Displays the date the password was last set for the user within TeamViewer"
 
-# Third-Party Applications -> Adobe - https://www.adobe.com/
+# Third Party Applications -> Adobe - https://www.adobe.com/
 
     -
         Description: Adobe cRecentFiles
@@ -2201,7 +2248,7 @@ Keys:
         Recursive: false
         Comment: "Displays folders where Adobe Reader opened a PDF file from"
 
-# Third-Party Applications -> Visual Studio - https://visualstudio.microsoft.com/
+# Third Party Applications -> Visual Studio - https://visualstudio.microsoft.com/
 
     -
         Description: VisualStudio FileMRUList
@@ -2225,7 +2272,7 @@ Keys:
         Recursive: false
         Comment: ""
 
-# Third-Party Applications -> 7-Zip - https://www.7-zip.org/
+# Third Party Applications -> 7-Zip - https://www.7-zip.org/
 
     -
         Description: 7-Zip
@@ -2238,38 +2285,19 @@ Keys:
 
 # SevenZip plugin
 
-# Third-Party Applications -> WinRAR - https://www.rarlab.com/
+# Third Party Applications -> WinRAR - https://www.rarlab.com/
 
     -
         Description: WinRAR
         HiveType: NTUSER
         Category: Third Party Applications
-        KeyPath: Software\WinRAR\ArcHistory
-        Recursive: true
-        Comment: "Displays history of archives that were used with WinRAR"
-    -
-        Description: WinRAR
-        HiveType: NTUSER
-        Category: Third Party Applications
-        KeyPath: Software\WinRAR\DialogEditHistory\ArcName
-        Recursive: true
-        Comment: "Displays history of archives that were edited with WinRAR"
-    -
-        Description: WinRAR
-        HiveType: NTUSER
-        Category: Third Party Applications
-        KeyPath: Software\WinRAR\DialogEditHistory\ExtrPath
-        Recursive: true
-        Comment: "Displays history of extraction paths that were used with WinRAR"
-    -
-        Description: WinRAR
-        HiveType: SOFTWARE
-        Category: Third Party Applications
-        KeyPath: WinRAR\Capabilities\FileAssociations
+        KeyPath: Software\WinRAR
         Recursive: false
-        Comment: "Displays list of archive file extensions and their association with WinRAR"
+        Comment: "Displays history of archives that were used with WinRAR"
 
-# Third-Party Applications -> Eraser - https://eraser.heidi.ie/
+# WinRAR plugin
+
+# Third Party Applications -> Eraser - https://eraser.heidi.ie/
 
     -
         Description: Eraser
@@ -2279,7 +2307,7 @@ Keys:
         Recursive: true
         Comment: "Potential evidence of anti-forensics"
 
-# Third-Party Applications -> LogMeIn - https://www.logmein.com/home2/v4
+# Third Party Applications -> LogMeIn - https://www.logmein.com/home2/v4
 
     -
         Description: LogMeIn
@@ -2289,7 +2317,7 @@ Keys:
         Recursive: true
         Comment: "LogMeIn GoToMeeting"
 
-# Third-Party Applications -> Macrium Reflect - https://www.macrium.com/
+# Third Party Applications -> Macrium Reflect - https://www.macrium.com/
 
     -
         Description: Macrium Reflect
@@ -2379,7 +2407,7 @@ Keys:
         Recursive: true
         Comment: "Displays settings related to Macrium Reflect's interaction with VSS"
 
-# Third-Party Applications -> WinSCP - https://winscp.net/eng/index.php
+# Third Party Applications -> WinSCP - https://winscp.net/eng/index.php
 
     -
         Description: WinSCP
@@ -2396,7 +2424,7 @@ Keys:
         Recursive: true
         Comment: "WinSCP"
 
-# Third-Party Applications -> Ares - https://www.ares.net/
+# Third Party Applications -> Ares - https://www.ares.net/
 
     -
         Description: Ares
@@ -2408,7 +2436,7 @@ Keys:
 
 # Ares plugin
 
-# Third-Party Applications -> Soulseek - https://www.slsknet.org/news/
+# Third Party Applications -> Soulseek - https://www.slsknet.org/news/
 
     -
         Description: Soulseek
@@ -2427,7 +2455,7 @@ Keys:
         Recursive: true
         Comment: "Displays the language for which Soulseek was installed"
 
-# Third-Party Applications -> Signal - https://signal.org/en/
+# Third Party Applications -> Signal - https://signal.org/en/
 
     -
         Description: Signal
@@ -2438,7 +2466,7 @@ Keys:
         Recursive: true
         Comment: "Displays the location where Signal is installed on the user's computer"
 
-# Third-Party Applications -> Stardock Fences - https://www.stardock.com/products/fences/
+# Third Party Applications -> Stardock Fences - https://www.stardock.com/products/fences/
 
     -
         Description: Stardock Fences
@@ -2471,7 +2499,7 @@ Keys:
         Recursive: true
         Comment: "Displays the user's primary monitor"
 
-# Third-Party Applications -> 4K Video Downloader - https://www.4kdownload.com/products/videodownloader/1
+# Third Party Applications -> 4K Video Downloader - https://www.4kdownload.com/products/videodownloader/1
 
     -
         Description: 4K Video Downloader
@@ -2723,7 +2751,7 @@ Keys:
         Recursive: true
         Comment: "Displays time user was authenticated to the system's instance of Microsoft 365 for the first time"
     -
-        Description: Microsoft Office
+        Description: Microsoft Office Trusted Documents
         HiveType: NTUSER
         Category: Microsoft Office
         KeyPath: Software\Microsoft\Office\*\*\Security\Trusted Documents\TrustRecords
@@ -2881,6 +2909,17 @@ Keys:
 # https://www.advancedinstaller.com/user-guide/registry-wow6432-node.html
 # https://docs.microsoft.com/en-us/windows/win32/sysinfo/32-bit-and-64-bit-application-data-in-the-registry
 
+    -
+        Description: Products
+        HiveType: SOFTWARE
+        Category: Installed Software
+        KeyPath: Microsoft\Windows\CurrentVersion\Installer\UserData\*\Products
+        Recursive: false
+        Comment: "Displays all installed software packages"
+
+# Products plugin
+# https://www.nirsoft.net/utils/installed_packages_view.html
+
 # --------------------
 # ANTIVIRUS
 # --------------------
@@ -2893,8 +2932,25 @@ Keys:
         Recursive: false
         Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
 
-# https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
 
+# https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Microsoft\Windows Defender\Reporting
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Microsoft\Windows Defender
+        ValueName: fDenyTSConnections
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
     -
         Description: Windows Defender
         HiveType: SOFTWARE
@@ -3006,10 +3062,57 @@ Keys:
         KeyPath: Policies\Microsoft\Windows Defender
         ValueName: DisableAntiSpyware
         Recursive: true
-        Comment: "Displays the status of whether Windows Defender is enabled or not. 0 = Enabled, 1 = Disabled"
+        Comment: "Displays the status of whether Windows Defender AntiSpyware is enabled or not. 0 = Enabled, 1 = Disabled"
 
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
 # https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Windows Defender Status
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows Defender
+        ValueName: DisableAntiVirus
+        Recursive: true
+        Comment: "Displays the status of whether Windows Defender AntiVirus is enabled or not. 0 = Enabled, 1 = Disabled"
+
+# https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
+# https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Microsoft\Windows Defender\SpyNet
+        ValueName: DisableBlockAtFirstSeen
+        Recursive: false
+        Comment: "Windows Defender DisableBlockAtFirstSeen Status, 0 = Disabled, 1 = Enabled"
+
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Microsoft\Windows Defender\SpyNet
+        ValueName: SpynetReporting
+        Recursive: false
+        Comment: "Windows Defender SpynetReporting Status, 0 = Disabled, 1 = Enabled"
+
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Microsoft\Windows Defender\SpyNet
+        ValueName: SubmitSamplesConsent
+        Recursive: false
+        Comment: "Windows Defender SubmitSamplesConsent Status, 0 = Disabled, 1 = Enabled"
+
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
 
     -
         Description: PortProxy Configuration
@@ -3017,7 +3120,7 @@ Keys:
         Category: Threat Hunting
         KeyPath: ControlSet*\Services\PortProxy\v4tov4\tcp
         Recursive: true
-        Comment: "Display current port proxy configuration"
+        Comment: "Displays current port proxy configuration"
 
 # https://www.fireeye.com/blog/threat-research/2019/01/bypassing-network-restrictions-through-rdp-tunneling.html
 # https://adepts.of0x.cc/netsh-portproxy-code/
@@ -3115,5 +3218,19 @@ Keys:
         KeyPath: Microsoft\PowerShell\info
         Recursive: false
         Comment: Cobalt Strike Reflection Attack - Lockbit 2.0
+
+    -
+        Description: Restricted Admin Status
+        HiveType: SYSTEM
+        Category: Threat Hunting
+        KeyPath: ControlSet*\Control\Lsa
+        ValueName: DisableRestrictedAdmin
+        Recursive: false
+        Comment: "Displays the status of Restricted Admin mode"
+
+# https://twitter.com/JohnLaTwC/status/1413510338880839686
+# https://labs.f-secure.com/blog/undisable/
+# https://blog.ahasayen.com/restricted-admin-mode-for-rdp/
+# https://docs.microsoft.com/en-us/windows/security/identity-protection/remote-credential-guard
 
 # More to come...stay tuned!
