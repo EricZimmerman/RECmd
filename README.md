@@ -69,6 +69,8 @@ PS> Unblock-File .\Plugins\*.dll
 
 RECmd uses Batch Files to make your Registry output more actionable. Learn about Batch Files [here](https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples#readme)!
 
+As of September 2021, there is a README specifically for the Kroll_Batch file used by RECmd and KAPE. Find it [here](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/Kroll_Batch.md)!
+
 # RLA
 
 ## Command Line Interface
