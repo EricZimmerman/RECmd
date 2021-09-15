@@ -43,7 +43,7 @@ https://docs.microsoft.com/en-US/troubleshoot/windows-server/performance/windows
 
 # Guidelines
 
-If you're not going to Recursive: true on a key or subkey, please prepend with a Category -> Description comment before the series of multiple entries for the values to be parsed
-In the above instance, if possible, save all documentation for the last entry in a series, unless a specific helpful reference exists for a given ValueName
-If an entry is using a Plugin to generate output, please include a comment about which Plugin is being used below that entry in this batch file
+If you're not going to `Recursive: true` on a key or subkey, please prepend with a `Category -> Description` comment before the series of multiple entries for the values to be parsed
+In the above instance, if possible, save all documentation for the last entry in a series, unless a specific helpful reference exists for a given `ValueName`
+If an entry is using a Plugin to generate output, please include a comment about which Plugin is being used below that entry in this batch file.
 
