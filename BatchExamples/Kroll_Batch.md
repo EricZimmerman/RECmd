@@ -3,8 +3,9 @@
 Special thanks to Mike Cary and Troy Larson for their work on the other RECmd Batch files that helped inspire development of this Batch file
 
 Special thanks to those who have contributed to this Batch file:
-Andreas Hunkeler (@Karneades)
-Tony Knutson
+
+* [Andreas Hunkeler (@Karneades)](https://github.com/Karneades)
+* [Tony Knutson](https://twitter.com/bigt252002)
 
 # Version History
 
@@ -43,7 +44,7 @@ https://docs.microsoft.com/en-US/troubleshoot/windows-server/performance/windows
 
 # Guidelines
 
-If you're not going to Recursive: true on a key or subkey, please prepend with a Category -> Description comment before the series of multiple entries for the values to be parsed
-In the above instance, if possible, save all documentation for the last entry in a series, unless a specific helpful reference exists for a given ValueName
-If an entry is using a Plugin to generate output, please include a comment about which Plugin is being used below that entry in this batch file
+If you're not going to `Recursive: true` on a key or subkey, please prepend with a `Category -> Description` comment before the series of multiple entries for the values to be parsed
+In the above instance, if possible, save all documentation for the last entry in a series, unless a specific helpful reference exists for a given `ValueName`
+If an entry is using a Plugin to generate output, please include a comment about which Plugin is being used below that entry in this batch file.
 
