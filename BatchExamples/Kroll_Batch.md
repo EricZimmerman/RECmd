@@ -4,11 +4,8 @@ Special thanks to Mike Cary and Troy Larson for their work on the other RECmd Ba
 
 Special thanks to those who have contributed to this Batch file:
 
-```
-Andreas Hunkeler (@Karneades)
-
-Tony Knutson
-```
+* Andreas Hunkeler (@Karneades)
+* Tony Knutson
 
 # Version History
 
