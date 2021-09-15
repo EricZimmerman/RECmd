@@ -1219,7 +1219,7 @@ Keys:
         Description: Microphone
         HiveType: SOFTWARE
         Category: Devices
-        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ContentStore\microphone
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone
         ValueName: LastUsedTimeStart
         IncludeBinary: true
         BinaryConvert: FILETIME
@@ -1229,7 +1229,7 @@ Keys:
         Description: Microphone
         HiveType: SOFTWARE
         Category: Devices
-        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ContentStore\microphone
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone
         ValueName: LastUsedTimeStop
         IncludeBinary: true
         BinaryConvert: FILETIME
@@ -1239,7 +1239,7 @@ Keys:
         Description: Webcam
         HiveType: SOFTWARE
         Category: Devices
-        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ContentStore\webcam\*\*
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam\*\*
         ValueName: LastUsedTimeStart
         IncludeBinary: true
         BinaryConvert: FILETIME
@@ -1249,7 +1249,7 @@ Keys:
         Description: Webcam
         HiveType: SOFTWARE
         Category: Devices
-        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ContentStore\webcam\*\*
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam\*\*
         ValueName: LastUsedTimeStop
         IncludeBinary: true
         BinaryConvert: FILETIME
