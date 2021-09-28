@@ -19,7 +19,8 @@ Example entry, please follow this format:
 
 ## Version History Log
 
-```
+| Version | Date | Release Notes |
+|---|---|---|
 | 1.0 | 2021-02-14 | Initial release |
 | 1.1 | 2021-02-20 | Added Total Commander [Third Party Applications]. Added CCleaner Browser [Web Browsers]. Created category [Event Logs] |
 | 1.2 | 2021-04-08 | Changed ProfileList's recursive value to false to prevent duplicate/unnecessary entries, created Threat Hunting category, added ShadowRDP [Threat Hunting] |
@@ -35,9 +36,8 @@ Example entry, please follow this format:
 | 1.12 | 2021-07-12 | Added SysInternals Tools [Installed Software] |
 | 1.13 | 2021-09-03 | Removed duplicate artifacts (LastVisitedMRU), added more documentation to various artifacts, added LockBit IOC [Threat Hunting] |
 | 1.14 | 2021-09-09 | Added MuiCache and AppCompatFlags [Program Execution]. Added Restricted Admin Status and more Windows Defender artifacts [Threat Hunting]. Added RealVNC - VNC Viewer, add WinRAR plugin [Third Party Applications]. Added Products artifacts [Installed Software]. Updated Microsoft Office Trusted Documents description [Microsoft Office] |
-| 1.15 | 2021-09-15 | Added webcam and microphone values [Devices]. Moved Acknowledgments, Version History, Documentation, and Guidelines to a dedicated README on GitHub repo  |
-| 1.16 | 2021-09-28 | Added Microsoft Exchange category for identifying patch entries. |
-```
+| 1.15 | 2021-09-15 | Added webcam and microphone values [Devices]. Moved Acknowledgments, Version History, Documentation, and Guidelines to a dedicated README on GitHub repo |
+| 1.16 | 2021-09-28 | Added Microsoft Exchange category for identifying patch entries [Microsoft Exchange]. |
 
 # Documentation
 
