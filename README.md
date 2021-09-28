@@ -1,5 +1,9 @@
 # RECmd
 
+## Ongoing Projects
+
+ * [Kroll Batch File](https://github.com/EricZimmerman/RECmd/projects/1) - Development roadmap for the Kroll Batch File. Please feel free to contribute by adding ideas or by finishing tasks in the `To Do` column. Any help is appreciated! 
+
 ## Command Line Interface
 
     RECmd version 1.6.0.0
