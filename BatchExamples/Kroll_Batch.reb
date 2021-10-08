@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.15
+Version: 1.16
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -22,6 +22,7 @@ Keys:
 # Services
 # Event Logs
 # Microsoft Office/Office 365
+# Microsoft Exchange
 # Web Browsers
 # Installed Software
 # Antivirus
@@ -2756,6 +2757,31 @@ Keys:
 # TrustedDocuments plugin
 
 # --------------------
+# MICROSOFT EXCHANGE
+# --------------------
+
+# Microsoft Exchange -> ProxyLogon Patch Status
+
+    -
+        Description: ProxyLogon Patch Status
+        HiveType: SOFTWARE
+        Category: Microsoft Exchange
+        KeyPath: Microsoft\Updates\Exchange*\KB*
+        Recursive: false
+        ValueName: InstalledDate
+        Comment: "Displays the date the patch was installed on this host"
+    -
+        Description: ProxyLogon Patch Status
+        HiveType: SOFTWARE
+        Category: Microsoft Exchange
+        KeyPath: Microsoft\Updates\Exchange*\KB*
+        Recursive: false
+        ValueName: PackageName
+        Comment: "Displays the name of the patch installed on this host"
+
+# https://support.microsoft.com/en-us/topic/description-of-the-security-update-for-microsoft-exchange-server-2019-2016-and-2013-march-2-2021-kb5000871-9800a6bb-0a21-4ee7-b9da-fa85b3e1d23b
+
+# --------------------
 # WEB BROWSERS
 # --------------------
 
@@ -2926,7 +2952,6 @@ Keys:
         KeyPath: Microsoft\Windows Defender\Real-Time Protection
         Recursive: false
         Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
-
 
 # https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
 # https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
