@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.16
+Version: 1.17
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -1668,6 +1668,7 @@ Keys:
 # https://crucialsecurity.wordpress.com/2011/03/14/typedurls-part-1/
 # https://www.andreafortuna.org/2017/10/18/windows-registry-in-forensic-analysis/
 # https://tzworks.net/prototype_page.php?proto_id=19
+# https://www.forensafe.com/blogs/typedurls.html
 
     -
         Description: Microsoft Office MRU
