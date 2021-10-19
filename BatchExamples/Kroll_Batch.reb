@@ -1655,6 +1655,7 @@ Keys:
 
 # https://www.hecfblog.com/2018/09/daily-blog-483-typed-paths-amnesia.html
 # http://windowsir.blogspot.com/2013/07/howto-determine-user-access-to-files.html
+# https://www.forensafe.com/blogs/typedpaths.html
 
     -
         Description: TypedURLs
