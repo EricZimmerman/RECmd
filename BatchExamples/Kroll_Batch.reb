@@ -1487,6 +1487,7 @@ Keys:
 # https://digitalf0rensics.wordpress.com/2014/01/17/windows-registry-and-forensics-part2/
 # https://www.andreafortuna.org/2017/10/18/windows-registry-in-forensic-analysis/
 # https://silo.tips/download/a-forensic-analysis-of-the-windows-registry
+# https://www.forensafe.com/blogs/runmru.html
 
     -
         Description: AppCompatCache
@@ -1763,6 +1764,7 @@ Keys:
 # https://www.andreafortuna.org/2017/10/18/windows-registry-in-forensic-analysis/
 # https://digitalf0rensics.wordpress.com/2014/01/17/windows-registry-and-forensics-part2/
 # https://www.sans.org/security-resources/posters/windows-forensic-analysis/170/download
+# https://www.forensafe.com/blogs/recentDocs.html
 
     -
         Description: Recent File List
