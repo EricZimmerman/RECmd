@@ -1773,7 +1773,7 @@ Keys:
         KeyPath: Software\*\*\Recent File List
         Recursive: false
         Comment: "Displays recent files accessed by the user with an application"
-        
+
 # https://www.forensafe.com/blogs/paintmru.html
 
     -
