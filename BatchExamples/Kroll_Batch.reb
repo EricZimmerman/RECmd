@@ -25,7 +25,6 @@ Keys:
 # Microsoft Exchange
 # Web Browsers
 # Installed Software
-# Antivirus
 # Volume Shadow Copies
 # Threat Hunting
 #
