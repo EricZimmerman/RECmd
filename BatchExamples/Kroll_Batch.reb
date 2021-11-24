@@ -2952,47 +2952,7 @@ Keys:
 # ANTIVIRUS
 # --------------------
 
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Microsoft\Windows Defender\Real-Time Protection
-        Recursive: false
-        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
 
-# https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
-# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
-
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Microsoft\Windows Defender\Reporting
-        Recursive: false
-        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Microsoft\Windows Defender
-        ValueName: fDenyTSConnections
-        Recursive: false
-        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Policies\Microsoft\Windows Defender\Exclusions\
-        Recursive: true
-        Comment: "Windows Defender Exclusions through Group Policies (GPOs)"
-
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Microsoft\Windows Defender\Exclusions\
-        Recursive: true
-        Comment: "Windows Defender Exclusions"
 
 # --------------------
 # VOLUME SHADOW COPIES
@@ -3259,5 +3219,56 @@ Keys:
 # https://labs.f-secure.com/blog/undisable/
 # https://blog.ahasayen.com/restricted-admin-mode-for-rdp/
 # https://docs.microsoft.com/en-us/windows/security/identity-protection/remote-credential-guard
+
+# Threat Hunting -> Antivirus
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Real-Time Protection
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
+
+# https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Symantec Endpoint Protection
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: WOW6432Node\Symantec\Symantec Endpoint Protection\AV\Quarantine\QRecords\*
+        ValueName: FName
+        Recursive: false
+        Comment: "Displays a list of filenames that have been quarantined by Symantec Endpoint Protection"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Reporting
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender
+        ValueName: fDenyTSConnections
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows Defender\Exclusions\
+        Recursive: true
+        Comment: "Windows Defender Exclusions through Group Policies (GPOs)"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Exclusions\
+        Recursive: true
+        Comment: "Windows Defender Exclusions"
 
 # More to come...stay tuned!
