@@ -2948,12 +2948,6 @@ Keys:
 # https://www.nirsoft.net/utils/installed_packages_view.html
 
 # --------------------
-# ANTIVIRUS
-# --------------------
-
-
-
-# --------------------
 # VOLUME SHADOW COPIES
 # --------------------
 
