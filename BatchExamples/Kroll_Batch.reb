@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.16
+Version: 1.17
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -25,7 +25,6 @@ Keys:
 # Microsoft Exchange
 # Web Browsers
 # Installed Software
-# Antivirus
 # Volume Shadow Copies
 # Threat Hunting
 #
@@ -1487,6 +1486,7 @@ Keys:
 # https://digitalf0rensics.wordpress.com/2014/01/17/windows-registry-and-forensics-part2/
 # https://www.andreafortuna.org/2017/10/18/windows-registry-in-forensic-analysis/
 # https://silo.tips/download/a-forensic-analysis-of-the-windows-registry
+# https://www.forensafe.com/blogs/runmru.html
 
     -
         Description: AppCompatCache
@@ -1655,6 +1655,7 @@ Keys:
 
 # https://www.hecfblog.com/2018/09/daily-blog-483-typed-paths-amnesia.html
 # http://windowsir.blogspot.com/2013/07/howto-determine-user-access-to-files.html
+# https://www.forensafe.com/blogs/typedpaths.html
 
     -
         Description: TypedURLs
@@ -1668,6 +1669,7 @@ Keys:
 # https://crucialsecurity.wordpress.com/2011/03/14/typedurls-part-1/
 # https://www.andreafortuna.org/2017/10/18/windows-registry-in-forensic-analysis/
 # https://tzworks.net/prototype_page.php?proto_id=19
+# https://www.forensafe.com/blogs/typedurls.html
 
     -
         Description: Microsoft Office MRU
@@ -1761,6 +1763,7 @@ Keys:
 # https://www.andreafortuna.org/2017/10/18/windows-registry-in-forensic-analysis/
 # https://digitalf0rensics.wordpress.com/2014/01/17/windows-registry-and-forensics-part2/
 # https://www.sans.org/security-resources/posters/windows-forensic-analysis/170/download
+# https://www.forensafe.com/blogs/recentDocs.html
 
     -
         Description: Recent File List
@@ -1769,6 +1772,9 @@ Keys:
         KeyPath: Software\*\*\Recent File List
         Recursive: false
         Comment: "Displays recent files accessed by the user with an application"
+
+# https://www.forensafe.com/blogs/paintmru.html
+
     -
         Description: Recent Folder List
         HiveType: NTUSER
@@ -2942,52 +2948,6 @@ Keys:
 # https://www.nirsoft.net/utils/installed_packages_view.html
 
 # --------------------
-# ANTIVIRUS
-# --------------------
-
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Microsoft\Windows Defender\Real-Time Protection
-        Recursive: false
-        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
-
-# https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
-# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
-
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Microsoft\Windows Defender\Reporting
-        Recursive: false
-        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Microsoft\Windows Defender
-        ValueName: fDenyTSConnections
-        Recursive: false
-        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Policies\Microsoft\Windows Defender\Exclusions\
-        Recursive: true
-        Comment: "Windows Defender Exclusions through Group Policies (GPOs)"
-
-    -
-        Description: Windows Defender
-        HiveType: SOFTWARE
-        Category: Antivirus
-        KeyPath: Microsoft\Windows Defender\Exclusions\
-        Recursive: true
-        Comment: "Windows Defender Exclusions"
-
-# --------------------
 # VOLUME SHADOW COPIES
 # --------------------
 
@@ -3252,5 +3212,56 @@ Keys:
 # https://labs.f-secure.com/blog/undisable/
 # https://blog.ahasayen.com/restricted-admin-mode-for-rdp/
 # https://docs.microsoft.com/en-us/windows/security/identity-protection/remote-credential-guard
+
+# Threat Hunting -> Antivirus
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Real-Time Protection
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
+
+# https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Symantec Endpoint Protection
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: WOW6432Node\Symantec\Symantec Endpoint Protection\AV\Quarantine\QRecords\*
+        ValueName: FName
+        Recursive: false
+        Comment: "Displays a list of filenames that have been quarantined by Symantec Endpoint Protection"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Reporting
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender
+        ValueName: fDenyTSConnections
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows Defender\Exclusions\
+        Recursive: true
+        Comment: "Windows Defender Exclusions through Group Policies (GPOs)"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Exclusions\
+        Recursive: true
+        Comment: "Windows Defender Exclusions"
 
 # More to come...stay tuned!
