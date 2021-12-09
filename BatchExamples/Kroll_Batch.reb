@@ -1,10 +1,11 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.17
+Version: 1.18
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
 # Kroll_Batch README: https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/Kroll_Batch.md
+#  => Add changelog in this readme after additions.
 #
 # --------------------
 # TABLE OF CONTENTS
