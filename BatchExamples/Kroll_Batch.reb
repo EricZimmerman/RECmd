@@ -3125,7 +3125,8 @@ Keys:
         Recursive: false
         Comment: Exefile hijack shows e.g. path to a binary
 
-# https://pentestlab.blog/2020/05/20/persistence-com-hijacking/
+# https://twitter.com/swisscom_csirt/status/1461686311769759745
+# https://attack.mitre.org/techniques/T1546/001/
 
 # Threat Hunting -> Hades - Located within a PowerShell script associated with this group
 
