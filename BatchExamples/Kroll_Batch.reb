@@ -310,7 +310,6 @@ Keys:
         KeyPath: ControlSet00*\Control\TimeZoneInformation
         Recursive: false
         Comment: "Displays the current Time Zone configuration for this system"
-
 # TimeZoneInfo plugin
 
 # https://kb.digital-detective.net/display/BF/Identification+of+Time+Zone+Settings+on+Suspect+Computer
@@ -3105,6 +3104,26 @@ Keys:
 # https://www.fireeye.com/blog/threat-research/2019/01/bypassing-network-restrictions-through-rdp-tunneling.html
 # https://adepts.of0x.cc/netsh-portproxy-code/
 # https://www.dfirnotes.net/portproxy_detection/
+
+    -
+        Description: Exefile Shell Open Command
+        HiveType: Software
+        Category: Threat Hunting
+        KeyPath: Classes\Exefile\Shell\Open\Command
+        ValueName: (default)
+        Recursive: false
+        Comment: Exefile hijack shows e.g. path to a binary
+        
+    -
+        Description: Exefile Shell Open Command
+        HiveType: usrclass
+        Category: Threat Hunting
+        KeyPath: Exefile\Shell\Open\Command
+        ValueName: (default)
+        Recursive: false
+        Comment: Exefile hijack shows e.g. path to a binary
+
+# https://pentestlab.blog/2020/05/20/persistence-com-hijacking/
 
 # Threat Hunting -> Hades - Located within a PowerShell script associated with this group
 
