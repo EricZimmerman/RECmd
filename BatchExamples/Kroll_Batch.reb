@@ -1,10 +1,11 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.17
+Version: 1.18
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
 # Kroll_Batch README: https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/Kroll_Batch.md
+#  => Add changelog in this readme after additions.
 #
 # --------------------
 # TABLE OF CONTENTS
@@ -3105,6 +3106,27 @@ Keys:
 # https://www.fireeye.com/blog/threat-research/2019/01/bypassing-network-restrictions-through-rdp-tunneling.html
 # https://adepts.of0x.cc/netsh-portproxy-code/
 # https://www.dfirnotes.net/portproxy_detection/
+
+    -
+        Description: Exefile Shell Open Command
+        HiveType: Software
+        Category: Threat Hunting
+        KeyPath: Classes\Exefile\Shell\Open\Command
+        ValueName: (default)
+        Recursive: false
+        Comment: Exefile hijack shows e.g. path to a binary
+
+    -
+        Description: Exefile Shell Open Command
+        HiveType: usrclass
+        Category: Threat Hunting
+        KeyPath: Exefile\Shell\Open\Command
+        ValueName: (default)
+        Recursive: false
+        Comment: Exefile hijack shows e.g. path to a binary
+
+# https://twitter.com/swisscom_csirt/status/1461686311769759745
+# https://attack.mitre.org/techniques/T1546/001/
 
 # Threat Hunting -> Hades - Located within a PowerShell script associated with this group
 
