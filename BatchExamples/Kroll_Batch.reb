@@ -310,6 +310,7 @@ Keys:
         KeyPath: ControlSet00*\Control\TimeZoneInformation
         Recursive: false
         Comment: "Displays the current Time Zone configuration for this system"
+
 # TimeZoneInfo plugin
 
 # https://kb.digital-detective.net/display/BF/Identification+of+Time+Zone+Settings+on+Suspect+Computer
