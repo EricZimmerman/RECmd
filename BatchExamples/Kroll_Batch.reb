@@ -3115,7 +3115,7 @@ Keys:
         ValueName: (default)
         Recursive: false
         Comment: Exefile hijack shows e.g. path to a binary
-        
+
     -
         Description: Exefile Shell Open Command
         HiveType: usrclass
