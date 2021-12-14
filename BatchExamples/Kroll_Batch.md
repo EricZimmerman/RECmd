@@ -6,6 +6,7 @@ Special thanks to those who have contributed to this Batch file:
 
 * [Andreas Hunkeler (@Karneades)](https://github.com/Karneades)
 * [Tony Knutson](https://twitter.com/bigt252002)
+* Chris Kudless
 
 # Version History
 
@@ -38,6 +39,8 @@ Example entry, please follow this format:
 | 1.14 | 2021-09-09 | Added MuiCache and AppCompatFlags [Program Execution]. Added Restricted Admin Status and more Windows Defender artifacts [Threat Hunting]. Added RealVNC - VNC Viewer, add WinRAR plugin [Third Party Applications]. Added Products artifacts [Installed Software]. Updated Microsoft Office Trusted Documents description [Microsoft Office] |
 | 1.15 | 2021-09-15 | Added webcam and microphone values [Devices]. Moved Acknowledgments, Version History, Documentation, and Guidelines to a dedicated README on GitHub repo |
 | 1.16 | 2021-09-28 | Added Microsoft Exchange category for identifying patch entries [Microsoft Exchange]. |
+| 1.17 | 2021-11-24 | Added various documentation to preexisting artifacts, removed [Antivirus] category and moved all to [Threat Hunting], added Symantec Endpoint Protection quarantine records [Threat Hunting] |
+| 1.18 | 2021-12-09 | Added exefile open command registry keys [Threat Hunting] |
 
 # Documentation
 
@@ -48,4 +51,3 @@ https://docs.microsoft.com/en-US/troubleshoot/windows-server/performance/windows
 If you're not going to `Recursive: true` on a key or subkey, please prepend with a `Category -> Description` comment before the series of multiple entries for the values to be parsed
 In the above instance, if possible, save all documentation for the last entry in a series, unless a specific helpful reference exists for a given `ValueName`
 If an entry is using a Plugin to generate output, please include a comment about which Plugin is being used below that entry in this batch file.
-
