@@ -15,12 +15,6 @@
   <PropertyGroup>
     <ApplicationIcon>Registry256.ico</ApplicationIcon>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="RawCopy_ERZ" Version="1.0.0" />
     <PackageReference Include="System.IO.Compression" Version="4.*" />
