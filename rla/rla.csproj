@@ -1,40 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net462</TargetFramework>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <AssemblyTitle>rla</AssemblyTitle>
-    <Company>Eric Zimmerman 501-313-3778</Company>
-    <Product>rla</Product>
-    <Description>Registry Transaction Log Apply</Description>
-    <Copyright>Copyright ©  2020</Copyright>
-    <AssemblyVersion>1.6.0.0</AssemblyVersion>
-    <FileVersion>1.6.0.0</FileVersion>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>RegistryCheck.ico</ApplicationIcon>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="RawCopy_ERZ" Version="1.0.0" />
-    <PackageReference Include="System.Data.DataSetExtensions" Version="4.*" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="RegistryCheck.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="AlphaFS" Version="2.2.6" />
-    <PackageReference Include="Costura.Fody" Version="5.6.0">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Fody" Version="6.5.3">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Exceptionless" Version="4.6.2" />
-    <PackageReference Include="FluentCommandLineParser" Version="1.4.3" />
-    <PackageReference Include="NLog" Version="4.7.11" />
-    <PackageReference Include="Registry" Version="1.2.2" />
-    <PackageReference Include="ServiceStack.Text" Version="5.12.0" />
-  </ItemGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFrameworks>net462;net6.0</TargetFrameworks>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <AssemblyTitle>rla</AssemblyTitle>
+        <Company>Eric Zimmerman 501-313-3778</Company>
+        <Product>rla</Product>
+        <Description>Registry Transaction Log Apply</Description>
+        <Copyright>Copyright © 2022</Copyright>
+        <AssemblyVersion>1.6.0.1</AssemblyVersion>
+        <FileVersion>1.6.0.1</FileVersion>
+        <Version>1.6.0.1</Version>
+        <DebugSymbols>true</DebugSymbols>
+        <LangVersion>10</LangVersion>
+
+    </PropertyGroup>
+    <PropertyGroup>
+        <ApplicationIcon>RegistryCheck.ico</ApplicationIcon>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="ERZHelpers" Version="1.1.1.1"/>
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21615.1"/>
+        <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta2.21615.1"/>
+        <PackageReference Include="System.Data.DataSetExtensions" Version="4.*"/>
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="RegistryCheck.ico"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Costura.Fody" Version="5.7.0">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Fody" Version="6.6.0">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Exceptionless" Version="4.6.2"/>
+        <PackageReference Include="NLog" Version="4.7.13"/>
+        <PackageReference Include="Registry" Version="1.2.2.1"/>
+        <PackageReference Include="ServiceStack.Text" Version="5.13.2"/>
+    </ItemGroup>
 </Project>

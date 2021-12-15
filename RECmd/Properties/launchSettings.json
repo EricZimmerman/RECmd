@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "RECmd": {
-      "commandName": "Project",
-      "commandLineArgs": "-f C:\\temp\\SYSTEM --kn root --nl true"
-    }
-  }
-}
