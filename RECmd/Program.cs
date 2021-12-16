@@ -167,22 +167,117 @@ internal class Program
 
             new Option<string>(
                 "-f",
-                "Hive to process. -f or -d is required"),
+                "Hive to search. -f or -d is required"),
 
             new Option<bool>(
-                "--out",
+                "-q",
                 () => false,
-                "Directory to save updated hives to. Only dirty hives with logs applied will end up in --out directory"),
+                "Quiet mode. When true, hide processing details"),
 
-            new Option<bool>(
-                "--ca",
-                () => true,
-                "When true, always copy hives to --out directory, even if they aren't dirty."),
+            new Option<string>(
+                "--kn",
+                "Display details for key name. Includes subkeys and values"),
 
-            new Option<bool>(
-                "--cn",
-                () => true,
+            new Option<string>(
+                "--vn",
+                "alue name. Only this value will be dumped"),
+
+            new Option<string>(
+                "--bn",
+                "Use settings from supplied file to find keys/values. See included sample file for examples"),
+
+            new Option<string>(
+                "--csv",
+                "Directory to save CSV formatted results to. Required when -bn is used"),
+            
+            new Option<string>(
+                "--csvf",
+                "File name to save CSV formatted results to. When present, overrides default name"),
+
+            new Option<string>(
+                "--saveTo",
+                "Saves --vn value data in binary form to file. Expects path to a FILE"),
+
+            new Option<string>(
+                "--json",
+                "Export --kn to directory specified by --json. Ignored when --vn is specified"),
+
+            new Option<string>(
+                "--jsonf",
                 "When true, compress names for profile based hives."),
+            
+            new Option<bool>(
+                "--details",
+                () => false,
+                "Show more details when displaying results"),
+
+            new Option<int>(
+                "--base64",
+                "Find Base64 encoded values with size >= Base64 (specified in bytes)"),
+            new Option<int>(
+                "--minSize",
+                "Find values with data size >= MinSize (specified in bytes)"),
+
+            new Option<string>(
+                "--sa",
+                "Search for <string> in keys, values, data, and slack"),
+            new Option<string>(
+                "--sk",
+                "Search for <string> in value record's key names"),
+            new Option<string>(
+                "--sv",
+                "Search for <string> in value record's value names"),
+            new Option<string>(
+                "--sd",
+                "Search for <string> in value record's value data"),
+            new Option<string>(
+                "--ss",
+                "Search for <string> in value record's value slack"),
+            
+            new Option<bool>(
+                "--literal",
+                () => false,
+                "If true, --sd and --ss search value will not be interpreted as ASCII or Unicode byte strings"),
+
+            new Option<bool>(
+                "--nd",
+                () => false,
+                "If true, do not show data when using --sd or --ss"),
+
+            new Option<bool>(
+                "--regex",
+                () => false,
+                "If present, treat <string> in --sk, --sv, --sd, and --ss as a regular expression"),
+
+            new Option<string>(
+                "--dt",
+                getDefaultValue:()=>"yyyy-MM-dd HH:mm:ss.fffffff",
+                "The custom date/time format to use when displaying time stamps"),
+            
+            new Option<bool>(
+                "--nl",
+                () => false,
+                "When true, ignore transaction log files for dirty hives"),
+
+            new Option<bool>(
+                "--recover",
+                () => false,
+                "If true, recover deleted keys/values"),
+
+            new Option<bool>(
+                "--vss",
+                () => false,
+                "Process all Volume Shadow Copies that exist on drive specified by -f or -d"),
+
+            new Option<bool>(
+                "--dedupe",
+                () => false,
+                "Deduplicate -f or -d & VSCs based on SHA-1. First file found wins"),
+
+            new Option<bool>(
+                "--sync",
+                () => false,
+                "If true, the latest batch files from https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples are downloaded and local files updated"),
 
             new Option<bool>(
                 "--debug",
