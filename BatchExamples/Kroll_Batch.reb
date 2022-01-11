@@ -1967,17 +1967,6 @@ Keys:
 # https://www.cyberfox.blog/tag/rdp-mru/
 # https://ir3e.com/chapter-14-other-applications/
 
-    -
-        Description: Mapped Network Drives
-        HiveType: NTUSER
-        Category: User Activity
-        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\Map Network Drive MRU
-        Recursive: false
-        Comment: "Displays drives that were mapped by the user"
-
-# https://community.spiceworks.com/topic/137045-remove-previously-mapped-network-drive-paths
-# https://answers.microsoft.com/en-us/windows/forum/windows_7-networking/cleanup-network-drives-list/1247aca3-deb6-493d-b937-24b40087cbc7?auth=1
-
 # --------------------
 # AUTORUNS
 # --------------------
