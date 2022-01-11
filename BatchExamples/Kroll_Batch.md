@@ -41,6 +41,7 @@ Example entry, please follow this format:
 | 1.16 | 2021-09-28 | Added Microsoft Exchange category for identifying patch entries [Microsoft Exchange]. |
 | 1.17 | 2021-11-24 | Added various documentation to preexisting artifacts, removed [Antivirus] category and moved all to [Threat Hunting], added Symantec Endpoint Protection quarantine records [Threat Hunting] |
 | 1.18 | 2021-12-09 | Added exefile open command registry keys [Threat Hunting] |
+| 1.19 | 2022-XX-XX | Remove `Mapped Network Drives` [User Activity] since it was a duplicate artifact of `Netowrk Drive MRU` [Network Shares] |
 
 # Documentation
 
