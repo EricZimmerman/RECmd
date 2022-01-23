@@ -14,32 +14,41 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using Alphaleonis.Win32.Security;
+
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Exceptionless;
 using FluentValidation.Results;
 using ICSharpCode.SharpZipLib.Zip;
-using NLog;
-using NLog.Config;
-using NLog.Targets;
+
 using RawCopy;
 using Registry;
 using Registry.Abstractions;
 using Registry.Cells;
 using Registry.Other;
 using RegistryPluginBase.Interfaces;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using ServiceStack;
 using ServiceStack.Text;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using CsvWriter = CsvHelper.CsvWriter;
+#if NET462
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+using Alphaleonis.Win32.Filesystem;
+using Alphaleonis.Win32.Security;
+#else
+using Directory = System.IO.Directory;
+using File = System.IO.File;
+using Path = System.IO.Path;
+#endif
+
 
 namespace RECmd;
 
@@ -47,7 +56,9 @@ internal class Program
 {
     private const string VssDir = @"C:\___vssMount";
     private static Stopwatch _sw;
-    private static Logger _logger;
+    
+    private static string ActiveDateTimeFormat;
+    
     private static List<BatchCsvOut> _batchCsvOutList;
     private static readonly List<IRegistryPluginBase> Plugins = new();
 
@@ -74,33 +85,7 @@ internal class Program
 
     private static readonly HashSet<string> _seenHashes = new();
 
-    private static void SetupNLog()
-    {
-        if (File.Exists("Nlog.config"))
-        {
-            return;
-        }
-
-        var config = new LoggingConfiguration();
-        var loglevel = LogLevel.Info;
-
-        var layout = @"${message}";
-
-        var consoleTarget = new ColoredConsoleTarget();
-
-        var whr = new ConsoleWordHighlightingRule("this will be replaced with search term", ConsoleOutputColor.Red,
-            ConsoleOutputColor.Green);
-        consoleTarget.WordHighlightingRules.Add(whr);
-
-        config.AddTarget("console", consoleTarget);
-
-        consoleTarget.Layout = layout;
-
-        var rule1 = new LoggingRule("*", loglevel, consoleTarget);
-        config.LoggingRules.Add(rule1);
-
-        LogManager.Configuration = config;
-    }
+   
 
     private static void LoadPlugins()
     {
@@ -119,15 +104,14 @@ internal class Program
                         continue;
                     }
 
-                    _logger.Debug($"Loading plugin '{dll}'");
+                    Log.Debug("Loading plugin {Dll}",dll);
 
                     var plugin = (IRegistryPluginBase)Activator.CreateInstance(exportedType);
 
                     if (loadedGuiDs.Contains(plugin.InternalGuid))
                     {
                         //its already loaded, so warn
-                        _logger.Warn(
-                            "Plugin '{plugin.PluginName}' has already been loaded. Internal GUID: {plugin.InternalGuid}");
+                        Log.Warning("Plugin {PluginName} has already been loaded. Internal GUID: {InternalGuid}",plugin.PluginName,plugin.InternalGuid);
                     }
                     else
                     {
@@ -140,7 +124,7 @@ internal class Program
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Error loading plugin: {dll}");
+                Log.Error(ex, "Error loading plugin: {Dll}",dll);
             }
         }
     }
@@ -148,7 +132,7 @@ internal class Program
     private static async Task Main(string[] args)
     {
         ExceptionlessClient.Default.Startup("fTcEOUkt1CxljTyOZfsr8AcSGQwWE4aYaYqk7cE1");
-        SetupNLog();
+    
 
         _pluginsDir = Path.Combine(BaseDirectory, "Plugins");
 
@@ -156,8 +140,6 @@ internal class Program
         {
             Directory.CreateDirectory(_pluginsDir);
         }
-
-        _logger = LogManager.GetCurrentClassLogger();
 
         _rootCommand = new RootCommand
         {
@@ -180,7 +162,7 @@ internal class Program
 
             new Option<string>(
                 "--vn",
-                "alue name. Only this value will be dumped"),
+                "Value name. Only this value will be dumped"),
 
             new Option<string>(
                 "--bn",
@@ -295,41 +277,106 @@ internal class Program
         _rootCommand.Handler = CommandHandler.Create(DoWork);
 
         await _rootCommand.InvokeAsync(args);
+        
+        Log.CloseAndFlush();
     }
 
-    private static void DoWork(string d, string f, string q, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
+    class DateTimeOffsetFormatter : IFormatProvider, ICustomFormatter
     {
-        if (debug)
+        private readonly IFormatProvider _innerFormatProvider;
+
+        public DateTimeOffsetFormatter(IFormatProvider innerFormatProvider)
         {
-            foreach (var r in LogManager.Configuration.LoggingRules)
+            _innerFormatProvider = innerFormatProvider;
+        }
+
+        public object GetFormat(Type formatType)
+        {
+            return formatType == typeof(ICustomFormatter) ? this : _innerFormatProvider.GetFormat(formatType);
+        }
+
+        public string Format(string format, object arg, IFormatProvider formatProvider)
+        {
+            if (arg is DateTimeOffset)
             {
-                r.EnableLoggingForLevel(LogLevel.Debug);
+                var size = (DateTimeOffset)arg;
+                return size.ToString(ActiveDateTimeFormat);
             }
 
-            LogManager.ReconfigExistingLoggers();
-            _logger.Debug("Enabled debug messages...");
+            var formattable = arg as IFormattable;
+            if (formattable != null)
+            {
+                return formattable.ToString(format, _innerFormatProvider);
+            }
+
+            return arg.ToString();
+        }
+    }
+    
+#if NET6_0
+    
+    static IEnumerable<string> FindFiles(string directory, IEnumerable<string> masks, HashSet<string> ignoreMasks, EnumerationOptions options,long minimumSize = 0)
+    {
+        foreach (var file in masks.AsParallel().SelectMany(searchPattern => Directory.EnumerateFiles(directory, searchPattern, options)))
+        {
+            var fi = new FileInfo(file);
+            if (fi.Length < minimumSize)
+            {
+                Log.Debug("Skipping {File} with size {Length:N0}",file,fi.Length);
+                continue;
+            }
+
+            var ext = Path.GetExtension(file);
+            if (ignoreMasks.Contains(ext))
+            {
+                Log.Debug("Skipping {File} since its extension ({Ext}) is in ignoreMasks",file,ext);
+                continue;
+            }
+        
+            yield return file;
+        }
+    }
+#endif
+    
+    private static void DoWork(string d, string f, string q, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
+    {
+        var levelSwitch = new LoggingLevelSwitch();
+
+        ActiveDateTimeFormat = dt;
+        
+        var formatter  =
+            new DateTimeOffsetFormatter(CultureInfo.CurrentCulture);
+
+        var template = "{Message:lj}{NewLine}{Exception}";
+
+        if (debug)
+        {
+            levelSwitch.MinimumLevel = LogEventLevel.Debug;
+            template = "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}";
         }
 
         if (trace)
         {
-            foreach (var r in LogManager.Configuration.LoggingRules)
-            {
-                r.EnableLoggingForLevel(LogLevel.Trace);
-            }
-
-            LogManager.ReconfigExistingLoggers();
-            _logger.Trace("Enabled trace messages...");
+            levelSwitch.MinimumLevel = LogEventLevel.Verbose;
+            template = "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}";
         }
+        
+        var conf = new LoggerConfiguration()
+            .WriteTo.Console(outputTemplate: template,formatProvider: formatter)
+            .MinimumLevel.ControlledBy(levelSwitch);
+      
+        Log.Logger = conf.CreateLogger();
 
         if (vss & (Helper.IsAdministrator() == false))
         {
-            _logger.Error("--vss is present, but administrator rights not found. Exiting\r\n");
+            Log.Error("{Switch} is present, but administrator rights not found. Exiting","--vss");
+            Console.WriteLine();
             return;
         }
 
         if (vss & !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            _logger.Error("--vss not supported on non-Windows platforms. Disabling");
+            Log.Error("{Switch} not supported on non-Windows platforms. Disabling","--vss");
             vss = false;
         }
 
@@ -338,12 +385,12 @@ internal class Program
         {
             try
             {
-                _logger.Info(Header);
+                Log.Information("{Header}",Header);
                 UpdateFromRepo();
             }
             catch (Exception e)
             {
-                _logger.Error(e, $"There was an error checking for updates: {e.Message}");
+                Log.Error(e, "There was an error checking for updates: {Message}",e.Message);
             }
 
             Environment.Exit(0);
@@ -353,9 +400,10 @@ internal class Program
 
         ReBatch reBatch = null;
 
-        _logger.Info(Header);
-        _logger.Info("");
-        _logger.Info($"Command line: {string.Join(" ", Environment.GetCommandLineArgs().Skip(1))}\r\n");
+        Log.Information("{Header}",Header);
+        Console.WriteLine();
+        Log.Information("Command line: {Args}",string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
+        Console.WriteLine();
 
         if (vss)
         {
@@ -379,13 +427,13 @@ internal class Program
         {
             if (File.Exists(bn) == false)
             {
-                _logger.Error($"Batch file '{bn}' does not exist.");
+                Log.Error("Batch file {Bn} does not exist",bn);
                 return;
             }
 
             if (csv.IsNullOrEmpty())
             {
-                _logger.Error("--csv is required when using --bn. Exiting.");
+                Log.Error("{S1} is required when using {S2}. Exiting","--csv","--bn");
                 return;
             }
 
@@ -397,15 +445,17 @@ internal class Program
         {
             if (File.Exists(f) == false)
             {
-                _logger.Error($"File '{f}' does not exist.");
+                Log.Error("File {F} does not exist",f);
                 return;
             }
 
             if (CheckMinSwitches(sk, sv, sd, ss, sa, kn, minSize, base64, bn) == false)
             {
-                _logger.Error(
-                    "\r\nOne of the following switches is required: --sa | --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
-                _logger.Info("Verify the command line and try again");
+                Console.WriteLine();
+                Log.Error("One of the following switches is required: --sa | --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn");
+                Console.WriteLine();
+                Console.WriteLine();
+                Log.Information("Verify the command line and try again");
                 return;
             }
 
@@ -432,15 +482,18 @@ internal class Program
         {
             if (Directory.Exists(d) == false)
             {
-                _logger.Error($"Directory '{d}' does not exist.");
+                Log.Error("Directory {D} does not exist",d);
+                Console.WriteLine();
                 return;
             }
 
             if (CheckMinSwitches(sk, sv, sd, ss, sa, kn, minSize, base64, bn) == false)
             {
-                _logger.Error(
-                    "\r\nOne of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn\r\n\r\n");
-                _logger.Info("Verify the command line and try again");
+                Console.WriteLine();
+                Log.Error("One of the following switches is required: --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn");
+                Console.WriteLine();
+                Console.WriteLine();
+                Log.Information("Verify the command line and try again");
                 return;
             }
 
@@ -456,123 +509,165 @@ internal class Program
             okFileParts.Add("DRIVERS");
             okFileParts.Add("COMPONENTS");
 
-            var enumerationFilters = new DirectoryEnumerationFilters();
-            enumerationFilters.InclusionFilter = fsei =>
+            IEnumerable<string> files2;
+
+#if NET462
+            
+            var enumerationFilters = new DirectoryEnumerationFilters
             {
-                if (fsei.Extension.ToUpperInvariant() == ".LOG1" || fsei.Extension.ToUpperInvariant() == ".LOG2" ||
-                    fsei.Extension.ToUpperInvariant() == ".DLL" ||
-                    fsei.Extension.ToUpperInvariant() == ".LOG" ||
-                    fsei.Extension.ToUpperInvariant() == ".CSV" ||
-                    fsei.Extension.ToUpperInvariant() == ".BLF" ||
-                    fsei.Extension.ToUpperInvariant() == ".REGTRANS-MS" ||
-                    fsei.Extension.ToUpperInvariant() == ".EXE" ||
-                    fsei.Extension.ToUpperInvariant() == ".TXT" || fsei.Extension.ToUpperInvariant() == ".INI")
+                InclusionFilter = fsei =>
                 {
-                    return false;
-                }
-
-
-                var foundOkFilePart = false;
-
-                foreach (var okFilePart in okFileParts)
-                {
-                    if (fsei.FileName.ToUpperInvariant().Contains(okFilePart))
+                    if (fsei.Extension.ToUpperInvariant() == ".LOG1" || fsei.Extension.ToUpperInvariant() == ".LOG2" ||
+                        fsei.Extension.ToUpperInvariant() == ".DLL" ||
+                        fsei.Extension.ToUpperInvariant() == ".LOG" ||
+                        fsei.Extension.ToUpperInvariant() == ".CSV" ||
+                        fsei.Extension.ToUpperInvariant() == ".BLF" ||
+                        fsei.Extension.ToUpperInvariant() == ".REGTRANS-MS" ||
+                        fsei.Extension.ToUpperInvariant() == ".EXE" ||
+                        fsei.Extension.ToUpperInvariant() == ".TXT" || fsei.Extension.ToUpperInvariant() == ".INI")
                     {
-                        foundOkFilePart = true;
-                        //     return true;
+                        return false;
                     }
-                }
 
-                if (foundOkFilePart == false)
-                {
-                    return false;
-                }
 
-                var fi = new FileInfo(fsei.FullPath);
+                    var foundOkFilePart = false;
 
-                if (fi.Length < 4)
-                {
-                    return false;
-                }
-
-                try
-                {
-                    using (var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read))
+                    foreach (var okFilePart in okFileParts)
                     {
-                        using (var br = new BinaryReader(fs, new ASCIIEncoding()))
+                        if (fsei.FileName.ToUpperInvariant().Contains(okFilePart))
                         {
-                            try
-                            {
-                                var chunk = br.ReadBytes(4);
-
-                                var sig = BitConverter.ToInt32(chunk, 0);
-
-                                if (sig == 0x66676572)
-                                {
-                                    return true;
-                                }
-                            }
-                            catch (Exception)
-                            {
-                                // ignored
-                            }
-
-                            return false;
+                            foundOkFilePart = true;
+                            //     return true;
                         }
                     }
-                }
-                catch (IOException)
-                {
-                    if (Helper.IsAdministrator() == false)
+
+                    if (foundOkFilePart == false)
                     {
-                        throw new UnauthorizedAccessException("Administrator privileges not found!");
+                        return false;
                     }
 
-                    var files = new List<string>();
-                    files.Add(fsei.FullPath);
+                    var fi = new FileInfo(fsei.FullPath);
 
-                    var rawf = Helper.GetRawFiles(files);
-
-                    if (rawf.First().FileStream.Length == 0)
+                    if (fi.Length < 4)
                     {
                         return false;
                     }
 
                     try
                     {
-                        var b = new byte[4];
-                        rawf.First().FileStream.ReadExactly(b, 4);
-
-                        var sig = BitConverter.ToInt32(b, 0);
-
-                        if (sig == 0x66676572)
+                        using var fs = new FileStream(fsei.FullPath, FileMode.Open, FileAccess.Read);
+                        using var br = new BinaryReader(fs, new ASCIIEncoding());
+                        try
                         {
-                            return true;
+                            var chunk = br.ReadBytes(4);
+
+                            var sig = BitConverter.ToInt32(chunk, 0);
+
+                            if (sig == 0x66676572)
+                            {
+                                return true;
+                            }
                         }
+                        catch (Exception)
+                        {
+                            // ignored
+                        }
+
+                        return false;
                     }
-                    catch (Exception)
+                    catch (IOException)
                     {
-                        // ignored
+                        if (Helper.IsAdministrator() == false)
+                        {
+                            throw new UnauthorizedAccessException("Administrator privileges not found!");
+                        }
+
+                        var files = new List<string>();
+                        files.Add(fsei.FullPath);
+
+                        var rawf = Helper.GetRawFiles(files);
+
+                        if (rawf.First().FileStream.Length == 0)
+                        {
+                            return false;
+                        }
+
+                        try
+                        {
+                            var b = new byte[4];
+                            rawf.First().FileStream.ReadExactly(b, 4);
+
+                            var sig = BitConverter.ToInt32(b, 0);
+
+                            if (sig == 0x66676572)
+                            {
+                                return true;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            // ignored
+                        }
+
+                        return false;
                     }
-
-                    return false;
-                }
+                },
+                RecursionFilter = entryInfo => !entryInfo.IsMountPoint && !entryInfo.IsSymbolicLink,
+                ErrorFilter = (errorCode, errorMessage, pathProcessed) => true
             };
-
-            enumerationFilters.RecursionFilter = entryInfo => !entryInfo.IsMountPoint && !entryInfo.IsSymbolicLink;
-
-            enumerationFilters.ErrorFilter = (errorCode, errorMessage, pathProcessed) => true;
 
             var dirEnumOptions =
                 DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive |
                 DirectoryEnumerationOptions.SkipReparsePoints | DirectoryEnumerationOptions.ContinueOnException |
                 DirectoryEnumerationOptions.BasicSearch;
 
-            _logger.Fatal($"Searching '{d}' for hives...");
+            Log.Information("Searching {D} for hives...",d);
 
-            var files2 =
+            files2 =
                 Directory.EnumerateFileSystemEntries(d, dirEnumOptions, enumerationFilters);
 
+            #else
+            
+            var enumerationOptions = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                MatchCasing = MatchCasing.CaseInsensitive,
+                RecurseSubdirectories = true,
+                AttributesToSkip = 0
+            };
+            
+            var mask = new List<string>
+            {
+                "USRCLASS.DAT",
+                "NTUSER.DAT",
+                "SYSTEM",
+                "SAM",
+                "SOFTWARE",
+                "AMCACHE.HVE",
+                "SYSCACHE.hve",
+                "SECURITY",
+                "DRIVERS",
+                "COMPONENTS"
+            };
+            var ignoreExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".dll",
+                ".LOG",
+                ".LOG1",
+                ".LOG2",
+                ".csv",
+                ".blf",
+                ".regtrans-ms",
+                ".exe",
+                ".txt",
+                ".ini"
+            };
+
+            files2 = FindFiles(d, mask, ignoreExt, enumerationOptions, 4);
+            
+            
+            #endif
+            
             var count = 0;
 
             try
@@ -580,20 +675,20 @@ internal class Program
                 hivesToProcess.AddRange(files2);
                 count = hivesToProcess.Count;
 
-                _logger.Info($"\tHives found: {count:N0}");
+//                Log.Information("\tHives found: {Count:N0}",count);
             }
             catch (Exception)
             {
-                _logger.Fatal($"Could not access all files in '{d}'");
-                _logger.Error("");
-                _logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                Log.Fatal("Could not access all files in {D}",d);
+                Console.WriteLine();
+                Log.Fatal("Rerun the program with Administrator privileges to try again");
+                Console.WriteLine();
                 //Environment.Exit(-1);
             }
 
             if (vss)
             {
                 var vssDirs = Directory.GetDirectories(VssDir);
-
 
                 foreach (var vssDir in vssDirs)
                 {
@@ -602,10 +697,19 @@ internal class Program
 
                     var target = Path.Combine(vssDir, stem);
 
-                    _logger.Fatal($"Searching 'VSS{target.Replace($"{VssDir}\\", "")}' for hives...");
+                    Log.Information("Searching '{Vss} for hives...",$"VSS{target.Replace($"{VssDir}\\", "")}");
 
+                    #if NET6_0
+                 
+
+                    files2 = FindFiles(target, mask, ignoreExt, enumerationOptions, 4);
+
+                    #else
                     files2 =
                         Directory.EnumerateFileSystemEntries(target, dirEnumOptions, enumerationFilters);
+                    #endif
+                    
+                    
 
                     try
                     {
@@ -613,19 +717,20 @@ internal class Program
 
                         count = hivesToProcess.Count - count;
 
-                        _logger.Info($"\tHives found: {count:N0}");
+                        Log.Information("\tHives found: {Count:N0}",count);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        _logger.Fatal($"Could not access all files in '{d}'");
-                        _logger.Error("");
-                        _logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                        Log.Fatal(ex,"Could not access all files in {D}",d);
+                        Console.WriteLine();
+                        Log.Fatal("Rerun the program with Administrator privileges to try again");
+                        Console.WriteLine();
                         //Environment.Exit(-1);
                     }
                 }
             }
-
-            _logger.Fatal($"\r\nTotal hives found: {hivesToProcess.Count:N0}");
+            Console.WriteLine();
+            Log.Information("Total hives found: {Count:N0}",hivesToProcess.Count);
         }
         else
         {
@@ -640,7 +745,7 @@ internal class Program
 
         if (hivesToProcess.Count == 0)
         {
-            _logger.Warn("No hives were found. Exiting...");
+            Log.Warning("No hives were found. Exiting...");
 
             return;
         }
@@ -658,23 +763,23 @@ internal class Program
 
         foreach (var hiveToProcess in hivesToProcess)
         {
-            _logger.Info("");
+            Console.WriteLine();
 
 
             if (hiveToProcess.StartsWith(VssDir))
             {
-                _logger.Warn($"Processing 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                Log.Information("Processing {Vss}",$"VSS{hiveToProcess.Replace($"{VssDir}\\", "")}");
             }
             else
             {
-                _logger.Info($"Processing hive '{hiveToProcess}'");
+                Log.Information("Processing hive {HiveToProcess}",hiveToProcess);
             }
 
-            //_logger.Info("");
+            //Console.WriteLine();
 
             if (File.Exists(hiveToProcess) == false)
             {
-                _logger.Warn($"'{hiveToProcess}' does not exist. Skipping");
+                Log.Warning("{HiveToProcess} does not exist. Skipping",hiveToProcess);
                 continue;
             }
 
@@ -692,31 +797,29 @@ internal class Program
                     _sw = new Stopwatch();
                     _sw.Start();
 
-                    using (var fs = new FileStream(hiveToProcess, FileMode.Open, FileAccess.Read))
+                    using var fs = new FileStream(hiveToProcess, FileMode.Open, FileAccess.Read);
+                    if (dedupe)
                     {
-                        if (dedupe)
+                        var sha = Helper.GetSha1FromStream(fs, 0);
+                        if (_seenHashes.Contains(sha))
                         {
-                            var sha = Helper.GetSha1FromStream(fs, 0);
-                            if (_seenHashes.Contains(sha))
-                            {
-                                _logger.Debug($"Skipping '{hiveToProcess}' as a file with SHA-1 '{sha}' has already been processed");
-                                continue;
-                            }
-
-                            _seenHashes.Add(sha);
+                            Log.Debug("Skipping {HiveToProcess} as a file with SHA-1 {Sha} has already been processed",hiveToProcess,sha);
+                            continue;
                         }
 
-                        fs.Seek(0, SeekOrigin.Begin);
-
-                        reg = new RegistryHive(fs.ReadFully(), hiveToProcess)
-                        {
-                            RecoverDeleted = true
-                        };
+                        _seenHashes.Add(sha);
                     }
+
+                    fs.Seek(0, SeekOrigin.Begin);
+
+                    reg = new RegistryHive(fs.ReadFully(), hiveToProcess)
+                    {
+                        RecoverDeleted = true
+                    };
                 }
                 catch (IOException ex)
                 {
-                    _logger.Debug($"IO exception! Error message: {ex.Message}");
+                    Log.Debug(ex,"IO exception! Error message: {Message}",ex.Message);
 
                     //file is in use
 
@@ -725,7 +828,8 @@ internal class Program
                         throw new UnauthorizedAccessException("Administrator privileges not found!");
                     }
 
-                    _logger.Warn($"'{hiveToProcess}' is in use. Rerouting...\r\n");
+                    Log.Information("{HiveToProcess} is in use. Rerouting...",hiveToProcess);
+                    Console.WriteLine();
 
                     var files = new List<string>();
                     files.Add(hiveToProcess);
@@ -749,7 +853,7 @@ internal class Program
                         var sha = Helper.GetSha1FromStream(rawFiles.First().FileStream, 0);
                         if (_seenHashes.Contains(sha))
                         {
-                            _logger.Debug($"Skipping '{hiveToProcess}' as a file with SHA-1 '{sha}' has already been processed");
+                            Log.Debug("Skipping {HiveToProcess} as a file with SHA-1 {Sha} has already been processed",hiveToProcess,sha);
                             continue;
                         }
 
@@ -775,13 +879,13 @@ internal class Program
                     {
                         if (nl == false)
                         {
-                            _logger.Warn(
+                            Log.Warning(
                                 "Registry hive is dirty and no transaction logs were found in the same directory! LOGs should have same base name as the hive. Aborting!!");
                             throw new Exception(
                                 "Sequence numbers do not match and transaction logs were not found in the same directory as the hive. Aborting");
                         }
 
-                        _logger.Warn(
+                        Log.Warning(
                             "Registry hive is dirty and no transaction logs were found in the same directory. Data may be missing! Continuing anyways...");
                     }
                     else
@@ -808,17 +912,14 @@ internal class Program
                         }
                         else
                         {
-                            _logger.Warn(
-                                "Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
+                            Log.Warning("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
                         }
                     }
                 }
-
-
+                
                 reg.ParseHive();
-
-
-                // _logger.Info("");
+                
+                Console.WriteLine();
 
                 //hive is ready for searching/interaction
 
@@ -840,7 +941,7 @@ internal class Program
 
                     var hits = new List<SearchHit>();
 
-                    if (sk.Length > 0)
+                    if (sk?.Length > 0)
                     {
                         var results = DoKeySearch(reg, sk,
                             regex);
@@ -850,7 +951,7 @@ internal class Program
                         }
                     }
 
-                    if (sv.Length > 0)
+                    if (sv?.Length > 0)
                     {
                         var results = DoValueSearch(reg, sv,
                             regex);
@@ -860,7 +961,7 @@ internal class Program
                         }
                     }
 
-                    if (sd.Length > 0)
+                    if (sd?.Length > 0)
                     {
                         var results = DoValueDataSearch(reg, sd,
                             regex, literal);
@@ -870,7 +971,7 @@ internal class Program
                         }
                     }
 
-                    if (ss.Length > 0)
+                    if (ss?.Length > 0)
                     {
                         var results = DoValueSlackSearch(reg,
                             ss,
@@ -883,17 +984,31 @@ internal class Program
 
                     if (hits.Count > 0)
                     {
-                        var suffix2 = hits.Count == 1 ? "" : "s";
-
                         if (hiveToProcess.StartsWith(VssDir))
                         {
-                            _logger.Fatal($"\tFound {hits.Count:N0} search hit{suffix2} in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
-                            hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hit{suffix2} in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                            if (hits.Count == 1)
+                            {
+                                Log.Information("\tFound {Count:N0} search hit in {Vss}",hits.Count,$"VSS{hiveToProcess.Replace($"{VssDir}\\", "")}");
+                                hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hit in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}");
+                            }
+                            else
+                            {
+                                Log.Information("\tFound {Count:N0} search hits in {Vss}",hits.Count,$"VSS{hiveToProcess.Replace($"{VssDir}\\", "")}");
+                                hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hits in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}");
+                            }
                         }
                         else
                         {
-                            _logger.Fatal($"\tFound {hits.Count:N0} search hit{suffix2} in '{hiveToProcess}'");
-                            hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hit{suffix2} in '{hiveToProcess}'");
+                            if (hits.Count == 1)
+                            {
+                                Log.Information("\tFound {Count:N0} search hit in {HiveToProcess}",hits.Count,hiveToProcess);
+                                hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hit in {hiveToProcess}");
+                            }
+                            else
+                            {
+                                Log.Information("\tFound {Count:N0} search hits in {HiveToProcess}",hits.Count,hiveToProcess);
+                                hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hits in {hiveToProcess}");
+                            }
                         }
 
                         hivesWithHits += 1;
@@ -901,7 +1016,7 @@ internal class Program
                     }
                     else
                     {
-                        _logger.Info("\tNothing found");
+                        Log.Information("\tNothing found");
                     }
 
                     var words = new HashSet<string>();
@@ -941,7 +1056,7 @@ internal class Program
                             }
                         }
 
-                        if (ss.Length > 0)
+                        if (ss?.Length > 0)
                         {
                             if (regex)
                             {
@@ -954,13 +1069,13 @@ internal class Program
                         }
                     }
 
-                    AddHighlightingRules(words.ToList(), regex);
+                    //AddHighlightingRules(words.ToList(), regex);
 
                     foreach (var searchHit in hits)
                     {
                         searchHit.StripRootKeyName = true;
 
-                        string display;
+                       // string display;
 
                         var keyIsDeleted = (searchHit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
                                            RegistryKey.KeyFlagsEnum.Deleted;
@@ -968,60 +1083,65 @@ internal class Program
                         switch (searchHit.HitLocation)
                         {
                             case SearchHit.HitType.KeyName:
-                                display =
-                                    $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
+                                //display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}";
 
                                 if (keyIsDeleted)
                                 {
-                                    _logger.Fatal(display);
+                                    //Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                    Log.Information("\tKey: {Key} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),true);
                                 }
                                 else
                                 {
-                                    _logger.Info(display);
+                                    //Log.Information("{Display}",display);
+                                    Log.Information("\tKey: {Key}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath));
                                 }
 
                                 break;
                             case SearchHit.HitType.ValueName:
-                                display =
-                                    $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+                           //     display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
 
                                 if (keyIsDeleted)
                                 {
-                                    _logger.Fatal(display);
+                                    Log.Information("\tKey: {Key}, Value: {Value} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,true);
+                                   // Log.Information("{Display} (Deleted: {Deleted})",display,true);
                                 }
                                 else
                                 {
-                                    _logger.Info(display);
+                                    Log.Information("\tKey: {Key}, Value: {Value}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName);
+                                  //  Log.Information("{Display}",display);
                                 }
 
                                 break;
                             case SearchHit.HitType.ValueData:
                                 if (nd)
                                 {
-                                    display =
-                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+                                    //display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
+                                    
                                     if (keyIsDeleted)
                                     {
-                                        _logger.Fatal(display);
+                                        Log.Information("\tKey: {Key}, Value: {Value} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,true);
+                                        //Log.Information("{Display} (Deleted: {Deleted})",display,true);
                                     }
                                     else
                                     {
-                                        _logger.Info(display);
+                                        Log.Information("\tKey: {Key}, Value: {Value}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName);
+                                        //Log.Information("{Display}",display);
                                     }
                                 }
                                 else
                                 {
                                     if (searchHit.Value != null && sd?.Length > 0)
                                     {
-                                        display =
-                                            $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
+                                        //display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}";
                                         if (keyIsDeleted)
                                         {
-                                            _logger.Fatal(display);
+                                            Log.Information("\tKey: {Key}, Value: {Value}, Data: {Data} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,searchHit.Value.ValueData,true);
+                                           // Log.Information("{Display} (Deleted: {Deleted})",display,true);
                                         }
                                         else
                                         {
-                                            _logger.Info(display);
+                                            Log.Information("\tKey: {Key}, Value: {Value}, Data: {Data}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,searchHit.Value.ValueData);
+                                           // Log.Information("{Display}",display);
                                         }
                                     }
                                 }
@@ -1030,15 +1150,16 @@ internal class Program
                             case SearchHit.HitType.ValueSlack:
                                 if (nd)
                                 {
-                                    display =
-                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+                                    //display =  $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
                                     if (keyIsDeleted)
                                     {
-                                        _logger.Fatal(display);
+                                        //Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                        Log.Information("\tKey: {Key}, Value: {Value} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,true);
                                     }
                                     else
                                     {
-                                        _logger.Info(display);
+                                        //Log.Information("{Display}",display);
+                                        Log.Information("\tKey: {Key}, Value: {Value}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName);
                                     }
                                 }
                                 else
@@ -1046,16 +1167,17 @@ internal class Program
                                     if (searchHit.Value != null &&
                                         ss?.Length > 0)
                                     {
-                                        display =
-                                            $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
+                                        //display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Slack: {searchHit.Value.ValueSlack}";
 
                                         if (keyIsDeleted)
                                         {
-                                            _logger.Fatal(display);
+                                            Log.Information("\tKey: {Key}, Value: {Value}, Slack: {Data} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,searchHit.Value.ValueSlack,true);
+                                            //Log.Information("{Display} (Deleted: {Deleted})",display,true);
                                         }
                                         else
                                         {
-                                            _logger.Info(display);
+                                            Log.Information("\tKey: {Key}, Value: {Value}, Slack: {Data}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,searchHit.Value.ValueSlack);
+                                            //Log.Information("{Display}",display);
                                         }
                                     }
                                 }
@@ -1069,7 +1191,7 @@ internal class Program
 //                                    if (_fluentCommandLineParser.Object.SuppressData)
 //                                    {
 //                                        var display =
-//                                            $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+//                                            $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
 //                                        if (keyIsDeleted)
 //                                        {
 //                                            _logger.Fatal(display);
@@ -1084,7 +1206,7 @@ internal class Program
 //                                        if (searchHit.Value != null && _fluentCommandLineParser.Object.SimpleSearchValueSlack.Length > 0)
 //                                        {
 //                                            var display =
-//                                                $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Slack: '{searchHit.Value.ValueSlack}'";
+//                                                $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Slack: {searchHit.Value.ValueSlack}";
 //
 //                                            if (keyIsDeleted)
 //                                            {
@@ -1099,7 +1221,7 @@ internal class Program
 //                                        if (searchHit.Value != null &&  _fluentCommandLineParser.Object.SimpleSearchValueData.Length > 0)
 //                                        {
 //                                            var display =
-//                                                $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}', Data: '{searchHit.Value.ValueData}'";
+//                                                $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}";
 //                                            if (keyIsDeleted)
 //                                            {
 //                                                _logger.Fatal(display);
@@ -1115,7 +1237,7 @@ internal class Program
 //                                if (_fluentCommandLineParser.Object.SimpleSearchKey.Length > 0)
 //                                {
 //                                    var display =
-//                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}'";
+//                                        $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}";
 //
 //                                    if (keyIsDeleted)
 //                                    {
@@ -1129,7 +1251,7 @@ internal class Program
 //                                if (searchHit.Value != null && _fluentCommandLineParser.Object.SimpleSearchValue.Length > 0)
 //                                {
 //                                    var display =
-//                                        $"\tKey: '{Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}', Value: '{searchHit.Value.ValueName}'";
+//                                        $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
 //
 //                                    if (keyIsDeleted)
 //                                    {
@@ -1142,8 +1264,8 @@ internal class Program
 //                                }
                     }
 
-                    var target = (ColoredConsoleTarget)LogManager.Configuration.FindTargetByName("console");
-                    target.WordHighlightingRules.Clear();
+                    //  var target = (ColoredConsoleTarget)LogManager.Configuration.FindTargetByName("console");
+                    //  target.WordHighlightingRules.Clear();
 
 //                    //TODO search deleted?? should only need to look in reg.UnassociatedRegistryValues
                 } //End s* options
@@ -1157,7 +1279,7 @@ internal class Program
 
                     if (key == null && kn.ToUpperInvariant() == "ROOT")
                     {
-                        _logger.Info($"\tUsing 'ROOT' alias. Actual ROOT key name: '{reg.Root.KeyName}'");
+                        Log.Information("\tUsing 'ROOT' alias. Actual ROOT key name: {Key}",reg.Root.KeyName);
                         key = reg.Root;
                     }
 
@@ -1165,7 +1287,7 @@ internal class Program
 
                     if (key == null)
                     {
-                        _logger.Warn($"Key '{kn}' not found.");
+                        Log.Warning("Key {Kn} not found",kn);
 
                         continue;
                     }
@@ -1177,8 +1299,8 @@ internal class Program
 
                         if (val == null)
                         {
-                            _logger.Warn(
-                                $"Value '{vn}' not found for key '{kn}'.");
+                            Log.Warning(
+                                "Value {Vn} not found for key {Kn}",vn,kn);
 
                             continue;
                         }
@@ -1191,16 +1313,17 @@ internal class Program
                                 Directory.CreateDirectory(baseDir);
                             }
 
-                            _logger.Warn(
-                                $"Saving contents of '{val.ValueName}' to '{saveTo}\r\n'");
+                            Log.Information(
+                                "Saving contents of {ValueName} to {SaveTo}'",val.ValueName,saveTo);
+                            Console.WriteLine();
                             try
                             {
                                 File.WriteAllBytes(saveTo, val.ValueDataRaw);
                             }
                             catch (Exception ex)
                             {
-                                _logger.Error(
-                                    $"Save failed to '{saveTo}'. Error: {ex.Message}");
+                                Log.Error(ex,
+                                    "Save failed to {SaveTo}. Error: {Message}",saveTo,ex.Message);
                             }
                         }
                     }
@@ -1231,35 +1354,42 @@ internal class Program
                                     outFile = Path.Combine(json, Path.GetFileName(jsonf));
                                 }
 
-                                _logger.Warn($"Saving key to json file '{outFile}'\r\n");
+                                Log.Information("Saving key to json file {OutFile}",outFile);
+                                Console.WriteLine();
                                 File.WriteAllText(outFile, jso.ToJson());
                             }
                             catch (Exception e)
                             {
-                                _logger.Error(
-                                    $"Error saving key '{key.KeyPath}' to directory '{json}': {e.Message}");
+                                Log.Error(e,
+                                    "Error saving key {KeyPath} to directory {Json}: {Message}",key.KeyPath,json,e.Message);
                             }
                         }
 
                         if (details)
                         {
-                            _logger.Info(key);
+                            Log.Information("{Key}",key);
                         }
                         else
                         {
                             //key info only
-                            _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
-                            _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                            //Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
+                            
                             if (keyIsDeleted)
                             {
-                                _logger.Fatal("Deleted: TRUE");
+                                //Log.Fatal("\tDeleted: {Del}",true);
+                                Log.Information("\tKey path: {Path} (Deleted: {Del})",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath),true);
                             }
+                            else
+                            {
+                                Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
+                            }
+                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime);
 
-                            _logger.Info("");
+                            Console.WriteLine();
 
-                            _logger.Info($"Subkey count: {key.SubKeys.Count:N0}");
-                            _logger.Info($"Values count: {key.Values.Count:N0}");
-                            _logger.Info("");
+                            Log.Information("\tSubkey count: {Count:N0}",key.SubKeys.Count);
+                            Log.Information("\tValues count: {Count:N0}",key.Values.Count);
+                            Console.WriteLine();
 
                             var i = 0;
 
@@ -1269,29 +1399,31 @@ internal class Program
                                                     RegistryKey.KeyFlagsEnum.Deleted;
                                 if (skeyIsDeleted)
                                 {
-                                    _logger.Fatal($"------------ Subkey #{i:N0} (DELETED) ------------");
-                                    _logger.Fatal(
-                                        $"Name: {registryKey.KeyName} (Last write: {registryKey.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {registryKey.Values.Count:N0}");
+                                    Log.Information("\t------------ Subkey #{I:N0} ({Deleted: {Del}}) ------------",i,true);
+                                    Log.Information(
+                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {ValuesCount:N0}",registryKey.KeyName,registryKey.LastWriteTime.Value,registryKey.Values.Count);
                                 }
                                 else
                                 {
-                                    _logger.Info($"------------ Subkey #{i:N0} ------------");
-                                    _logger.Info(
-                                        $"Name: {registryKey.KeyName} (Last write: {registryKey.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {registryKey.Values.Count:N0}");
+                                    Log.Information("\t------------ Subkey #{I:N0} ------------",i);
+                                    Log.Information(
+                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {Count:N0}",registryKey.KeyName,registryKey.LastWriteTime.Value,registryKey.Values.Count);
                                 }
+                                
+                                Console.WriteLine();
 
                                 i += 1;
                             }
 
                             i = 0;
-                            _logger.Info("");
+                            Console.WriteLine();
 
                             foreach (var keyValue in key.Values)
                             {
                                 if (keyIsDeleted)
                                 {
-                                    _logger.Fatal($"------------ Value #{i:N0} (DELETED) ------------");
-                                    _logger.Fatal($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
+                                    Log.Information("\t------------ Value #{I:N0} ({Deleted: {Del}) ------------",i,true);
+                                    Log.Information("\tName: {ValueName} ({ValueType})",keyValue.ValueName,keyValue.ValueType);
 
                                     var slack = "";
 
@@ -1300,12 +1432,12 @@ internal class Program
                                         slack = $"(Slack: {keyValue.ValueSlack})";
                                     }
 
-                                    _logger.Fatal($"Data: {keyValue.ValueData} {slack}");
+                                    Log.Information("\tData: {ValueData} {Slack}", keyValue.ValueData, slack);
                                 }
                                 else
                                 {
-                                    _logger.Info($"------------ Value #{i:N0} ------------");
-                                    _logger.Info($"Name: {keyValue.ValueName} ({keyValue.ValueType})");
+                                    Log.Information("\t------------ Value #{I:N0} ------------",i);
+                                    Log.Information("\tName: {ValueName} ({ValueType})",keyValue.ValueName,keyValue.ValueType);
 
                                     var slack = "";
 
@@ -1314,8 +1446,10 @@ internal class Program
                                         slack = $"(Slack: {keyValue.ValueSlack})";
                                     }
 
-                                    _logger.Info($"Data: {keyValue.ValueData} {slack}");
+                                    Log.Information("\tData: {ValueData} {Slack}",keyValue.ValueData,slack);
                                 }
+                                
+                                Console.WriteLine();
 
                                 i += 1;
                             }
@@ -1325,43 +1459,44 @@ internal class Program
                     {
                         //value only
 
+                        
+                        
                         if (keyIsDeleted)
                         {
-                            _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
-                            _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                            Log.Information("\tKey path: {Path} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath),true);
+                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime.Value);
+                           
 
-                            _logger.Fatal("Deleted: TRUE");
+                            Console.WriteLine();
 
-                            _logger.Info("");
-
-                            _logger.Fatal($"Value name: '{val.ValueName}' ({val.ValueType})");
+                            Log.Information("\tValue name: {ValueName} ({ValueType})",val.ValueName,val.ValueType);
                             var slack = "";
                             if (val.ValueSlack.Length > 0)
                             {
                                 slack = $"(Slack: {val.ValueSlack})";
                             }
 
-                            _logger.Fatal($"Value data: {val.ValueData} {slack}");
+                            Log.Information("\tValue data: {ValueData} {Slack}", val.ValueData, slack);
                         }
                         else
                         {
-                            _logger.Warn($"Key path: '{Helpers.StripRootKeyNameFromKeyPath(key.KeyPath)}'");
-                            _logger.Info($"Last write time: {key.LastWriteTime.Value:yyyy-MM-dd HH:mm:ss.ffffff}");
+                            Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
+                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime.Value);
 
-                            _logger.Info("");
+                            Console.WriteLine();
 
-                            _logger.Info($"Value name: '{val.ValueName}' ({val.ValueType})");
+                            Log.Information("\tValue name: {ValueName} ({ValueType})",val.ValueName,val.ValueType);
                             var slack = "";
                             if (val.ValueSlack.Length > 0)
                             {
                                 slack = $"(Slack: {val.ValueSlack})";
                             }
 
-                            _logger.Info($"Value data: {val.ValueData} {slack}");
+                            Log.Information("\tValue data: {ValueData} {Slack}",val.ValueData,slack);
                         }
                     }
 
-                    _logger.Info("");
+                    Console.WriteLine();
                 } //end kn options
                 else if (minSize > 0)
                 {
@@ -1374,13 +1509,13 @@ internal class Program
 
                         if (hiveToProcess.StartsWith(VssDir))
                         {
-                            _logger.Warn(
-                                $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {minSize:N0} bytes in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                            Log.Information(
+                                "Found {Count:N0} search {Suffix2} with size greater or equal to {MinSize:N0} bytes in '{Vss}",hits.Count,$"hit{suffix2}",minSize,$"VSS{hiveToProcess.Replace($"{VssDir}\\", "")}");
                         }
                         else
                         {
-                            _logger.Warn(
-                                $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {minSize:N0} bytes in '{hiveToProcess}'");
+                            Log.Information(
+                                "Found {Count:N0} search {Suffix2} with size greater or equal to {MinSize:N0} bytes in {HiveToProcess}",hits.Count,$"hit{suffix2}",minSize,hiveToProcess);
                         }
 
                         hivesWithHits += 1;
@@ -1388,7 +1523,7 @@ internal class Program
                     }
                     else
                     {
-                        _logger.Info("Nothing found");
+                        Log.Information("Nothing found");
                     }
 
                     foreach (var valueBySizeInfo in hits)
@@ -1403,15 +1538,15 @@ internal class Program
 
                         if (keyIsDeleted)
                         {
-                            _logger.Fatal(display);
+                            Log.Information("{Display} (Deleted: {Deleted})",display,true);
                         }
                         else
                         {
-                            _logger.Info(display);
+                            Log.Information("{Display}",display);
                         }
                     }
 
-                    _logger.Info("");
+                    Console.WriteLine();
                 } //end min size option
                 else if (base64 > 0)
                 {
@@ -1424,13 +1559,13 @@ internal class Program
 
                         if (hiveToProcess.StartsWith(VssDir))
                         {
-                            _logger.Warn(
-                                $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {base64:N0} bytes in 'VSS{hiveToProcess.Replace($"{VssDir}\\", "")}'");
+                            Log.Information(
+                                "Found {Count:N0} search {Suffix2} with size greater or equal to {Base64:N0} bytes in '{Vss}",hits.Count,$"hit{suffix2}",base64,$"VSS{hiveToProcess.Replace($"{VssDir}\\", "")}");
                         }
                         else
                         {
-                            _logger.Warn(
-                                $"Found {hits.Count:N0} search hit{suffix2} with size greater or equal to {base64:N0} bytes in '{hiveToProcess}'");
+                            Log.Information(
+                                "Found {Count:N0} search {Suffix2} with size greater or equal to {Base64:N0} bytes in {HiveToProcess}",hits.Count,$"hit{suffix2}",base64,hiveToProcess);
                         }
 
                         hivesWithHits += 1;
@@ -1438,7 +1573,7 @@ internal class Program
                     }
                     else
                     {
-                        _logger.Info("Nothing found");
+                        Log.Information("Nothing found");
                     }
 
                     foreach (var base64Hit in hits)
@@ -1451,15 +1586,15 @@ internal class Program
 
                         if (keyIsDeleted)
                         {
-                            _logger.Fatal(display);
+                            Log.Information("{Display} (Deleted: {Deleted})",display,true);
                         }
                         else
                         {
-                            _logger.Info(display);
+                            Log.Information("{Display}",display);
                         }
                     }
 
-                    _logger.Info("");
+                    Console.WriteLine();
                 } //end min size option
                 else if (bn?.Length > 0) //batch mode
                 {
@@ -1472,13 +1607,19 @@ internal class Program
                 {
                     if (ex.Message.Contains("Administrator privileges not found"))
                     {
-                        _logger.Fatal($"Could not access '{hiveToProcess}' because it is in use");
-                        _logger.Error("");
-                        _logger.Fatal("Rerun the program with Administrator privileges to try again\r\n");
+                        Log.Fatal("Could not access {HiveToProcess} because it is in use",hiveToProcess);
+                        Console.WriteLine();
+                        Log.Fatal("Rerun the program with Administrator privileges to try again");
+                        Console.WriteLine();
                     }
+                    else if (ex.Message.Contains("Data in byte array is not a Registry hive"))
+                    {
+                        //handled elsewhere
+                    }
+                        
                     else
                     {
-                        _logger.Error($"There was an error: {ex.Message}");
+                        Log.Error(ex,"There was an error: {Message}",ex.Message);
                     }
                 }
             }
@@ -1489,20 +1630,19 @@ internal class Program
 
         if (bn.IsNullOrEmpty() == false)
         {
-            _logger.Info("");
+            Console.WriteLine();
 
             var suffix2 = _batchCsvOutList.Count == 1 ? "" : "s";
             var suffix4 = hivesToProcess.Count == 1 ? "" : "s";
 
-            _logger.Info(
-                $"Found {_batchCsvOutList.Count:N0} key/value pair{suffix2} across {hivesToProcess.Count:N0} file{suffix4}");
-            _logger.Info($"Total search time: {totalSeconds:N3} seconds");
+            Log.Information("Found {BatchCsvOutListCount:N0} key/value {Suffix2} across {Count:N0} {Suffix4}",_batchCsvOutList.Count,$"pair{suffix2}",hivesToProcess.Count,$"file{suffix4}");
+            Log.Information("Total search time: {TotalSeconds:N3} seconds",totalSeconds);
             if (_batchCsvOutList.Count > 0)
             {
                 if (Directory.Exists(csv) == false)
                 {
-                    _logger.Warn(
-                        $"Path to '{csv}' doesn't exist. Creating...");
+                    Log.Information(
+                        "Path to {Csv} doesn't exist. Creating...",csv);
                     Directory.CreateDirectory(csv);
                 }
 
@@ -1516,7 +1656,8 @@ internal class Program
 
                 var outFile = Path.Combine(csv, outName);
 
-                _logger.Info($"\r\nSaving batch mode CSV file to '{outFile}'");
+                Console.WriteLine();
+                Log.Information("Saving batch mode CSV file to {OutFile}",outFile);
 
                 var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
                 var csvWriter = new CsvWriter(swCsv, CultureInfo.InvariantCulture);
@@ -1541,30 +1682,30 @@ internal class Program
 
         if (searchUsed && d?.Length > 0)
         {
-            _logger.Info("");
+            Console.WriteLine();
 
             var suffix2 = totalHits == 1 ? "" : "s";
             var suffix3 = hivesWithHits == 1 ? "" : "s";
             var suffix4 = hivesToProcess.Count == 1 ? "" : "s";
             var suffix5 = vss ? " (and VSCs)" : "";
 
-            _logger.Info("---------------------------------------------");
-            _logger.Info($"Directory: {d}{suffix5}");
-            _logger.Info("");
-            _logger.Info(
-                $"Found {totalHits:N0} hit{suffix2} in {hivesWithHits:N0} hive{suffix3} out of {hivesToProcess.Count:N0} file{suffix4}:");
+            Log.Information("---------------------------------------------");
+            Log.Information("Directory: {D}{Suffix5}",d,suffix5);
+            Console.WriteLine();
+            Log.Information(
+                "Found {TotalHits:N0} {Suffix2} in {HivesWithHits:N0} {Suffix3} out of {Count:N0} {Suffix4}",totalHits,$"hit{suffix2}",hivesWithHits,$"hive{suffix3}",hivesToProcess.Count,$"file{suffix4}");
 
             foreach (var hiveInfoWithHit in hiveInfoWithHits)
             {
-                _logger.Fatal(hiveInfoWithHit);
+                Log.Information("{Hit}",hiveInfoWithHit);
             }
 
-            _logger.Info("");
+            Console.WriteLine();
 
-            _logger.Info($"Total search time: {totalSeconds:N3} seconds");
+            Log.Information("Total search time: {TotalSeconds:N3} seconds",totalSeconds);
         }
 
-        _logger.Info("");
+        Console.WriteLine();
 
         if (vss)
         {
@@ -1575,7 +1716,8 @@ internal class Program
                     Directory.Delete(directory);
                 }
 
-                Directory.Delete(VssDir, true, true);
+                Directory.Delete(VssDir,true);
+//                Alphaleonis.Win32.Filesystem.Directory.Delete(VssDir, true, true);
             }
         }
     }
@@ -1584,8 +1726,7 @@ internal class Program
     {
         Console.WriteLine();
 
-        _logger.Info(
-            "Checking for updated batch files at https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples...");
+        Log.Information("Checking for updated batch files at {Url}...","https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples");
         Console.WriteLine();
         var archivePath = Path.Combine(BaseDirectory, "____master.zip");
 
@@ -1645,31 +1786,42 @@ internal class Program
             else
             {
                 //current destination file exists, so compare to new
-                var fiNew = new FileInfo(newMap);
-                var fi = new FileInfo(dest);
+                // var fiNew = new FileInfo(newMap);
+                // var fi = new FileInfo(dest);
+                
+                var s1 = new StreamReader(newMap);
+                var newSha = Helper.GetSha1FromStream(s1.BaseStream, 0);
 
-                if (fiNew.GetHash(HashType.SHA1) != fi.GetHash(HashType.SHA1))
+                var s2 = new StreamReader(dest);
+
+                var destSha = Helper.GetSha1FromStream(s2.BaseStream, 0);
+
+                s2.Close();
+                s1.Close();
+
+                //if (fiNew.GetHash(HashType.SHA1) != fi.GetHash(HashType.SHA1))
+                if (newSha != destSha)
                 {
                     //updated file
                     updatedlocalMaps.Add(mName);
                 }
             }
 
-            File.Copy(newMap, dest, CopyOptions.None);
+            System.IO.File.Copy(newMap, dest,true);
         }
 
 
         if (newlocalMaps.Count > 0 || updatedlocalMaps.Count > 0)
         {
-            _logger.Fatal("Updates found!");
+            Log.Information("Updates found!");
             Console.WriteLine();
 
             if (newlocalMaps.Count > 0)
             {
-                _logger.Error("New batch files");
+                Log.Information("New batch files");
                 foreach (var newLocalMap in newlocalMaps)
                 {
-                    _logger.Info(Path.GetFileNameWithoutExtension(newLocalMap));
+                    Log.Information("{Path}",Path.GetFileNameWithoutExtension(newLocalMap));
                 }
 
                 Console.WriteLine();
@@ -1677,10 +1829,10 @@ internal class Program
 
             if (updatedlocalMaps.Count > 0)
             {
-                _logger.Error("Updated batch files");
+                Log.Information("Updated batch files");
                 foreach (var um in updatedlocalMaps)
                 {
-                    _logger.Info(Path.GetFileNameWithoutExtension(um));
+                    Log.Information("{Path}",Path.GetFileNameWithoutExtension(um));
                 }
 
                 Console.WriteLine();
@@ -1691,7 +1843,7 @@ internal class Program
         else
         {
             Console.WriteLine();
-            _logger.Info("No new batch files available");
+            Log.Information("No new batch files available");
             Console.WriteLine();
         }
 
@@ -1715,7 +1867,7 @@ internal class Program
 
             if (regVal != null)
             {
-                _logger.Trace($"Found value '{batchKey.ValueName}' in key {regKey.KeyPath}!");
+                Log.Verbose("Found value {ValueName} in key {KeyPath}!",batchKey.ValueName,regKey.KeyPath);
                 BatchDumpKey(key, batchKey, hivePath, d, f, csv, csvf, dt);
             }
         }
@@ -1723,7 +1875,7 @@ internal class Program
         if (regVal == null && batchKey.ValueName.IsNullOrEmpty())
         {
             //do not need to find a value, 
-            _logger.Trace($"Found key '{key.KeyPath}'!");
+            Log.Verbose("Found key {KeyPath}!",key.KeyPath);
             BatchDumpKey(key, batchKey, hivePath, d, f, csv, csvf, dt);
         }
 
@@ -1745,13 +1897,13 @@ internal class Program
         {
             if ((int)regHive.HiveType != (int)key.HiveType)
             {
-                _logger.Debug(
-                    $"Skipping key '{key.KeyPath}' because the current hive ({regHive.HiveType}) is not of the right type ({key.HiveType})");
+                Log.Debug(
+                    "Skipping key {KeyPath} because the current hive ({HiveType}) is not of the right type ({HiveType2})",key.KeyPath,regHive.HiveType,key.HiveType);
                 continue;
             }
 
-            _logger.Debug($"Processing '{key.KeyPath}' (HiveType match)");
-            _logger.Trace(key.Dump);
+            Log.Debug("Processing {KeyPath} (HiveType match)",key.KeyPath);
+            Log.Verbose("{Dump}",key.Dump());
 
             if (key.KeyPath.Equals("*"))
             {
@@ -1759,7 +1911,7 @@ internal class Program
 
                 if (regKey == null)
                 {
-                    _logger.Debug($"Key '{key.KeyPath}' not found in '{regHive.HivePath}'");
+                    Log.Debug("Key {KeyPath} not found in {HivePath}",key.KeyPath,regHive.HivePath);
                     continue;
                 }
 
@@ -1768,7 +1920,7 @@ internal class Program
             else if (key.KeyPath.Contains("*"))
             {
                 var keysToProcess = regHive.ExpandKeyPath(key.KeyPath);
-                _logger.Trace($"Expanded '{key.KeyPath}' to '{string.Join(" | ", keysToProcess)}'");
+                Log.Verbose("Expanded {KeyPath} to {Path}",key.KeyPath,string.Join(" | ", keysToProcess));
                 foreach (var keyToProcess in keysToProcess)
                 {
                     var regKey = regHive.GetKey(keyToProcess);
@@ -1777,7 +1929,7 @@ internal class Program
 
                     if (regKey == null)
                     {
-                        _logger.Warn($"Key '{keyToProcess}' not found in '{regHive.HivePath}'");
+                        Log.Warning("\tKey {KeyToProcess} not found in {HivePath}",keyToProcess,regHive.HivePath);
                         continue;
                     }
 
@@ -1789,20 +1941,20 @@ internal class Program
 
                         if (regVal == null)
                         {
-                            _logger.Debug(
-                                $"Value '{key.ValueName}' not found in key '{Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath)}'");
+                            Log.Debug(
+                                "\tValue {ValueName} not found in key {Path}",key.ValueName,Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath));
                             continue;
                         }
                     }
 
                     if (regVal != null)
                     {
-                        _logger.Info(
-                            $"Found key '{Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath)}' and value '{key.ValueName}'!");
+                        Log.Information(
+                            "Found key {Path} and value {key.ValueName}!",Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath),key.ValueName);
                     }
                     else
                     {
-                        _logger.Info($"Found key '{Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath)}'!");
+                        Log.Information("Found key {Path}!",Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath));
                     }
 
                     //TODO test this with all conditions
@@ -1818,7 +1970,7 @@ internal class Program
 
                 if (regKey == null)
                 {
-                    _logger.Debug($"Key '{key.KeyPath}' not found in '{regHive.HivePath}'");
+                    Log.Debug("Key {KeyPath} not found in {HivePath}",key.KeyPath,regHive.HivePath);
                     continue;
                 }
 
@@ -1903,7 +2055,7 @@ internal class Program
 
     private static void BatchDumpKey(RegistryKey regKey, Key key, string hivePath, string d, string f, string csv, string csvf, string dt)
     {
-        _logger.Trace($"Batch dumping '{regKey.KeyPath}' in '{hivePath}'");
+        Log.Verbose("Batch dumping {KeyPath} in {HivePath}",regKey.KeyPath,hivePath);
 
         if (regKey == null)
         {
@@ -1929,7 +2081,7 @@ internal class Program
 
                 if (hivePath.StartsWith(VssDir))
                 {
-                    path = $"VSS{hivePath.Replace($"{VssDir}\\", "")}'";
+                    path = $"VSS{hivePath.Replace($"{VssDir}\\", "")}";
                 }
 
                 foreach (var pigValue in pig.Values)
@@ -1960,7 +2112,7 @@ internal class Program
 
                 if (pig.Errors.Count > 0)
                 {
-                    _logger.Warn($"Plugin {pig.PluginName} error. Errors: {string.Join(", ", pig.Errors)}");
+                    Log.Warning("Plugin {PluginName} error. Errors: {Errors}",pig.PluginName,string.Join(", ", pig.Errors));
                 }
             }
         }
@@ -2028,8 +2180,8 @@ internal class Program
 
         if (Directory.Exists(csv) == false)
         {
-            _logger.Warn(
-                $"Path to '{csv}' doesn't exist. Creating...");
+            Log.Information(
+                "Path to {Csv} doesn't exist. Creating...",csv);
             Directory.CreateDirectory(csv);
         }
 
@@ -2048,53 +2200,51 @@ internal class Program
 
         var exists = File.Exists(outFile);
 
-        using (var sw = new StreamWriter(outFile, true, Encoding.UTF8))
+        using var sw = new StreamWriter(outFile, true, Encoding.UTF8);
+        var csvWriter = new CsvWriter(sw, CultureInfo.InvariantCulture);
+
+        var foo = csvWriter.Context.AutoMap(plugin.Values[0].GetType());
+
+        foreach (var fooMemberMap in foo.MemberMaps)
         {
-            var csvWriter = new CsvWriter(sw, CultureInfo.InvariantCulture);
-
-            var foo = csvWriter.Context.AutoMap(plugin.Values[0].GetType());
-
-            foreach (var fooMemberMap in foo.MemberMaps)
+            if (fooMemberMap.Data.Member.ToString().Contains("DateTime") ||
+                fooMemberMap.Data.Member.ToString().Contains("DateTimeOffset"))
             {
-                if (fooMemberMap.Data.Member.ToString().Contains("DateTime") ||
-                    fooMemberMap.Data.Member.ToString().Contains("DateTimeOffset"))
-                {
-                    fooMemberMap.Data.TypeConverter = new NullConverter();
-                }
-
-                if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData"))
-                {
-                    fooMemberMap.Ignore();
-                }
-
-                if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath"))
-                {
-                    fooMemberMap.Index(0);
-                }
-
-                if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueName"))
-                {
-                    fooMemberMap.Index(1);
-                }
+                fooMemberMap.Data.TypeConverter = new NullConverter();
             }
 
-            csvWriter.Context.RegisterClassMap(foo);
-
-            if (exists == false)
+            if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData"))
             {
-                csvWriter.WriteHeader(plugin.Values[0].GetType());
-
-                csvWriter.NextRecord();
+                fooMemberMap.Ignore();
             }
 
-            foreach (var pluginValue in plugin.Values)
+            if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath"))
             {
-                csvWriter.WriteRecord(pluginValue);
-                csvWriter.NextRecord();
+                fooMemberMap.Index(0);
             }
 
-            sw.Flush();
+            if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueName"))
+            {
+                fooMemberMap.Index(1);
+            }
         }
+
+        csvWriter.Context.RegisterClassMap(foo);
+
+        if (exists == false)
+        {
+            csvWriter.WriteHeader(plugin.Values[0].GetType());
+
+            csvWriter.NextRecord();
+        }
+
+        foreach (var pluginValue in plugin.Values)
+        {
+            csvWriter.WriteRecord(pluginValue);
+            csvWriter.NextRecord();
+        }
+
+        sw.Flush();
 
 
         return outFile;
@@ -2106,7 +2256,7 @@ internal class Program
 
         if (hivePath.StartsWith(VssDir))
         {
-            path = $"VSS{hivePath.Replace($"{VssDir}\\", "")}'";
+            path = $"VSS{hivePath.Replace($"{VssDir}\\", "")}";
         }
 
         var rebOut = new BatchCsvOut
@@ -2141,7 +2291,7 @@ internal class Program
                         }
                         catch (Exception)
                         {
-                            _logger.Warn("Error converting to FILETIME. Using bytes instead!");
+                            Log.Warning("Error converting to FILETIME. Using bytes instead!");
                             rebOut.ValueData = regVal.ValueData;
                         }
 
@@ -2155,7 +2305,7 @@ internal class Program
                         }
                         catch (Exception e)
                         {
-                            _logger.Warn($"Error converting to IP address. Using bytes instead! Error: {e.Message}");
+                            Log.Warning("Error converting to IP address. Using bytes instead! Error: {Message}",e.Message);
                             rebOut.ValueData = regVal.ValueData;
                         }
 
@@ -2170,7 +2320,7 @@ internal class Program
                         }
                         catch (Exception)
                         {
-                            _logger.Warn("Error converting to Epoch. Using bytes instead!");
+                            Log.Warning("Error converting to Epoch. Using bytes instead!");
                             rebOut.ValueData = regVal.ValueData;
                         }
 
@@ -2191,7 +2341,7 @@ internal class Program
                         }
                         catch (Exception)
                         {
-                            _logger.Warn("Error converting to SID. Using bytes instead!");
+                            Log.Warning("Error converting to SID. Using bytes instead!");
                             rebOut.ValueData = regVal.ValueData;
                         }
 
@@ -2217,7 +2367,7 @@ internal class Program
                     }
                     catch (Exception)
                     {
-                        _logger.Warn("Error converting to Epoch. Using bValueDataytes instead!");
+                        Log.Warning("Error converting to Epoch. Using bytes instead!");
                         rebOut.ValueData = regVal.ValueData;
                     }
 
@@ -2232,7 +2382,7 @@ internal class Program
                     }
                     catch (Exception)
                     {
-                        _logger.Warn("Error converting to FILETIME. Using bytes instead!");
+                        Log.Warning("Error converting to FILETIME. Using bytes instead!");
                         rebOut.ValueData = regVal.ValueData;
                     }
 
@@ -2262,47 +2412,53 @@ internal class Program
         }
         catch (SyntaxErrorException se)
         {
-            _logger.Warn($"\r\nSyntax error in '{bn}':");
-            _logger.Fatal(se.Message);
+            Console.WriteLine();
+            Log.Warning("Syntax error in {Bn}",bn);
+            Log.Fatal("{Message}",se.Message);
 
             var lines = File.ReadLines(bn).ToList();
             var fileContents = bn.ReadAllText();
 
             var badLine = lines[se.Start.Line - 1];
 
-            _logger.Fatal(
-                $"\r\nBad line (or close to it) '{badLine}' has invalid data at column '{se.Start.Column}'");
+            Console.WriteLine();
+            Log.Fatal("Bad line (or close to it) {BadLine} has invalid data at column {Column}",badLine,se.Start.Column);
 
             if (fileContents.Contains('\t'))
             {
-                _logger.Error(
-                    "\r\nBad line contains one or more tab characters. Replace them with spaces\r\n");
-                _logger.Info(fileContents.Replace("\t", "<TAB>"));
+                Console.WriteLine();
+                Log.Error("Bad line contains one or more tab characters. Replace them with spaces");
+                Console.WriteLine();
+                Log.Information("{Content}",fileContents.Replace("\t", "<TAB>"));
             }
 
             hasError = true;
         }
         catch (YamlException ye)
         {
-            _logger.Warn($"\r\nSyntax error in '{bn}':");
-            _logger.Fatal(ye.Message);
+            Console.WriteLine();
+            Log.Warning("Syntax error in {Bn}",bn);
+            Log.Fatal("{Ye}",ye.Message);
 
-            _logger.Fatal(ye.InnerException?.Message);
+            Log.Fatal("{Ye}",ye.InnerException?.Message);
 
             hasError = true;
         }
 
         catch (Exception e)
         {
-            _logger.Warn($"\r\nError when validating '{bn}'");
-            _logger.Fatal(e);
+            Console.WriteLine();
+            Log.Warning("Error when validating {Bn}",bn);
+            Log.Fatal(e,"{E}",e.Message);
             hasError = true;
         }
 
         if (hasError)
         {
-            _logger.Warn(
-                "\r\n\r\nThe batch file failed validation. Fix the issues and try again\r\n");
+            Console.WriteLine();
+            Console.WriteLine();
+            Log.Warning("The batch file failed validation. Fix the issues and try again");
+            Console.WriteLine();
             Environment.Exit(0);
         }
 
@@ -2311,20 +2467,23 @@ internal class Program
 
     private static void DisplayValidationResults(ValidationResult result, string source)
     {
-        _logger.Trace($"Performing validation on '{source}': {result.Dump()}");
+        Log.Verbose("Performing validation on {Source}: {Result}",source,result.Dump());
         if (result.Errors.Count == 0)
         {
             return;
         }
 
-        _logger.Error($"\r\n{source} had validation errors:");
+        Console.WriteLine();
+        Log.Error("{Source} had validation errors",source);
 
         foreach (var validationFailure in result.Errors)
         {
-            _logger.Error(validationFailure);
+            Log.Information("{ValidationFailure}",validationFailure);
         }
 
-        _logger.Error("\r\nCorrect the errors and try again. Exiting");
+        Console.WriteLine();
+        Log.Error("Correct the errors and try again. Exiting");
+        Console.WriteLine();
 
         Environment.Exit(0);
     }
@@ -2398,44 +2557,44 @@ internal class Program
         return hits;
     }
 
-    private static void AddHighlightingRules(List<string> words, bool isRegEx = false)
-    {
-        var target = (ColoredConsoleTarget)LogManager.Configuration.FindTargetByName("console");
-        var rule = target.WordHighlightingRules.FirstOrDefault();
-
-        var bgColor = ConsoleOutputColor.Green;
-        var fgColor = ConsoleOutputColor.Red;
-
-        if (rule != null)
-        {
-            bgColor = rule.BackgroundColor;
-            fgColor = rule.ForegroundColor;
-        }
-
-        target.WordHighlightingRules.Clear();
-
-        foreach (var word in words)
-        {
-            var r = new ConsoleWordHighlightingRule
-            {
-                IgnoreCase = true
-            };
-            if (isRegEx)
-            {
-                r.Regex = word;
-            }
-            else
-            {
-                r.Text = word;
-            }
-
-            r.ForegroundColor = fgColor;
-            r.BackgroundColor = bgColor;
-
-            r.WholeWords = false;
-            target.WordHighlightingRules.Add(r);
-        }
-    }
+    // private static void AddHighlightingRules(List<string> words, bool isRegEx = false)
+    // {
+    //     var target = (ColoredConsoleTarget)LogManager.Configuration.FindTargetByName("console");
+    //     var rule = target.WordHighlightingRules.FirstOrDefault();
+    //
+    //     var bgColor = ConsoleOutputColor.Green;
+    //     var fgColor = ConsoleOutputColor.Red;
+    //
+    //     if (rule != null)
+    //     {
+    //         bgColor = rule.BackgroundColor;
+    //         fgColor = rule.ForegroundColor;
+    //     }
+    //
+    //     target.WordHighlightingRules.Clear();
+    //
+    //     foreach (var word in words)
+    //     {
+    //         var r = new ConsoleWordHighlightingRule
+    //         {
+    //             IgnoreCase = true
+    //         };
+    //         if (isRegEx)
+    //         {
+    //             r.Regex = word;
+    //         }
+    //         else
+    //         {
+    //             r.Text = word;
+    //         }
+    //
+    //         r.ForegroundColor = fgColor;
+    //         r.BackgroundColor = bgColor;
+    //
+    //         r.WholeWords = false;
+    //         target.WordHighlightingRules.Add(r);
+    //     }
+    // }
 
     public class NullConverter : DefaultTypeConverter
     {
