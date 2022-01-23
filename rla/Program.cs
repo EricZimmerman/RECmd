@@ -580,7 +580,7 @@ internal class Program
                         Log.Fatal("Rerun the program with Administrator privileges to try again");
                         Console.WriteLine();
                     }
-                    else if (ex.Message.Contains("Data in byte array is not a Registry hive"))
+                    else if (ex.Message.Contains("Data in byte array is not a Registry hive") || ex.Message.Contains("No logs were supplied"))
                     {
                         //it already gets reported
                         //Log.Error("\t{Message}",ex.Message);
