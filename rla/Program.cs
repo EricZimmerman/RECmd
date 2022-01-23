@@ -164,6 +164,7 @@ internal class Program
         {
             #if NET6_0
             Log.Warning("-d mode not supported (yet) on .net 6 (I have to rewrite the search)");
+            throw new Exception("FINISH");
             Console.WriteLine();
             Environment.Exit(0);
             #endif

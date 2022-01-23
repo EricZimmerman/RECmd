@@ -638,7 +638,7 @@ internal class Program
                     Log.Information("Searching '{Vss} for hives...",$"VSS{target.Replace($"{VssDir}\\", "")}");
 
                     #if NET6_0
-                    
+                    throw new Exception("FINISH");
                     #else
                     files2 =
                         Directory.EnumerateFileSystemEntries(target, dirEnumOptions, enumerationFilters);
