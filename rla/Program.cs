@@ -7,12 +7,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-
 using Exceptionless;
 using Exceptionless.Extensions;
-
 using RawCopy;
 using Registry;
 using Serilog;
@@ -21,6 +18,7 @@ using Serilog.Events;
 using ServiceStack;
 
 #if NET462
+using System.Text;
 using Alphaleonis.Win32.Filesystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -99,6 +97,31 @@ internal class Program
         Log.CloseAndFlush();
     }
 
+    #if NET6_0
+    
+    static IEnumerable<string> FindFiles(string directory, IEnumerable<string> masks, HashSet<string> ignoreMasks, EnumerationOptions options,long minimumSize = 0)
+    {
+        foreach (var file in masks.AsParallel().SelectMany(searchPattern => Directory.EnumerateFiles(directory, searchPattern, options)))
+        {
+            var fi = new FileInfo(file);
+            if (fi.Length < minimumSize)
+            {
+                Log.Debug("Skipping {File} with size {Length:N0}",file,fi.Length);
+                continue;
+            }
+
+            var ext = Path.GetExtension(file);
+            if (ignoreMasks.Contains(ext))
+            {
+                Log.Debug("Skipping {File} since its extension ({Ext}) is in ignoreMasks",file,ext);
+                continue;
+            }
+        
+            yield return file;
+        }
+    }
+#endif
+
     private static void DoWork(string f, string d, string @out, bool ca, bool cn, bool debug, bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
@@ -162,12 +185,7 @@ internal class Program
         }
         else if (d?.Length > 0)
         {
-            #if NET6_0
-            Log.Warning("-d mode not supported (yet) on .net 6 (I have to rewrite the search)");
-            throw new Exception("FINISH");
-            Console.WriteLine();
-            Environment.Exit(0);
-            #endif
+           
             
             if (Directory.Exists(d) == false)
             {
@@ -175,7 +193,10 @@ internal class Program
                 Console.WriteLine();
                 return;
             }
+           
+            IEnumerable<string> files;
 
+#if NET462
             var okFileParts = new HashSet<string>();
             okFileParts.Add("USRCLASS");
             okFileParts.Add("NTUSER");
@@ -187,10 +208,6 @@ internal class Program
             okFileParts.Add("SECURITY");
             okFileParts.Add("DRIVERS");
             okFileParts.Add("COMPONENTS");
-
-            IEnumerable<string> files;
-
-#if NET462
               var directoryEnumerationFilters = new DirectoryEnumerationFilters();
             directoryEnumerationFilters.InclusionFilter = fsei =>
             {
@@ -315,12 +332,47 @@ internal class Program
             files =
                 Alphaleonis.Win32.Filesystem.Directory.EnumerateFileSystemEntries(d, dirEnumOptions, directoryEnumerationFilters);
 
-#else
-            files = new List<string>();
+#elif NET6_0
+          
+            var enumerationOptions = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                MatchCasing = MatchCasing.CaseInsensitive,
+                RecurseSubdirectories = true,
+                AttributesToSkip = 0
+            };
             
+            var mask = new List<string>
+            {
+                "USRCLASS.DAT",
+                "NTUSER.DAT",
+                "SYSTEM",
+                "SAM",
+                "SOFTWARE",
+                "AMCACHE.HVE",
+                "SYSCACHE.hve",
+                "SECURITY",
+                "DRIVERS",
+                "COMPONENTS"
+            };
+            var ignoreExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".dll",
+                ".LOG",
+                ".LOG1",
+                ".LOG2",
+                ".csv",
+                ".blf",
+                ".regtrans-ms",
+                ".exe",
+                ".txt",
+                ".ini"
+            };
+
+            files = FindFiles(d, mask, ignoreExt, enumerationOptions, 4);
+
             
 #endif
-          
             var count = 0;
 
             try
@@ -470,7 +522,7 @@ internal class Program
                 {
                     if (ca)
                     {
-                        Log.Information("\tHive {HiveToProcess} is not dirty, but {Switch} is {Val}. Copying...",hivesToProcess,"--ca",true);
+                        Log.Information("\tHive {HiveToProcess} is not dirty, but {Switch} is {Val}. Copying...",hiveToProcess,"--ca",true);
                         updatedBytes = File.ReadAllBytes(hiveToProcess);
                     }
                     else
@@ -527,6 +579,11 @@ internal class Program
                         Console.WriteLine();
                         Log.Fatal("Rerun the program with Administrator privileges to try again");
                         Console.WriteLine();
+                    }
+                    else if (ex.Message.Contains("Data in byte array is not a Registry hive"))
+                    {
+                        //it already gets reported
+                        //Log.Error("\t{Message}",ex.Message);
                     }
                     else
                     {

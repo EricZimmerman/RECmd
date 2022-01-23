@@ -313,6 +313,31 @@ internal class Program
         }
     }
     
+#if NET6_0
+    
+    static IEnumerable<string> FindFiles(string directory, IEnumerable<string> masks, HashSet<string> ignoreMasks, EnumerationOptions options,long minimumSize = 0)
+    {
+        foreach (var file in masks.AsParallel().SelectMany(searchPattern => Directory.EnumerateFiles(directory, searchPattern, options)))
+        {
+            var fi = new FileInfo(file);
+            if (fi.Length < minimumSize)
+            {
+                Log.Debug("Skipping {File} with size {Length:N0}",file,fi.Length);
+                continue;
+            }
+
+            var ext = Path.GetExtension(file);
+            if (ignoreMasks.Contains(ext))
+            {
+                Log.Debug("Skipping {File} since its extension ({Ext}) is in ignoreMasks",file,ext);
+                continue;
+            }
+        
+            yield return file;
+        }
+    }
+#endif
+    
     private static void DoWork(string d, string f, string q, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
@@ -602,7 +627,45 @@ internal class Program
                 Directory.EnumerateFileSystemEntries(d, dirEnumOptions, enumerationFilters);
 
             #else
-            files2 = new List<string>();
+            
+            var enumerationOptions = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                MatchCasing = MatchCasing.CaseInsensitive,
+                RecurseSubdirectories = true,
+                AttributesToSkip = 0
+            };
+            
+            var mask = new List<string>
+            {
+                "USRCLASS.DAT",
+                "NTUSER.DAT",
+                "SYSTEM",
+                "SAM",
+                "SOFTWARE",
+                "AMCACHE.HVE",
+                "SYSCACHE.hve",
+                "SECURITY",
+                "DRIVERS",
+                "COMPONENTS"
+            };
+            var ignoreExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".dll",
+                ".LOG",
+                ".LOG1",
+                ".LOG2",
+                ".csv",
+                ".blf",
+                ".regtrans-ms",
+                ".exe",
+                ".txt",
+                ".ini"
+            };
+
+            files2 = FindFiles(d, mask, ignoreExt, enumerationOptions, 4);
+            
+            
             #endif
             
             var count = 0;
@@ -612,7 +675,7 @@ internal class Program
                 hivesToProcess.AddRange(files2);
                 count = hivesToProcess.Count;
 
-                Log.Information("\tHives found: {Count:N0}",count);
+//                Log.Information("\tHives found: {Count:N0}",count);
             }
             catch (Exception)
             {
@@ -627,7 +690,6 @@ internal class Program
             {
                 var vssDirs = Directory.GetDirectories(VssDir);
 
-
                 foreach (var vssDir in vssDirs)
                 {
                     var root = Path.GetPathRoot(Path.GetFullPath(d));
@@ -638,7 +700,10 @@ internal class Program
                     Log.Information("Searching '{Vss} for hives...",$"VSS{target.Replace($"{VssDir}\\", "")}");
 
                     #if NET6_0
-                    throw new Exception("FINISH");
+                 
+
+                    files2 = FindFiles(target, mask, ignoreExt, enumerationOptions, 4);
+
                     #else
                     files2 =
                         Directory.EnumerateFileSystemEntries(target, dirEnumOptions, enumerationFilters);
@@ -853,6 +918,8 @@ internal class Program
                 }
                 
                 reg.ParseHive();
+                
+                Console.WriteLine();
 
                 //hive is ready for searching/interaction
 
@@ -874,7 +941,7 @@ internal class Program
 
                     var hits = new List<SearchHit>();
 
-                    if (sk.Length > 0)
+                    if (sk?.Length > 0)
                     {
                         var results = DoKeySearch(reg, sk,
                             regex);
@@ -884,7 +951,7 @@ internal class Program
                         }
                     }
 
-                    if (sv.Length > 0)
+                    if (sv?.Length > 0)
                     {
                         var results = DoValueSearch(reg, sv,
                             regex);
@@ -894,7 +961,7 @@ internal class Program
                         }
                     }
 
-                    if (sd.Length > 0)
+                    if (sd?.Length > 0)
                     {
                         var results = DoValueDataSearch(reg, sd,
                             regex, literal);
@@ -904,7 +971,7 @@ internal class Program
                         }
                     }
 
-                    if (ss.Length > 0)
+                    if (ss?.Length > 0)
                     {
                         var results = DoValueSlackSearch(reg,
                             ss,
@@ -934,12 +1001,12 @@ internal class Program
                         {
                             if (hits.Count == 1)
                             {
-                                Log.Information("\tFound {Count:N0} search hit in {HiveToProcess}",hits.Count,hivesToProcess);
+                                Log.Information("\tFound {Count:N0} search hit in {HiveToProcess}",hits.Count,hiveToProcess);
                                 hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hit in {hiveToProcess}");
                             }
                             else
                             {
-                                Log.Information("\tFound {Count:N0} search hits in {HiveToProcess}",hits.Count,hivesToProcess);
+                                Log.Information("\tFound {Count:N0} search hits in {HiveToProcess}",hits.Count,hiveToProcess);
                                 hiveInfoWithHits.Add($"\tFound {hits.Count:N0} search hits in {hiveToProcess}");
                             }
                         }
@@ -989,7 +1056,7 @@ internal class Program
                             }
                         }
 
-                        if (ss.Length > 0)
+                        if (ss?.Length > 0)
                         {
                             if (regex)
                             {
@@ -1008,7 +1075,7 @@ internal class Program
                     {
                         searchHit.StripRootKeyName = true;
 
-                        string display;
+                       // string display;
 
                         var keyIsDeleted = (searchHit.Key.KeyFlags & RegistryKey.KeyFlagsEnum.Deleted) ==
                                            RegistryKey.KeyFlagsEnum.Deleted;
@@ -1016,60 +1083,65 @@ internal class Program
                         switch (searchHit.HitLocation)
                         {
                             case SearchHit.HitType.KeyName:
-                                display =
-                                    $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}";
+                                //display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}";
 
                                 if (keyIsDeleted)
                                 {
-                                    Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                    //Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                    Log.Information("\tKey: {Key} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),true);
                                 }
                                 else
                                 {
-                                    Log.Information("{Display}",display);
+                                    //Log.Information("{Display}",display);
+                                    Log.Information("\tKey: {Key}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath));
                                 }
 
                                 break;
                             case SearchHit.HitType.ValueName:
-                                display =
-                                    $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
+                           //     display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
 
                                 if (keyIsDeleted)
                                 {
-                                    Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                    Log.Information("\tKey: {Key}, Value: {Value} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,true);
+                                   // Log.Information("{Display} (Deleted: {Deleted})",display,true);
                                 }
                                 else
                                 {
-                                    Log.Information("{Display}",display);
+                                    Log.Information("\tKey: {Key}, Value: {Value}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName);
+                                  //  Log.Information("{Display}",display);
                                 }
 
                                 break;
                             case SearchHit.HitType.ValueData:
                                 if (nd)
                                 {
-                                    display =
-                                        $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
+                                    //display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
+                                    
                                     if (keyIsDeleted)
                                     {
-                                        Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                        Log.Information("\tKey: {Key}, Value: {Value} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,true);
+                                        //Log.Information("{Display} (Deleted: {Deleted})",display,true);
                                     }
                                     else
                                     {
-                                        Log.Information("{Display}",display);
+                                        Log.Information("\tKey: {Key}, Value: {Value}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName);
+                                        //Log.Information("{Display}",display);
                                     }
                                 }
                                 else
                                 {
                                     if (searchHit.Value != null && sd?.Length > 0)
                                     {
-                                        display =
-                                            $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}";
+                                        //display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Data: {searchHit.Value.ValueData}";
                                         if (keyIsDeleted)
                                         {
-                                            Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                            Log.Information("\tKey: {Key}, Value: {Value}, Data: {Data} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,searchHit.Value.ValueData,true);
+                                           // Log.Information("{Display} (Deleted: {Deleted})",display,true);
                                         }
                                         else
                                         {
-                                            Log.Information("{Display}",display);
+                                            Log.Information("\tKey: {Key}, Value: {Value}, Data: {Data}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,searchHit.Value.ValueData);
+                                           // Log.Information("{Display}",display);
                                         }
                                     }
                                 }
@@ -1078,15 +1150,16 @@ internal class Program
                             case SearchHit.HitType.ValueSlack:
                                 if (nd)
                                 {
-                                    display =
-                                        $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
+                                    //display =  $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}";
                                     if (keyIsDeleted)
                                     {
-                                        Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                        //Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                        Log.Information("\tKey: {Key}, Value: {Value} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,true);
                                     }
                                     else
                                     {
-                                        Log.Information("{Display}",display);
+                                        //Log.Information("{Display}",display);
+                                        Log.Information("\tKey: {Key}, Value: {Value}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName);
                                     }
                                 }
                                 else
@@ -1094,16 +1167,17 @@ internal class Program
                                     if (searchHit.Value != null &&
                                         ss?.Length > 0)
                                     {
-                                        display =
-                                            $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Slack: {searchHit.Value.ValueSlack}";
+                                        //display = $"\tKey: {Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath)}, Value: {searchHit.Value.ValueName}, Slack: {searchHit.Value.ValueSlack}";
 
                                         if (keyIsDeleted)
                                         {
-                                            Log.Information("{Display} (Deleted: {Deleted})",display,true);
+                                            Log.Information("\tKey: {Key}, Value: {Value}, Slack: {Data} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,searchHit.Value.ValueSlack,true);
+                                            //Log.Information("{Display} (Deleted: {Deleted})",display,true);
                                         }
                                         else
                                         {
-                                            Log.Information("{Display}",display);
+                                            Log.Information("\tKey: {Key}, Value: {Value}, Slack: {Data}",Helpers.StripRootKeyNameFromKeyPath(searchHit.Key.KeyPath),searchHit.Value.ValueName,searchHit.Value.ValueSlack);
+                                            //Log.Information("{Display}",display);
                                         }
                                     }
                                 }
@@ -1298,17 +1372,23 @@ internal class Program
                         else
                         {
                             //key info only
-                            Log.Information("Key path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
-                            Log.Information("Last write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime);
+                            //Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
+                            
                             if (keyIsDeleted)
                             {
-                                Log.Fatal("Deleted: {Del}",true);
+                                //Log.Fatal("\tDeleted: {Del}",true);
+                                Log.Information("\tKey path: {Path} (Deleted: {Del})",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath),true);
                             }
+                            else
+                            {
+                                Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
+                            }
+                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime);
 
                             Console.WriteLine();
 
-                            Log.Information("Subkey count: {Count:N0}",key.SubKeys.Count);
-                            Log.Information("Values count: {Count:N0}",key.Values.Count);
+                            Log.Information("\tSubkey count: {Count:N0}",key.SubKeys.Count);
+                            Log.Information("\tValues count: {Count:N0}",key.Values.Count);
                             Console.WriteLine();
 
                             var i = 0;
@@ -1319,16 +1399,18 @@ internal class Program
                                                     RegistryKey.KeyFlagsEnum.Deleted;
                                 if (skeyIsDeleted)
                                 {
-                                    Log.Information("------------ Subkey #{I:N0} (DELETED) ------------",i);
+                                    Log.Information("\t------------ Subkey #{I:N0} ({Deleted: {Del}}) ------------",i,true);
                                     Log.Information(
-                                        "Name: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {ValuesCount:N0}",registryKey.KeyName,registryKey.LastWriteTime.Value,registryKey.Values.Count);
+                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {ValuesCount:N0}",registryKey.KeyName,registryKey.LastWriteTime.Value,registryKey.Values.Count);
                                 }
                                 else
                                 {
-                                    Log.Information("------------ Subkey #{I:N0} ------------",i);
+                                    Log.Information("\t------------ Subkey #{I:N0} ------------",i);
                                     Log.Information(
-                                        "Name: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {Count:N0}",registryKey.KeyName,registryKey.LastWriteTime.Value,registryKey.Values.Count);
+                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {Count:N0}",registryKey.KeyName,registryKey.LastWriteTime.Value,registryKey.Values.Count);
                                 }
+                                
+                                Console.WriteLine();
 
                                 i += 1;
                             }
@@ -1340,8 +1422,8 @@ internal class Program
                             {
                                 if (keyIsDeleted)
                                 {
-                                    Log.Information("------------ Value #{I:N0} (DELETED) ------------",i);
-                                    Log.Information("Name: {ValueName} ({ValueType})",keyValue.ValueName,keyValue.ValueType);
+                                    Log.Information("\t------------ Value #{I:N0} ({Deleted: {Del}) ------------",i,true);
+                                    Log.Information("\tName: {ValueName} ({ValueType})",keyValue.ValueName,keyValue.ValueType);
 
                                     var slack = "";
 
@@ -1350,12 +1432,12 @@ internal class Program
                                         slack = $"(Slack: {keyValue.ValueSlack})";
                                     }
 
-                                    Log.Information("Data: {ValueData} {Slack}", keyValue.ValueData, slack);
+                                    Log.Information("\tData: {ValueData} {Slack}", keyValue.ValueData, slack);
                                 }
                                 else
                                 {
-                                    Log.Information("------------ Value #{I:N0} ------------",i);
-                                    Log.Information("Name: {ValueName} ({ValueType})",keyValue.ValueName,keyValue.ValueType);
+                                    Log.Information("\t------------ Value #{I:N0} ------------",i);
+                                    Log.Information("\tName: {ValueName} ({ValueType})",keyValue.ValueName,keyValue.ValueType);
 
                                     var slack = "";
 
@@ -1364,8 +1446,10 @@ internal class Program
                                         slack = $"(Slack: {keyValue.ValueSlack})";
                                     }
 
-                                    Log.Information("Data: {ValueData} {Slack}",keyValue.ValueData,slack);
+                                    Log.Information("\tData: {ValueData} {Slack}",keyValue.ValueData,slack);
                                 }
+                                
+                                Console.WriteLine();
 
                                 i += 1;
                             }
@@ -1375,39 +1459,40 @@ internal class Program
                     {
                         //value only
 
+                        
+                        
                         if (keyIsDeleted)
                         {
-                            Log.Information("Key path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
-                            Log.Information("Last write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime.Value);
-
-                            Log.Information("Deleted: {Deleted}",true);
+                            Log.Information("\tKey path: {Path} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath),true);
+                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime.Value);
+                           
 
                             Console.WriteLine();
 
-                            Log.Information("Value name: {ValueName} ({ValueType})",val.ValueName,val.ValueType);
+                            Log.Information("\tValue name: {ValueName} ({ValueType})",val.ValueName,val.ValueType);
                             var slack = "";
                             if (val.ValueSlack.Length > 0)
                             {
                                 slack = $"(Slack: {val.ValueSlack})";
                             }
 
-                            Log.Information("Value data: {ValueData} {Slack}", val.ValueData, slack);
+                            Log.Information("\tValue data: {ValueData} {Slack}", val.ValueData, slack);
                         }
                         else
                         {
-                            Log.Information("Key path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
-                            Log.Information("Last write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime.Value);
+                            Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
+                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime.Value);
 
                             Console.WriteLine();
 
-                            Log.Information("Value name: {ValueName} ({ValueType})",val.ValueName,val.ValueType);
+                            Log.Information("\tValue name: {ValueName} ({ValueType})",val.ValueName,val.ValueType);
                             var slack = "";
                             if (val.ValueSlack.Length > 0)
                             {
                                 slack = $"(Slack: {val.ValueSlack})";
                             }
 
-                            Log.Information("Value data: {ValueData} {Slack}",val.ValueData,slack);
+                            Log.Information("\tValue data: {ValueData} {Slack}",val.ValueData,slack);
                         }
                     }
 
@@ -1527,6 +1612,11 @@ internal class Program
                         Log.Fatal("Rerun the program with Administrator privileges to try again");
                         Console.WriteLine();
                     }
+                    else if (ex.Message.Contains("Data in byte array is not a Registry hive"))
+                    {
+                        //handled elsewhere
+                    }
+                        
                     else
                     {
                         Log.Error(ex,"There was an error: {Message}",ex.Message);
@@ -1717,7 +1807,7 @@ internal class Program
                 }
             }
 
-            System.IO.File.Copy(newMap, dest);
+            System.IO.File.Copy(newMap, dest,true);
         }
 
 
@@ -1839,7 +1929,7 @@ internal class Program
 
                     if (regKey == null)
                     {
-                        Log.Warning("Key {KeyToProcess} not found in {HivePath}",keyToProcess,regHive.HivePath);
+                        Log.Warning("\tKey {KeyToProcess} not found in {HivePath}",keyToProcess,regHive.HivePath);
                         continue;
                     }
 
@@ -1852,7 +1942,7 @@ internal class Program
                         if (regVal == null)
                         {
                             Log.Debug(
-                                "Value {ValueName} not found in key {Path}",key.ValueName,Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath));
+                                "\tValue {ValueName} not found in key {Path}",key.ValueName,Helpers.StripRootKeyNameFromKeyPath(regKey.KeyPath));
                             continue;
                         }
                     }
