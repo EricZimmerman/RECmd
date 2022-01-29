@@ -638,16 +638,16 @@ internal class Program
             
             var mask = new List<string>
             {
-                "USRCLASS.DAT",
-                "NTUSER.DAT",
-                "SYSTEM",
-                "SAM",
-                "SOFTWARE",
-                "AMCACHE.HVE",
-                "SYSCACHE.hve",
-                "SECURITY",
-                "DRIVERS",
-                "COMPONENTS"
+                "*USRCLASS.DAT",
+                "*NTUSER.DAT",
+                "*SYSTEM",
+                "*SAM",
+                "*SOFTWARE",
+                "*AMCACHE.HVE",
+                "*SYSCACHE.hve",
+                "*SECURITY",
+                "*DRIVERS",
+                "*COMPONENTS"
             };
             var ignoreExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -700,7 +700,6 @@ internal class Program
                     Log.Information("Searching '{Vss} for hives...",$"VSS{target.Replace($"{VssDir}\\", "")}");
 
                     #if NET6_0
-                 
 
                     files2 = FindFiles(target, mask, ignoreExt, enumerationOptions, 4);
 
