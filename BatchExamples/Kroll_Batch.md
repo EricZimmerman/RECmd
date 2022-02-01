@@ -38,9 +38,10 @@ Example entry, please follow this format:
 | 1.13 | 2021-09-03 | Removed duplicate artifacts (LastVisitedMRU), added more documentation to various artifacts, added LockBit IOC [Threat Hunting] |
 | 1.14 | 2021-09-09 | Added MuiCache and AppCompatFlags [Program Execution]. Added Restricted Admin Status and more Windows Defender artifacts [Threat Hunting]. Added RealVNC - VNC Viewer, add WinRAR plugin [Third Party Applications]. Added Products artifacts [Installed Software]. Updated Microsoft Office Trusted Documents description [Microsoft Office] |
 | 1.15 | 2021-09-15 | Added webcam and microphone values [Devices]. Moved Acknowledgments, Version History, Documentation, and Guidelines to a dedicated README on GitHub repo |
-| 1.16 | 2021-09-28 | Added Microsoft Exchange category for identifying patch entries [Microsoft Exchange]. |
+| 1.16 | 2021-09-28 | Added Microsoft Exchange category for identifying patch entries [Microsoft Exchange] |
 | 1.17 | 2021-11-24 | Added various documentation to preexisting artifacts, removed [Antivirus] category and moved all to [Threat Hunting], added Symantec Endpoint Protection quarantine records [Threat Hunting] |
 | 1.18 | 2021-12-09 | Added exefile open command registry keys [Threat Hunting] |
+| 1.19 | 2022-02-01 | Remove `Mapped Network Drives` [User Activity] since it was a duplicate artifact of `Network Drive MRU` [Network Shares]. Added Image File Execution Options Injection [Threat Hunting]. BTHPORT: Recursive: true -> false due to duplication of effort with BTHPORT Plugin. Revised [Microsoft Exchange] section and adjusted to capture more patching scenarios |
 
 # Documentation
 
