@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.18
+Version: 1.19
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -1212,6 +1212,20 @@ Keys:
 
 # The above location is where this value exists on my personal machine. Adding it in case the other one doesn't get a hit.
 
+# System Info - SUM Database\User Access Logging
+
+    -
+        Description: User Access Logging (SUM DB)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\WMI\Autologger\SUM
+        ValueName: PollingInterval
+        Recursive: False
+        Comment: "Displays the updating interval for the SUM DB. Default is 24 hours. 60000 = 60 seconds, for example."
+
+# https://youtu.be/p4XI8-ldE5o?t=627
+
+
 # --------------------
 # DEVICES
 # --------------------
@@ -1261,7 +1275,7 @@ Keys:
         HiveType: SYSTEM
         Category: Devices
         KeyPath: ControlSet*\Services\BTHPORT\Parameters\Devices
-        Recursive: true
+        Recursive: false
         Comment: "Displays the Bluetooth devices that have been connected to this computer"
 
 # BTHPORT plugin
@@ -2756,10 +2770,10 @@ Keys:
 # MICROSOFT EXCHANGE
 # --------------------
 
-# Microsoft Exchange -> ProxyLogon Patch Status
+# Microsoft Exchange -> Microsoft Exchange Patch Status
 
     -
-        Description: ProxyLogon Patch Status
+        Description: Microsoft Exchange Patch Status
         HiveType: SOFTWARE
         Category: Microsoft Exchange
         KeyPath: Microsoft\Updates\Exchange*\KB*
@@ -2767,10 +2781,26 @@ Keys:
         ValueName: InstalledDate
         Comment: "Displays the date the patch was installed on this host"
     -
-        Description: ProxyLogon Patch Status
+        Description: Microsoft Exchange Patch Status
         HiveType: SOFTWARE
         Category: Microsoft Exchange
         KeyPath: Microsoft\Updates\Exchange*\KB*
+        Recursive: false
+        ValueName: PackageName
+        Comment: "Displays the name of the patch installed on this host"
+    -
+        Description: Microsoft Exchange Patch Status
+        HiveType: SOFTWARE
+        Category: Microsoft Exchange
+        KeyPath: Microsoft\Updates\Exchange*\SP*\KB*
+        Recursive: false
+        ValueName: InstalledDate
+        Comment: "Displays the date the patch was installed on this host"
+    -
+        Description: Microsoft Exchange Patch Status
+        HiveType: SOFTWARE
+        Category: Microsoft Exchange
+        KeyPath: Microsoft\Updates\Exchange*\SP*\KB*
         Recursive: false
         ValueName: PackageName
         Comment: "Displays the name of the patch installed on this host"
@@ -3274,5 +3304,25 @@ Keys:
         KeyPath: Microsoft\Windows Defender\Exclusions\
         Recursive: true
         Comment: "Windows Defender Exclusions"
+    -
+        Description: Image File Execution Options Injection
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*
+        ValueName: Debugger
+        Recursive: false
+        Comment: "See documentation in Batch File for further information"
+
+# https://attack.mitre.org/techniques/T1546/012/
+
+    -
+        Description: Image File Execution Options Injection
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows NT\CurrentVersion\SilentProcessExit\*
+        Recursive: false
+        Comment: "See documentation in Batch File for further information"
+
+# https://attack.mitre.org/techniques/T1546/012/
 
 # More to come...stay tuned!
