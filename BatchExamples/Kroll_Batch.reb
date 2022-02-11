@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.19
+Version: 1.20
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -1971,7 +1971,7 @@ Keys:
         Category: User Activity
         KeyPath: Software\Microsoft\Terminal Server Client
         Recursive: false
-        Comment: "Device(s) that have established RDP connection to this system"
+        Comment: "Displays the IP addresses/hostnames of devices this system has connected to (Outbound RDP)"
 
 # TerminalServerClient plugin
 # Default subkey stores previous RDP connection entries the user has connected to
