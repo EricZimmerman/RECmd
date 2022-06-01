@@ -1,6 +1,6 @@
 Description: Kroll RECmd Batch File
 Author: Andrew Rathbun
-Version: 1.19
+Version: 1.20
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f971
 Keys:
 #
@@ -1971,7 +1971,7 @@ Keys:
         Category: User Activity
         KeyPath: Software\Microsoft\Terminal Server Client
         Recursive: false
-        Comment: "Device(s) that have established RDP connection to this system"
+        Comment: "Displays the IP addresses/hostnames of devices this system has connected to (Outbound RDP)"
 
 # TerminalServerClient plugin
 # Default subkey stores previous RDP connection entries the user has connected to
@@ -3324,5 +3324,17 @@ Keys:
         Comment: "See documentation in Batch File for further information"
 
 # https://attack.mitre.org/techniques/T1546/012/
+
+# Threat Hunting -> Office
+
+    -
+        Description: Connections Made By MS Office
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: Software\Microsoft\Office\16.0\Common\Internet\Server Cache
+        Recursive: true
+        Comment: "Displays the connections made by MS Office - IOCs found here for CVE-2022-30190"
+
+# https://twitter.com/RoxpinTeddy/status/1531726171292983297?t=yan4rRk3w1epMk2Vxncfxw&s=19
 
 # More to come...stay tuned!
