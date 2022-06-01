@@ -3336,5 +3336,6 @@ Keys:
         Comment: "Displays the connections made by MS Office - IOCs found here for CVE-2022-30190"
 
 # https://twitter.com/RoxpinTeddy/status/1531726171292983297?t=yan4rRk3w1epMk2Vxncfxw&s=19
+# https://businessinsights.bitdefender.com/technical-advisory-cve-2022-30190-zero-day-vulnerability-follina-in-microsoft-support-diagnostic-tool
 
 # More to come...stay tuned!
