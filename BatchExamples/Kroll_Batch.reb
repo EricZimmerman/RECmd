@@ -2553,7 +2553,7 @@ Keys:
 # --------------------
 # CLOUD STORAGE
 # --------------------
-
+C:\Users\CFUser\ntuser.dat: Software\Microsoft\Office\16.0\Common\Internet\Server Cache
 # Cloud Storage -> OneDrive
 
     -
@@ -3324,5 +3324,17 @@ Keys:
         Comment: "See documentation in Batch File for further information"
 
 # https://attack.mitre.org/techniques/T1546/012/
+
+# Threat Hunting -> Office
+
+    -
+        Description: Connections Made By MS Office
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: Software\Microsoft\Office\16.0\Common\Internet\Server Cache
+        Recursive: true
+        Comment: "Displays the connections made by MS Office - IOCs found here for CVE-2022-30190"
+
+# https://twitter.com/RoxpinTeddy/status/1531726171292983297?t=yan4rRk3w1epMk2Vxncfxw&s=19   
 
 # More to come...stay tuned!
