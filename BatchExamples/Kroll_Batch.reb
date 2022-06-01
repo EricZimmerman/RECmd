@@ -3335,6 +3335,6 @@ C:\Users\CFUser\ntuser.dat: Software\Microsoft\Office\16.0\Common\Internet\Serve
         Recursive: true
         Comment: "Displays the connections made by MS Office - IOCs found here for CVE-2022-30190"
 
-# https://twitter.com/RoxpinTeddy/status/1531726171292983297?t=yan4rRk3w1epMk2Vxncfxw&s=19   
+# https://twitter.com/RoxpinTeddy/status/1531726171292983297?t=yan4rRk3w1epMk2Vxncfxw&s=19
 
 # More to come...stay tuned!
