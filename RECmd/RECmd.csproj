@@ -36,9 +36,9 @@
         </PackageReference>
         <PackageReference Include="Serilog" Version="2.10.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
-        <PackageReference Include="Registry" Version="1.3.2" />
-        <PackageReference Include="RegistryPluginBase" Version="1.1.0" />
-        <PackageReference Include="ServiceStack.Text" Version="5.13.2" />
+        <PackageReference Include="Registry" Version="1.3.3" />
+        <PackageReference Include="RegistryPluginBase" Version="1.2.0" />
+        <PackageReference Include="ServiceStack.Text" Version="6.0.2" />
         <PackageReference Include="SharpZipLib" Version="1.3.3" />
         
         <PackageReference Include="YamlDotNet" Version="11.2.1" />
