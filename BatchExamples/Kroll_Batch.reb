@@ -2553,7 +2553,7 @@ Keys:
 # --------------------
 # CLOUD STORAGE
 # --------------------
-C:\Users\CFUser\ntuser.dat: Software\Microsoft\Office\16.0\Common\Internet\Server Cache
+
 # Cloud Storage -> OneDrive
 
     -
