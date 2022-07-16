@@ -26,7 +26,7 @@
         <PackageReference Include="Costura.Fody" Version="5.7.0">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Fody" Version="6.6.2">
+        <PackageReference Include="Fody" Version="6.6.3">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Exceptionless" Version="4.8.0" />

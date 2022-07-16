@@ -560,6 +560,11 @@ internal class Program
 
                 Log.Information("\tSaving updated hive to {OutFileAll}",outFileAll);
 
+                if (Directory.Exists(Path.GetDirectoryName(outFileAll)) == false)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outFileAll));
+                }
+
                 using (var fs = new FileStream(outFileAll, FileMode.Create))
                 {
                     fs.Write(updatedBytes, 0, updatedBytes.Length);
