@@ -151,11 +151,6 @@ internal class Program
                 "-f",
                 "Hive to search. -f or -d is required"),
 
-            new Option<bool>(
-                "-q",
-                () => false,
-                "Quiet mode. When true, hide processing details"),
-
             new Option<string>(
                 "--kn",
                 "Display details for key name. Includes subkeys and values"),
@@ -338,7 +333,7 @@ internal class Program
     }
 #endif
     
-    private static void DoWork(string d, string f, string q, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
+    private static void DoWork(string d, string f, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
 
