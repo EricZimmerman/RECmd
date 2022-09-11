@@ -447,7 +447,7 @@ internal class Program
             if (CheckMinSwitches(sk, sv, sd, ss, sa, kn, minSize, base64, bn) == false)
             {
                 Console.WriteLine();
-                Log.Error("One of the following switches is required: --sa | --sk | --sv | --sd | --ss | --kn | --Base64 | --MinSize | --bn");
+                Log.Error("One of the following switches is required: --sa | --sk | --sv | --sd | --ss | --kn | --base64 | --minSize | --bn");
                 Console.WriteLine();
                 Console.WriteLine();
                 Log.Information("Verify the command line and try again");

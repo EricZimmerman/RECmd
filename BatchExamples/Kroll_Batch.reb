@@ -3331,7 +3331,7 @@ Keys:
         Description: Connections Made By MS Office
         HiveType: NTUSER
         Category: Threat Hunting
-        KeyPath: Software\Microsoft\Office\16.0\Common\Internet\Server Cache
+        KeyPath: Software\Microsoft\Office\*\Common\Internet\Server Cache
         Recursive: true
         Comment: "Displays the connections made by MS Office - IOCs found here for CVE-2022-30190"
 
