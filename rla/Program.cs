@@ -532,14 +532,14 @@ internal class Program
                     }
                 }
 
-                var outFile = hiveToProcess.Replace(":", "").Replace("\\", "_");
+                var outFile = hiveToProcess.Replace(":", "").Replace(Path.PathSeparator.ToString(), "_");
                 var outFileAll = Path.Combine(@out, outFile);
 
                 if (cn &&
                     (outFileAll.ToUpperInvariant().Contains("NTUSER") || outFileAll.ToUpperInvariant().Contains("USRCLASS")))
                 {
                     var dl = hiveToProcess[0].ToString();
-                    var segs = hiveToProcess.SplitAndTrim('\\');
+                    var segs = hiveToProcess.Split(Path.PathSeparator);
 
                     var profile = segs[2];
                     var filename = Path.GetFileName(hiveToProcess);
@@ -559,6 +559,11 @@ internal class Program
                 }
 
                 Log.Information("\tSaving updated hive to {OutFileAll}",outFileAll);
+
+                if (Directory.Exists(Path.GetDirectoryName(outFileAll)) == false)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outFileAll));
+                }
 
                 using (var fs = new FileStream(outFileAll, FileMode.Create))
                 {
