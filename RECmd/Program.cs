@@ -189,6 +189,7 @@ internal class Program
             new Option<int>(
                 "--base64",
                 "Find Base64 encoded values with size >= Base64 (specified in bytes)"),
+
             new Option<int>(
                 "--minSize",
                 "Find values with data size >= MinSize (specified in bytes)"),
@@ -196,15 +197,19 @@ internal class Program
             new Option<string>(
                 "--sa",
                 "Search for <string> in keys, values, data, and slack"),
+
             new Option<string>(
                 "--sk",
                 "Search for <string> in value record's key names"),
+
             new Option<string>(
                 "--sv",
                 "Search for <string> in value record's value names"),
+
             new Option<string>(
                 "--sd",
                 "Search for <string> in value record's value data"),
+
             new Option<string>(
                 "--ss",
                 "Search for <string> in value record's value slack"),
