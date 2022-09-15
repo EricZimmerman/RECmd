@@ -79,9 +79,7 @@ internal class Program
 
     private static readonly string Footer = @"Example: RECmd.exe --f ""C:\Temp\UsrClass 1.dat"" --sk URL --recover false --nl" +
                                             "\r\n\t " +
-                                            @"    RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --StartDate ""11/13/2014 15:35:01"" " +
-                                            "\r\n\t " +
-                                            @"    RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --RegEx --sv ""(App|Display)Name""";
+                                           @"    RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --RegEx --sv ""(App|Display)Name""";
 
     private static readonly HashSet<string> _seenHashes = new();
 
