@@ -43,6 +43,7 @@ Example entry, please follow this format:
 | 1.18 | 2021-12-09 | Added exefile open command registry keys [Threat Hunting] |
 | 1.19 | 2022-02-01 | Remove `Mapped Network Drives` [User Activity] since it was a duplicate artifact of `Network Drive MRU` [Network Shares]. Added Image File Execution Options Injection [Threat Hunting]. BTHPORT: Recursive: true -> false due to duplication of effort with BTHPORT Plugin. Revised [Microsoft Exchange] section and adjusted to capture more patching scenarios |
 | 1.20 | 2022-06-01 | Added Registry artifacts for CVE-2022-30190 [Threat Hunting] |
+| 1.21 | 2023-03-03 | Added support for the following Registry Plugins: ETW FirewallRules, NetworkSetup2, OpenSaveMRU, RADAR, SAMBuiltIn, SCSI, and WindowsApp. Added GitHub links to all Registry Plugins utilized |
 
 # Documentation
 
@@ -53,3 +54,15 @@ https://docs.microsoft.com/en-US/troubleshoot/windows-server/performance/windows
 If you're not going to `Recursive: true` on a key or subkey, please prepend with a `Category -> Description` comment before the series of multiple entries for the values to be parsed
 In the above instance, if possible, save all documentation for the last entry in a series, unless a specific helpful reference exists for a given `ValueName`
 If an entry is using a Plugin to generate output, please include a comment about which Plugin is being used below that entry in this batch file.
+
+# Plugins NOT Being Used
+
+As of March 2023, the following plugins are not being leveraged:
+
+* [DHCPNetworkHint](https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.DHCPNetworkHint)
+* [FeatureUsage](https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.FeatureUsage)
+* [IconLayouts](https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.IconLayouts)
+* [NetworkSettings](https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.NetworkSettings)
+* [TaskFlowShellActivities](https://github.com/EricZimmerman/RegistryPlugins/blob/master/RegistryPlugin.TaskFlowShellActivities/TaskFlowShellActivities.cs)
+
+
