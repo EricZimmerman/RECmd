@@ -43,7 +43,7 @@ Example entry, please follow this format:
 | 1.18 | 2021-12-09 | Added exefile open command registry keys [Threat Hunting] |
 | 1.19 | 2022-02-01 | Remove `Mapped Network Drives` [User Activity] since it was a duplicate artifact of `Network Drive MRU` [Network Shares]. Added Image File Execution Options Injection [Threat Hunting]. BTHPORT: Recursive: true -> false due to duplication of effort with BTHPORT Plugin. Revised [Microsoft Exchange] section and adjusted to capture more patching scenarios |
 | 1.20 | 2022-06-01 | Added Registry artifacts for CVE-2022-30190 [Threat Hunting] |
-| 1.21 | 2023-03-03 | Added support for the following Registry Plugins: ETW FirewallRules, NetworkSetup2, OpenSaveMRU, RADAR, SAMBuiltIn, SCSI, and WindowsApp. Added GitHub links to all Registry Plugins utilized |
+| 1.21 | 2023-03-03 | Added support for the following Registry Plugins: ETW, FirewallRules, NetworkSetup2, OpenSaveMRU, RADAR, SAMBuiltIn, SCSI, and WindowsApp. Added GitHub links to all Registry Plugins utilized |
 
 # Documentation
 
