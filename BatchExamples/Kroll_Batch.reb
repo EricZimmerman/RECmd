@@ -1497,7 +1497,7 @@ Keys:
 # PROGRAM EXECUTION
 # --------------------
 
-# Porgram Execution -> Windows Sysinternals
+# Program Execution -> Windows Sysinternals
 
     -
         Description: Sysinternals
