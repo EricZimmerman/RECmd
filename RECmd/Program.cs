@@ -179,7 +179,7 @@ internal class Program
 
             new Option<string>(
                 "--jsonf",
-                "When true, compress names for profile based hives."),
+                "When true, compress names for profile based hives"),
             
             new Option<bool>(
                 "--details",
@@ -377,7 +377,6 @@ internal class Program
             Log.Error("{Switch} not supported on non-Windows platforms. Disabling","--vss");
             vss = false;
         }
-
 
         if (sync)
         {
@@ -1731,16 +1730,9 @@ internal class Program
         {
             File.Delete(archivePath);
         }
-
-#pragma warning disable CS0618
-        using (var client = new WebClient())
-        {
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            client.DownloadFile("https://github.com/EricZimmerman/RECmd/archive/master.zip", archivePath);
-        }
-#pragma warning restore CS0618
-
+        
+        "https://github.com/EricZimmerman/RECmd/archive/master.zip".DownloadFileTo(archivePath);
+        
         var fff = new FastZip();
 
         if (Directory.Exists(Path.Combine(BaseDirectory, "BatchExamples")) == false)

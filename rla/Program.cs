@@ -64,18 +64,22 @@ internal class Program
 
             new Option<string>(
                 "--out",
-                
                 "Directory to save updated hives to. Only dirty hives with logs applied will end up in --out directory"),
 
             new Option<bool>(
                 "--ca",
                 () => true,
-                "When true, always copy hives to --out directory, even if they aren't dirty."),
+                "When true, always copy hives to --out directory, even if they aren't dirty"),
 
             new Option<bool>(
                 "--cn",
                 () => true,
-                "When true, compress names for profile based hives."),
+                "When true, compress names for profile based hives"),
+            
+            new Option<bool>(
+                "--nop",
+                () => false,
+                "When true, do not recreate paths where the hives were located"),
 
             new Option<bool>(
                 "--debug",
@@ -122,7 +126,7 @@ internal class Program
     }
 #endif
 
-    private static void DoWork(string f, string d, string @out, bool ca, bool cn, bool debug, bool trace)
+    private static void DoWork(string f, string d, string @out, bool ca, bool cn, bool nop, bool debug, bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
 
@@ -533,6 +537,12 @@ internal class Program
                 }
 
                 var outFile = hiveToProcess.Replace(":", "").Replace(Path.PathSeparator.ToString(), "_");
+
+                if (nop)
+                {
+                    outFile = Path.GetFileName(hiveToProcess);
+                }
+                
                 var outFileAll = Path.Combine(@out, outFile);
 
                 if (cn &&
