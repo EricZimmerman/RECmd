@@ -2166,7 +2166,7 @@ Keys:
 # Sometimes, there are values for third party applications not covered under the standard DisplayVersion, Publisher, InstallLocation, InstallDate, and DisplayName entries. I've seen Inno Setup: User, Inno Setup: Language, and Inno Setup: App Path
 # For this section, please include a subheader and a URL, even if its only one entry per program
 
-# Third Party Applications -> Citrix 
+# Third Party Applications -> Citrix
 
     -
         Description: Citrix
@@ -2175,6 +2175,16 @@ Keys:
         KeyPath: Policies\Citrix\*\Evidence
         Recursive: true
         Comment: "Displays artifacts relating to Citrix"
+
+# Third Party Applications -> VNC Viewer - https://www.realvnc.com/en/connect/download/viewer/
+
+    -
+        Description: VNC Viewer
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\RealVNC\vncviewer
+        Recursive: true
+        Comment: "Displays artifacts relating to VNC Viewer"
 
 # Third Party Applications -> QNAP QFinder - https://www.qnap.com/en-us/utilities/essentials
 
