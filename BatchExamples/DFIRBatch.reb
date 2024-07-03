@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.00
+Version: 2.01
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f972
 Keys:
 #
@@ -2166,15 +2166,15 @@ Keys:
 # Sometimes, there are values for third party applications not covered under the standard DisplayVersion, Publisher, InstallLocation, InstallDate, and DisplayName entries. I've seen Inno Setup: User, Inno Setup: Language, and Inno Setup: App Path
 # For this section, please include a subheader and a URL, even if its only one entry per program
 
-# Third Party Applications -> VNC Viewer - https://www.realvnc.com/en/connect/download/viewer/
+# Third Party Applications -> Citrix 
 
     -
-        Description: VNC Viewer
-        HiveType: NTUSER
+        Description: Citrix
+        HiveType: SOFTWARE
         Category: Third Party Applications
-        KeyPath: Software\RealVNC\vncviewer
+        KeyPath: Policies\Citrix\*\Evidence
         Recursive: true
-        Comment: "Displays artifactrs relating to VNC Viewer"
+        Comment: "Displays artifacts relating to Citrix"
 
 # Third Party Applications -> QNAP QFinder - https://www.qnap.com/en-us/utilities/essentials
 
