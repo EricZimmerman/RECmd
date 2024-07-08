@@ -535,19 +535,29 @@ internal class Program
                         continue;
                     }
                 }
-
-                var outFile = hiveToProcess.Replace(":", "").Replace(Path.PathSeparator.ToString(), "_");
+                
+                Log.Verbose("out: {Out} DS {DS}",@out,System.IO.Path.DirectorySeparatorChar);
+                
+                var outFile = hiveToProcess.Replace(":", "").Replace(System.IO.Path.DirectorySeparatorChar.ToString(), "_");
+                
+                Log.Verbose("Outfile: {OutFile}",outFile);
 
                 if (nop)
                 {
                     outFile = Path.GetFileName(hiveToProcess);
+                    Log.Verbose("nop Outfile: {OutFile}",outFile);
                 }
                 
                 var outFileAll = Path.Combine(@out, outFile);
+                
+                Log.Verbose("outFileAll: {OutFileAll}",outFileAll);
 
+                
                 if (cn &&
                     (outFileAll.ToUpperInvariant().Contains("NTUSER") || outFileAll.ToUpperInvariant().Contains("USRCLASS")))
                 {
+                    Log.Verbose("In cn && ntuser|usrclass",outFileAll);
+                    
                     var dl = hiveToProcess[0].ToString();
                     var segs = hiveToProcess.Split(Path.PathSeparator);
 
