@@ -2,7 +2,7 @@
 
 ## Ongoing Projects
 
- * [Kroll Batch File](https://github.com/EricZimmerman/RECmd/projects/1) - Development roadmap for the [Kroll Batch File](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/Kroll_Batch.reb). Please feel free to contribute by adding ideas or by finishing tasks in the `To Do` column. Any help is appreciated! 
+ * [DFIR Batch File (Formally Kroll Batch)](https://github.com/EricZimmerman/RECmd/projects/1) - Development roadmap for the [DFIR Batch File](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.reb). Please feel free to contribute by adding ideas or by finishing tasks in the `To Do` column. Any help is appreciated! 
 
 ## Command Line Interface
 
@@ -73,7 +73,7 @@ PS> Unblock-File .\Plugins\*.dll
 
 RECmd uses Batch Files to make your Registry output more actionable. Learn about Batch Files [here](https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples#readme)!
 
-As of September 2021, there is a README specifically for the Kroll_Batch file used by RECmd and KAPE. Find it [here](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/Kroll_Batch.md)!
+As of May 2024, there is a README specifically for the DFIRBatch file used by RECmd and KAPE. Find it [here](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.md)!
 
 # RLA
 
