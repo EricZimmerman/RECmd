@@ -13,7 +13,7 @@ Using a Batch File when parsing with RECmd means you are **NOT** seeing everythi
     * Pro-tip: drag and drop a hive into Registry Explorer while holding the Shift key. This will automatically replay transaction logs!
     * Pro-tip: use `Ctrl + F` or `Tools -> Find` to search across the entire contents of imported Registry hives using the Registry Explorer GUI
     * You can export the contents of Registry hive(s) from Registry Explorer's GUI similar to how you would parse with RECmd using `File -> Export Registry hives` to export to various formats
-2. When using KAPE, use the [KapeResearch_Registry](https://github.com/EricZimmerman/KapeFiles/blob/master/Modules/KapeResearch/KapeResearch_Registry.mkape) Modules to dump the entire contents of a Registry hive to JSON. From here, you can search/grep across the output to potentially find new areas of interest within the Registry.
+2. When using KAPE, use the [KapeResearch_Registry](https://github.com/EricZimmerman/KapeFiles/blob/master/Modules/Compound/KapeResearch_Registry_JSON.mkape) Modules to dump the entire contents of a Registry hive to JSON. From here, you can search/grep across the output to potentially find new areas of interest within the Registry.
 3. When using RECmd, you can dump a Registry hive from the `ROOT` key. Thanks to a mid-2021 update to RECmd, you no longer have to manually specify the name of the `ROOT` key. If you simply dump from `ROOT`, it'll know to dump from the topmost Key within a Registry hive. Very useful!
     * Example syntax: `recmd.exe -f path\to\Registry\hive --kn ROOT --nl false --json C:\output\path\goes\here --jsonf HiveName_ROOT.json -q`
         * `--kn ROOT` specifies the name of the Registry Key from which to dump the contents of a Registry hive recursively
