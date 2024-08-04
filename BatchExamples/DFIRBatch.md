@@ -47,6 +47,7 @@ Example entry, please follow this format:
 | 1.22 | 2023-06-20 | Added new Windows 11 artifact - RunNotification [Autoruns], fix minor spelling errors |
 | 2.00 | 2024-05-18 | Renamed from Kroll_Batch to DFIRBatch. This was done to ensure examiners or companies that aren't Kroll felt comfortable using this Batch file without any fear for license violation, competitor affiliation, etc. This Batch file will be maintained primarily moving forward |
 | 2.01 | 2024-07-03 | Added Citrix artifacts |
+| 2.02 | 2024-08-04 | Fix Windows Defender Comment for SubmitSamplesConsent |
 
 # Documentation
 
