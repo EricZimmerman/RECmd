@@ -3,7 +3,7 @@
 
 RECmd uses Batch Files (`.reb` file extension) as a means to filter out potentially irrelevant information from the Windows Registry. There is an incredible amount of data stored within the Windows Registry, but much of it is not human readable or useful to an examiner. Batch Files attempt to provide the most high fidelity information and present them in an easy to digest format. 
 
-As of 2021, the [Kroll Batch File](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/Kroll_Batch.reb) is the most frequently maintained Batch File. It serves as the default Registry output for KAPE's [!EZParser](https://github.com/EricZimmerman/KapeFiles/blob/master/Modules/!EZParser.mkape) Module. This Batch File has been curated to take advantage of most, if not all, available [Registry Plugins](https://github.com/EricZimmerman/RegistryPlugins).
+As of 2024, the [DFIR Batch File](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.reb) is the most frequently maintained Batch File. It serves as the default Registry output for KAPE's [!EZParser](https://github.com/EricZimmerman/KapeFiles/blob/master/Modules/!EZParser.mkape) Module. This Batch File has been curated to take advantage of most, if not all, available [Registry Plugins](https://github.com/EricZimmerman/RegistryPlugins).
 
 ## Disclaimer
 
