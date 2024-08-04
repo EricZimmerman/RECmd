@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.01
+Version: 2.02
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f972
 Keys:
 #
@@ -3207,9 +3207,10 @@ Keys:
         KeyPath: Microsoft\Windows Defender\SpyNet
         ValueName: SubmitSamplesConsent
         Recursive: false
-        Comment: "Windows Defender SubmitSamplesConsent Status, 0 = Disabled, 1 = Enabled"
+        Comment: "Windows Defender SubmitSamplesConsent Status, 0 = Always prompt, 1 = Send safe samples automatically, 2 = Never send, 3 = Send all samples automatically"
 
 # https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+# https://learn.microsoft.com/en-us/powershell/module/defender/set-mppreference?view=windowsserver2022-ps#-submitsamplesconsent
 
     -
         Description: PortProxy Configuration
