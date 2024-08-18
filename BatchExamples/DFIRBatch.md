@@ -7,6 +7,7 @@ Special thanks to those who have contributed to this Batch file:
 * [Andreas Hunkeler (@Karneades)](https://github.com/Karneades)
 * [Tony Knutson](https://twitter.com/bigt252002)
 * Chris Kudless
+* [Reece394](https://github.com/reece394)
 
 # Version History
 
@@ -48,6 +49,7 @@ Example entry, please follow this format:
 | 2.00 | 2024-05-18 | Renamed from Kroll_Batch to DFIRBatch. This was done to ensure examiners or companies that aren't Kroll felt comfortable using this Batch file without any fear for license violation, competitor affiliation, etc. This Batch file will be maintained primarily moving forward |
 | 2.01 | 2024-07-03 | Added Citrix artifacts |
 | 2.02 | 2024-08-04 | Fix Windows Defender Comment for SubmitSamplesConsent |
+| 2.03 | 2024-08-18 | Added Various Windows Defender and SmartScreen artifacts |
 
 # Documentation
 

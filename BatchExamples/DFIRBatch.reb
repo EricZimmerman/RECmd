@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.02
+Version: 2.03
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f972
 Keys:
 #
@@ -3159,7 +3159,7 @@ Keys:
         KeyPath: Policies\Microsoft\Windows Defender
         ValueName: DisableAntiSpyware
         Recursive: true
-        Comment: "Displays the status of whether Windows Defender AntiSpyware is enabled or not. 0 = Enabled, 1 = Disabled"
+        Comment: "Displays the status of whether Windows Defender AntiSpyware is enabled or not. 0 = Enabled (AntiSpyware On), 1 = Disabled"
 
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
 # https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
@@ -3172,7 +3172,7 @@ Keys:
         KeyPath: Policies\Microsoft\Windows Defender
         ValueName: DisableAntiVirus
         Recursive: true
-        Comment: "Displays the status of whether Windows Defender AntiVirus is enabled or not. 0 = Enabled, 1 = Disabled"
+        Comment: "Displays the status of whether Windows Defender AntiVirus is enabled or not. 0 = Enabled (AntiVirus On), 1 = Disabled"
 
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
 # https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
@@ -3185,7 +3185,7 @@ Keys:
         KeyPath: Microsoft\Windows Defender\SpyNet
         ValueName: DisableBlockAtFirstSeen
         Recursive: false
-        Comment: "Windows Defender DisableBlockAtFirstSeen Status, 0 = Disabled, 1 = Enabled"
+        Comment: "Windows Defender DisableBlockAtFirstSeen Status, 0 = Enabled (BlockAtFirstSeen On), 1 = Disabled"
 
 # https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
 
@@ -3196,7 +3196,7 @@ Keys:
         KeyPath: Microsoft\Windows Defender\SpyNet
         ValueName: SpynetReporting
         Recursive: false
-        Comment: "Windows Defender SpynetReporting Status, 0 = Disabled, 1 = Enabled"
+        Comment: "Windows Defender SpynetReporting Status - Specifies the type of membership in Microsoft Active Protection Service (MAPS), 0 = Disabled (MAPS Off), 1 = Basic Membership, 2 = Advanced Membership"
 
 # https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
 
@@ -3205,6 +3205,29 @@ Keys:
         HiveType: SOFTWARE
         Category: Antivirus
         KeyPath: Microsoft\Windows Defender\SpyNet
+        ValueName: SubmitSamplesConsent
+        Recursive: false
+        Comment: "Windows Defender SubmitSamplesConsent Status, 0 = Always prompt, 1 = Send safe samples automatically, 2 = Never send, 3 = Send all samples automatically"
+
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+# https://learn.microsoft.com/en-us/powershell/module/defender/set-mppreference?view=windowsserver2022-ps#-submitsamplesconsent
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Policies\Microsoft\Windows Defender\SpyNet
+        ValueName: SpynetReporting
+        Recursive: false
+        Comment: "Windows Defender SpynetReporting Status - Specifies the type of membership in Microsoft Active Protection Service (MAPS), 0 = Disabled (MAPS Off), 1 = Basic Membership, 2 = Advanced Membership"
+
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Antivirus
+        KeyPath: Policies\Microsoft\Windows Defender\SpyNet
         ValueName: SubmitSamplesConsent
         Recursive: false
         Comment: "Windows Defender SubmitSamplesConsent Status, 0 = Always prompt, 1 = Send safe samples automatically, 2 = Never send, 3 = Send all samples automatically"
@@ -3359,12 +3382,147 @@ Keys:
         HiveType: SOFTWARE
         Category: Threat Hunting
         KeyPath: Microsoft\Windows Defender\Real-Time Protection
+        ValueName: DisableRealtimeMonitoring
         Recursive: false
-        Comment: "Windows Defender Real-Time Protection Status, 0 = Enabled, 1 = Disabled"
+        Comment: "Windows Defender Real-Time Monitoring Status, 0 = Enabled (Real-Time Monitoring On), 1 = Disabled"
 
 # https://www.windowsphoneinfo.com/threads/cannot-open-security-dashboard-for-windows-defender.114537/
 # https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
 
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Real-Time Protection
+        ValueName: DpaDisabled
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection DPA Status, 0 = Enabled (DPA On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Real-Time Protection
+        ValueName: DisableBehaviorMonitoring
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Behavior Monitoring Status, 0 = Enabled (Behavior Monitoring On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Real-Time Protection
+        ValueName: DisableIOAVProtection
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Scan all downloaded files and attachments Status, 0 = Enabled (IOAVProtection On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Real-Time Protection
+        ValueName: DisableScriptScanning
+        Recursive: false
+        Comment: "Windows Defender Real-Time Protection Scanning of Scripts during Malware Scans Status, 0 = Enabled (ScriptScanning On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Features
+        ValueName: TamperProtection
+        Recursive: false
+        Comment: "Windows Defender Tamper Protection Status, 4 = Disabled (TamperProtection Off), 5 = Enabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\UX Configuration
+        ValueName: DisablePrivacyMode
+        Recursive: false
+        Comment: "Windows Defender Privacy Mode Status - Restricts displaying threat history to Administrators only, 0 = Enabled (PrivacyMode On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\UX Configuration
+        ValueName: UILockdown
+        Recursive: false
+        Comment: "Windows Defender UI Lockdown Status, 0 = Disabled (UILockdown Off), 1 = Enabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Signature Updates
+        ValueName: DisableUpdateOnStartupWithoutEngine
+        Recursive: false
+        Comment: "Windows Defender Update On Startup Without Engine Status - Indicates whether to initiate definition updates even if no antimalware engine is present, 0 = Enabled (Updates On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Scan
+        ValueName: DisableArchiveScanning
+        Recursive: false
+        Comment: "Windows Defender Archive Scanning Status, 0 = Enabled (Archive Scanning On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Scan
+        ValueName: ScheduleDay
+        Recursive: false
+        Comment: "Windows Defender Schedule Day - Specifies the day of the week on which to perform a scheduled scan, 0 = Everyday, 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 5 = Thursday, 6 = Friday, 7 = Saturday, 8 = Never"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Threats\ThreatSeverityDefaultAction
+        ValueName: 1
+        Recursive: false
+        Comment: "Windows Defender Low Threat Default Action Scanning Status, 1 = Clean, 2 = Quarantine, 3 = Remove, 6 = Allow, 8 = UserDefined, 9 = NoAction, 10 = Block"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Threats\ThreatSeverityDefaultAction
+        ValueName: 2
+        Recursive: false
+        Comment: "Windows Defender Moderate Threat Default Action Scanning Status, 1 = Clean, 2 = Quarantine, 3 = Remove, 6 = Allow, 8 = UserDefined, 9 = NoAction, 10 = Block"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Threats\ThreatSeverityDefaultAction
+        ValueName: 4
+        Recursive: false
+        Comment: "Windows Defender High Threat Default Action Scanning Status, 1 = Clean, 2 = Quarantine, 3 = Remove, 6 = Allow, 8 = UserDefined, 9 = NoAction, 10 = Block"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Threats\ThreatSeverityDefaultAction
+        ValueName: 5
+        Recursive: false
+        Comment: "Windows Defender Severe Threat Default Action Scanning Status, 1 = Clean, 2 = Quarantine, 3 = Remove, 6 = Allow, 8 = UserDefined, 9 = NoAction, 10 = Block"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access
+        ValueName: EnableControlledFolderAccess
+        Recursive: false
+        Comment: "Microsoft Defender Controlled Folder Access Protection Status, 0 = Disabled (ControlledFolderAccess Off), 1 = Enabled, 2 = Audit Mode (Detect and Log Only)"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access\AllowedApplications
+        Recursive: true
+        Comment: "Microsoft Defender Controlled Folder Access Allowed Applications"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access\ProtectedFolders
+        Recursive: true
+        Comment: "Microsoft Defender Controlled Folder Access Protected Folders"
     -
         Description: Symantec Endpoint Protection
         HiveType: SOFTWARE
@@ -3392,6 +3550,14 @@ Keys:
         Description: Windows Defender
         HiveType: SOFTWARE
         Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender
+        ValueName: PUAProtection
+        Recursive: false
+        Comment: "Microsoft Defender Potentially Unwanted App (PUA) App Blocking Protection Status, 0 = Disabled, 1 = Enabled, 2 = Audit Mode (Detect and Log Only)"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
         KeyPath: Policies\Microsoft\Windows Defender\Exclusions\
         Recursive: true
         Comment: "Windows Defender Exclusions through Group Policies (GPOs)"
@@ -3402,6 +3568,46 @@ Keys:
         KeyPath: Microsoft\Windows Defender\Exclusions\
         Recursive: true
         Comment: "Windows Defender Exclusions"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: EnableSmartScreen
+        Recursive: false
+        Comment: "Windows SmartScreen Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows\System
+        ValueName: ShellSmartScreenLevel
+        Recursive: false
+        Comment: "Windows SmartScreen Level, Block = Warn and prevent bypass, Warn = Warn and allow bypass"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Explorer
+        ValueName: SmartScreenEnabled
+        Recursive: false
+        Comment: "Windows SmartScreen for Apps and Files Status, Off = Disabled (SmartScreen Off), Warn = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: software\Microsoft\Edge\SmartScreenEnabled
+        ValueName: (default)
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Edge Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: software\Microsoft\Edge\SmartScreenPuaEnabled
+        ValueName: (default)
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Edge Block PUA Downloads Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
     -
         Description: Image File Execution Options Injection
         HiveType: SOFTWARE
