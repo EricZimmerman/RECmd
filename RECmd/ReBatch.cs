@@ -29,7 +29,8 @@ public class Key
         Filetime = 1,
         [Description("IPv4 address")] Ip = 2,
         [Description("DWord to Epoch")] Epoch = 3,
-        [Description("Binary to SID")] Sid = 4
+        [Description("Binary to SID")] Sid = 4,
+        [Description("128 bit Windows SYSTEMTIME")] Systemtime = 5
     }
 
     public enum HiveType_
