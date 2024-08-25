@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.03
+Version: 2.04
 Id: ecc582d5-a1b1-4256-ae64-ca2263b8f972
 Keys:
 #
@@ -338,6 +338,50 @@ Keys:
 # DeviceClasses plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.DeviceClasses
 # https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-device-specific-registry-settings
 # https://www.hecfblog.com/2013/08/daily-blog-67-understanding-artifacts.html
+    
+    -
+        Description: LogonBanner
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: legalnoticecaption
+        Recursive: false
+        Comment: "Legal text caption that is displayed to a user before logon"
+
+# https://www.forensafe.com/blogs/logonbanner.html
+
+    -
+        Description: LogonBanner
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: legalnoticetext
+        Recursive: false
+        Comment: "Legal text displayed to the user for acknowledgment before logon"
+
+# https://www.forensafe.com/blogs/logonbanner.html
+
+    -
+        Description: LogonBanner
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\Winlogon
+        ValueName: LegalNoticeCaption
+        Recursive: false
+        Comment: "Legal text caption that is displayed to a user before logon"
+
+# https://www.forensafe.com/blogs/logonbanner.html
+
+    -
+        Description: LogonBanner
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion\Winlogon
+        ValueName: LegalNoticeText
+        Recursive: false
+        Comment: "Legal text displayed to the user for acknowledgment before logon"
+
+# https://www.forensafe.com/blogs/logonbanner.html
 
 # System Info -> System Info (Current)
 
@@ -1492,6 +1536,16 @@ Keys:
 
 # SAMBuiltIn plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.SAMBuiltin
 # https://learn.microsoft.com/en-us/windows/security/identity-protection/access-control/local-accounts
+    
+    -
+        Description: SpecialAccounts
+        HiveType: SOFTWARE
+        Category: User Accounts
+        KeyPath: Microsoft\Windows NT\CurrentVersion\Winlogon\SpecialAccounts\UserList
+        Recursive: true
+        Comment: "Hides Accounts from being visible on Logon Screen and Start Menu, 0 = Hide User Account, 1 = Show User Account, 65536 (0x10000) = Hide User Accounts Starting with e.g. J with this value would hide all accounts starting with J"
+
+# https://superuser.com/questions/618555/what-values-are-defined-for-the-specialaccounts-userlist-key-and-what-i-is-their/926453#926453
 
 # --------------------
 # PROGRAM EXECUTION
@@ -3158,7 +3212,20 @@ Keys:
         Category: Threat Hunting
         KeyPath: Policies\Microsoft\Windows Defender
         ValueName: DisableAntiSpyware
-        Recursive: true
+        Recursive: false
+        Comment: "Displays the status of whether Windows Defender AntiSpyware is enabled or not. 0 = Enabled (AntiSpyware On), 1 = Disabled"
+
+# https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
+# https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Windows Defender Status
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender
+        ValueName: DisableAntiSpyware
+        Recursive: false
         Comment: "Displays the status of whether Windows Defender AntiSpyware is enabled or not. 0 = Enabled (AntiSpyware On), 1 = Disabled"
 
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
@@ -3171,7 +3238,20 @@ Keys:
         Category: Threat Hunting
         KeyPath: Policies\Microsoft\Windows Defender
         ValueName: DisableAntiVirus
-        Recursive: true
+        Recursive: false
+        Comment: "Displays the status of whether Windows Defender AntiVirus is enabled or not. 0 = Enabled (AntiVirus On), 1 = Disabled"
+
+# https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
+# https://answers.microsoft.com/en-us/protect/forum/all/how-to-kill-antimalware-service-executable/b5ce5b46-a65b-460c-b4cd-e2cca50358cf
+# https://gist.github.com/MHaggis/a955f1351a7d07592b90ab605e3b02d9
+
+    -
+        Description: Windows Defender Status
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender
+        ValueName: DisableAntiVirus
+        Recursive: false
         Comment: "Displays the status of whether Windows Defender AntiVirus is enabled or not. 0 = Enabled (AntiVirus On), 1 = Disabled"
 
 # https://docs.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/security-malware-windows-defender-disableantispyware
@@ -3181,7 +3261,7 @@ Keys:
     -
         Description: Windows Defender
         HiveType: SOFTWARE
-        Category: Antivirus
+        Category: Threat Hunting
         KeyPath: Microsoft\Windows Defender\SpyNet
         ValueName: DisableBlockAtFirstSeen
         Recursive: false
@@ -3192,7 +3272,7 @@ Keys:
     -
         Description: Windows Defender
         HiveType: SOFTWARE
-        Category: Antivirus
+        Category: Threat Hunting
         KeyPath: Microsoft\Windows Defender\SpyNet
         ValueName: SpynetReporting
         Recursive: false
@@ -3203,7 +3283,7 @@ Keys:
     -
         Description: Windows Defender
         HiveType: SOFTWARE
-        Category: Antivirus
+        Category: Threat Hunting
         KeyPath: Microsoft\Windows Defender\SpyNet
         ValueName: SubmitSamplesConsent
         Recursive: false
@@ -3215,7 +3295,7 @@ Keys:
     -
         Description: Windows Defender
         HiveType: SOFTWARE
-        Category: Antivirus
+        Category: Threat Hunting
         KeyPath: Policies\Microsoft\Windows Defender\SpyNet
         ValueName: SpynetReporting
         Recursive: false
@@ -3226,7 +3306,7 @@ Keys:
     -
         Description: Windows Defender
         HiveType: SOFTWARE
-        Category: Antivirus
+        Category: Threat Hunting
         KeyPath: Policies\Microsoft\Windows Defender\SpyNet
         ValueName: SubmitSamplesConsent
         Recursive: false
@@ -3466,6 +3546,14 @@ Keys:
         HiveType: SOFTWARE
         Category: Threat Hunting
         KeyPath: Microsoft\Windows Defender\Scan
+        ValueName: DisableRemovableDriveScanning
+        Recursive: false
+        Comment: "Windows Defender Removable Drive Scanning Status, 0 = Enabled (Removable Drive Scanning On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender\Scan
         ValueName: ScheduleDay
         Recursive: false
         Comment: "Windows Defender Schedule Day - Specifies the day of the week on which to perform a scheduled scan, 0 = Everyday, 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 5 = Thursday, 6 = Friday, 7 = Saturday, 8 = Never"
@@ -3550,10 +3638,34 @@ Keys:
         Description: Windows Defender
         HiveType: SOFTWARE
         Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows Defender
+        ValueName: PUAProtection
+        Recursive: false
+        Comment: "Microsoft Defender Potentially Unwanted App (PUA) App Blocking Protection Status, 0 = Disabled, 1 = Enabled, 2 = Audit Mode (Detect and Log Only)"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
         KeyPath: Microsoft\Windows Defender
         ValueName: PUAProtection
         Recursive: false
         Comment: "Microsoft Defender Potentially Unwanted App (PUA) App Blocking Protection Status, 0 = Disabled, 1 = Enabled, 2 = Audit Mode (Detect and Log Only)"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows Defender
+        ValueName: DisableRoutinelyTakingAction
+        Recursive: false
+        Comment: "Microsoft Defender will automatically take action on all detected threats Status, 0 = Enabled (RoutinelyTakingAction On), 1 = Disabled"
+    -
+        Description: Windows Defender
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows Defender
+        ValueName: DisableRoutinelyTakingAction
+        Recursive: false
+        Comment: "Microsoft Defender will automatically take action on all detected threats Status, 0 = Enabled (RoutinelyTakingAction On), 1 = Disabled"
     -
         Description: Windows Defender
         HiveType: SOFTWARE
@@ -3594,12 +3706,116 @@ Keys:
         Comment: "Windows SmartScreen for Apps and Files Status, Off = Disabled (SmartScreen Off), Warn = Enabled"
     -
         Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows Defender\SmartScreen
+        ValueName: ConfigureAppInstallControlEnabled
+        Recursive: false
+        Comment: "Windows SmartScreen Choose Where Apps Are Installed Status - Restricts app installations to Microsoft Store based on setting, 0 = Disabled (AppInstallControl Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Windows Defender\SmartScreen
+        ValueName: ConfigureAppInstallControl
+        Recursive: false
+        Comment: "Windows SmartScreen Choose Where Apps Are Installed Status - Restricts app installations to Microsoft Store based on setting, Anywhere = Allow all apps to be installed, Recommendations = Allow all apps to be installed but recommend if there is an app in the Microsoft Store, PreferStore = Warn User before installing app that is not from Microsoft Store, StoreOnly = Only allow apps to be installed from Microsoft Store"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Explorer
+        ValueName: AicEnabled
+        Recursive: false
+        Comment: "Windows SmartScreen Choose Where Apps Are Installed Status - Restricts app installations to Microsoft Store based on setting, Anywhere = Allow all apps to be installed, Recommendations = Allow all apps to be installed but recommend if there is an app in the Microsoft Store, PreferStore = Warn User before installing app that is not from Microsoft Store, StoreOnly = Only allow apps to be installed from Microsoft Store"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Internet Explorer\PhishingFilter
+        ValueName: EnabledV8
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Internet Explorer 8 Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: software\Microsoft\Internet Explorer\PhishingFilter
+        ValueName: EnabledV8
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Internet Explorer 8 Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Internet Explorer\PhishingFilter
+        ValueName: EnabledV9
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Internet Explorer 9, 10 and 11 Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: software\Microsoft\Internet Explorer\PhishingFilter
+        ValueName: EnabledV9
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Internet Explorer 9, 10 and 11 Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\MicrosoftEdge\PhishingFilter
+        ValueName: EnabledV9
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Edge UWP (Non-Chromium) Status, 0 = Disabled (SmartScreen Off), 1 = Block or Warn"
+    -
+        Description: Windows SmartScreen
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Storage\microsoft.microsoftedge_8wekyb3d8bbwe\MicrosoftEdge\PhishingFilter
+        ValueName: EnabledV9
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Edge UWP (Non-Chromium) Status, 0 = Disabled (SmartScreen Off), 1 = Block or Warn"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\MicrosoftEdge\PhishingFilter
+        ValueName: PreventOverride
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Edge UWP (Non-Chromium) PreventOverride Status, 0 = Disabled (Off or Warn), 1 = Block"
+    -
+        Description: Windows SmartScreen
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppContainer\Storage\microsoft.microsoftedge_8wekyb3d8bbwe\MicrosoftEdge\PhishingFilter
+        ValueName: PreventOverride
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Edge UWP (Non-Chromium) PreventOverride Status, 0 = Disabled (Off or Warn), 1 = Block"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Edge
+        ValueName: SmartScreenEnabled
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Edge Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
         HiveType: NTUSER
         Category: Threat Hunting
         KeyPath: software\Microsoft\Edge\SmartScreenEnabled
         ValueName: (default)
         Recursive: false
         Comment: "Windows SmartScreen for Microsoft Edge Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
+    -
+        Description: Windows SmartScreen
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Policies\Microsoft\Edge
+        ValueName: SmartScreenPuaEnabled
+        Recursive: false
+        Comment: "Windows SmartScreen for Microsoft Edge Block PUA Downloads Status, 0 = Disabled (SmartScreen Off), 1 = Enabled"
     -
         Description: Windows SmartScreen
         HiveType: NTUSER
@@ -3619,6 +3835,77 @@ Keys:
 
 # https://attack.mitre.org/techniques/T1546/012/
 
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware
+        ValueName: DisableRoutinelyTakingAction
+        Recursive: false
+        Comment: "Microsoft Security Essentials will automatically take action on all detected threats Status, 0 = Enabled (RoutinelyTakingAction On), 1 = Disabled"
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware\Real-Time Protection
+        ValueName: DisableRealtimeMonitoring
+        Recursive: false
+        Comment: "Microsoft Security Essentials Real-Time Monitoring Status, 0 = Enabled (Real-Time Monitoring On), 1 = Disabled"
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware\Scan
+        ValueName: DisableArchiveScanning
+        Recursive: false
+        Comment: "Microsoft Security Essentials Archive Scanning Status, 0 = Enabled (Archive Scanning On), 1 = Disabled"
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware\Scan
+        ValueName: ScheduleDay
+        Recursive: false
+        Comment: "Microsoft Security Essentials Schedule Day - Specifies the day of the week on which to perform a scheduled scan, 0 = Everyday, 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 5 = Thursday, 6 = Friday, 7 = Saturday, 8 = Never"
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware\Scan
+        ValueName: DisableRemovableDriveScanning
+        Recursive: false
+        Comment: "Microsoft Security Essentials Removable Drive Scanning Status, 0 = Enabled (Removable Drive Scanning On), 1 = Disabled"
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware\UX Configuration
+        ValueName: DisablePrivacyMode
+        Recursive: false
+        Comment: "Microsoft Security Essentials Privacy Mode Status - Restricts displaying threat history to Administrators only, 0 = Enabled (PrivacyMode On), 1 = Disabled"
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware\SpyNet
+        ValueName: SubmitSamplesConsent
+        Recursive: false
+        Comment: "Microsoft Security Essentials SubmitSamplesConsent Status, 0 = Disabled (SubmitSamplesConsent Off), 1 = Enabled"
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware\SpyNet
+        ValueName: SpynetReporting
+        Recursive: false
+        Comment: "Microsoft Security Essentials SpynetReporting Status - Specifies the type of membership in Microsoft Active Protection Service (MAPS), 0 = Disabled (MAPS Off), 1 = Basic Membership, 2 = Advanced Membership"
+    -
+        Description: Microsoft Security Essentials
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Microsoft Antimalware\Exclusions\
+        Recursive: true
+        Comment: "Microsoft Security Essentials Exclusions"
     -
         Description: Image File Execution Options Injection
         HiveType: SOFTWARE
