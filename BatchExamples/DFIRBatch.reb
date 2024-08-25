@@ -338,7 +338,7 @@ Keys:
 # DeviceClasses plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.DeviceClasses
 # https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-device-specific-registry-settings
 # https://www.hecfblog.com/2013/08/daily-blog-67-understanding-artifacts.html
-    
+
     -
         Description: LogonBanner
         HiveType: SOFTWARE
@@ -1536,7 +1536,7 @@ Keys:
 
 # SAMBuiltIn plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.SAMBuiltin
 # https://learn.microsoft.com/en-us/windows/security/identity-protection/access-control/local-accounts
-    
+
     -
         Description: SpecialAccounts
         HiveType: SOFTWARE
