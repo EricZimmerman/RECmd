@@ -505,6 +505,7 @@ internal class Program
             okFileParts.Add("SECURITY");
             okFileParts.Add("DRIVERS");
             okFileParts.Add("COMPONENTS");
+            okFileParts.Add("DEFAULT");
 
             IEnumerable<string> files2;
 
@@ -640,6 +641,7 @@ internal class Program
                 "*SYSTEM",
                 "*SAM",
                 "*SOFTWARE",
+                "*DEFAULT",
                 "*AMCACHE.HVE",
                 "*SYSCACHE.hve",
                 "*SECURITY",
