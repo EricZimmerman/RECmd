@@ -237,7 +237,7 @@ internal class Program
             new Option<bool>(
                 "--nl",
                 () => false,
-                "When true, ignore transaction log files for dirty hives"),
+                "When true, allow transaction log files to not exist for dirty hives"),
 
             new Option<bool>(
                 "--recover",
@@ -886,8 +886,6 @@ internal class Program
                     }
                     else
                     {
-                        if (nl == false)
-                        {
                             if (rawFiles != null)
                             {
                                 var lt = new List<TransactionLogFileInfo>();
@@ -905,11 +903,6 @@ internal class Program
                             {
                                 reg.ProcessTransactionLogs(logFiles.ToList(), true);
                             }
-                        }
-                        else
-                        {
-                            Log.Warning("Registry hive is dirty and transaction logs were found in the same directory, but --nl was provided. Data may be missing! Continuing anyways...");
-                        }
                     }
                 }
                 
