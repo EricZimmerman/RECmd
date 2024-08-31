@@ -1,7 +1,7 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.04
-Id: ecc582d5-a1b1-4256-ae64-ca2263b8f972
+Version: 2.05
+Id: 2e1589f5-e31a-4bef-822f-075d56afdddd
 Keys:
 #
 # DFIRBatch README: https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.md
