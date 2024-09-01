@@ -2540,21 +2540,21 @@ Keys:
         Category: Third Party Applications
         KeyPath: Software\Mobatek\MobaXterm\M
         Recursive: false
-        Comment: "MobaXTerm Master Password Registry Key" 
+        Comment: "MobaXTerm Master Password Registry Key"
     -
         Description: MobaXTerm
         HiveType: SOFTWARE
         Category: Third Party Applications
         KeyPath: Software\Mobatek\MobaXterm\P
         Recursive: false
-        Comment: "MobaXTerm Passwords Registry Key" 
+        Comment: "MobaXTerm Passwords Registry Key"
     -
         Description: MobaXTerm
         HiveType: SOFTWARE
         Category: Third Party Applications
         KeyPath: Software\Mobatek\MobaXterm\C
         Recursive: false
-        Comment: "MobaXTerm Credentials Registry Key" 
+        Comment: "MobaXTerm Credentials Registry Key"
 
 # Third Party Applications -> WinSCP - https://winscp.net/eng/index.php
 
