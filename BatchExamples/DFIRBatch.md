@@ -51,6 +51,7 @@ Example entry, please follow this format:
 | 2.02 | 2024-08-04 | Fix Windows Defender Comment for SubmitSamplesConsent |
 | 2.03 | 2024-08-18 | Added Various Windows Defender and SmartScreen artifacts |
 | 2.04 | 2024-08-25 | Added Various Windows Defender, Microsoft Security Essentials and SmartScreen artifacts. Also added LogonBanner and SpecialAccounts |
+| 2.05 | 2024-09-01 | Added new artifacts related to the third party application MobaTek MobaXTerm |
 
 # Documentation
 
