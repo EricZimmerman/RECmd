@@ -2532,6 +2532,30 @@ Keys:
         Recursive: true
         Comment: "Displays settings related to Macrium Reflect's interaction with VSS"
 
+# Third Party Applications -> MobaXTerm - https://www.mobatek.net/
+
+    -
+        Description: MobaXTerm
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: Software\Mobatek\MobaXterm\M
+        Recursive: false
+        Comment: "MobaXTerm Master Password Registry Key"
+    -
+        Description: MobaXTerm
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: Software\Mobatek\MobaXterm\P
+        Recursive: false
+        Comment: "MobaXTerm Passwords Registry Key"
+    -
+        Description: MobaXTerm
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: Software\Mobatek\MobaXterm\C
+        Recursive: false
+        Comment: "MobaXTerm Credentials Registry Key"
+
 # Third Party Applications -> WinSCP - https://winscp.net/eng/index.php
 
     -
