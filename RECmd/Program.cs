@@ -2336,7 +2336,31 @@ internal class Program
                             rebOut.ValueData = regVal.ValueData;
                         }
 
-                        break;
+                         break;
+                    case Key.BinConvert.Systemtime:
+                        try
+                        {
+                            int index = 0;
+                            int int16_1 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, index);
+                            int int16_2 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 2 + index);
+                            int int16_3 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 4 + index);
+                            int int16_4 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 6 + index);
+                            int int16_5 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 8 + index);
+                            int int16_6 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 10 + index);
+                            int int16_7 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 12 + index);
+                            int int16_8 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 14 + index);
+
+                            var st = new DateTimeOffset(new DateTime(int16_1, int16_2, int16_4, int16_5, int16_6, int16_7, int16_8, DateTimeKind.Utc)).ToUniversalTime().ToString();
+                            rebOut.ValueData = st;
+
+                        }
+                        catch (Exception)
+                        {
+                            Log.Warning("Error converting to SYSTEMTIME. Using bytes instead!");
+                            rebOut.ValueData = regVal.ValueData;
+                        }
+
+						break;
                     default:
                         rebOut.ValueData = regVal.ValueData;
                         break;
@@ -2374,6 +2398,31 @@ internal class Program
                     catch (Exception)
                     {
                         Log.Warning("Error converting to FILETIME. Using bytes instead!");
+                        rebOut.ValueData = regVal.ValueData;
+                    }
+                   
+                   break;
+                
+                case Key.BinConvert.Systemtime:
+                    try
+                    {
+                        int index = 0;
+                        int int16_1 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, index);
+                        int int16_2 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 2 + index);
+                        int int16_3 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 4 + index);
+                        int int16_4 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 6 + index);
+                        int int16_5 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 8 + index);
+                        int int16_6 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 10 + index);
+                        int int16_7 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 12 + index);
+                        int int16_8 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 14 + index);
+
+                        var st = new DateTimeOffset(new DateTime(int16_1, int16_2, int16_4, int16_5, int16_6, int16_7, int16_8, DateTimeKind.Utc)).ToUniversalTime().ToString();
+                        rebOut.ValueData = st;
+
+                    }
+                    catch (Exception)
+                    {
+                        Log.Warning("Error converting to SYSTEMTIME. Using bytes instead!");
                         rebOut.ValueData = regVal.ValueData;
                     }
 
