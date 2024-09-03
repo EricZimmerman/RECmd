@@ -16,8 +16,12 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="ERZHelpers" Version="1.3.0.0" />
+        <PackageReference Include="runtime.native.System.Net.Http" Version="4.3.1" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21617.1" />
         <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta2.21617.1" />
+        <PackageReference Include="System.Net.Http" Version="4.3.4" />
+        <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+        <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="RegistryCheck.ico" />
@@ -30,7 +34,7 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Exceptionless" Version="6.0.4" />
-        <PackageReference Include="Serilog" Version="4.0.0" />
+        <PackageReference Include="Serilog" Version="4.0.1" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
         <PackageReference Include="Registry" Version="1.3.4" />
         <PackageReference Include="ServiceStack.Text" Version="8.3.0" />
