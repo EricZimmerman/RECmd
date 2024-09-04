@@ -2702,6 +2702,7 @@ Keys:
         KeyPath: CurrentControlSet\Services\AnyDesk
         Recursive: true
         Comment: "Displays artifacts relating to AnyDesk"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> Atera - https://www.atera.com
@@ -2713,6 +2714,7 @@ Keys:
         KeyPath: CurrentControlSet\Services\AteraAgent
         Recursive: true
         Comment: "Displays artifacts relating to Atera"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> ConnectWise (ScreenConnect) - https://screenconnect.connectwise.com/
@@ -2725,6 +2727,7 @@ Keys:
         ValueName: DisplayName
         Recursive: false
         Comment: "Displays artifacts relating to ConnectWise (ScreenConnect)"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> LogMeIn - https://www.logmein.com
@@ -2736,6 +2739,7 @@ Keys:
         KeyPath: CurrentControlSet\Services\LogMeIn
         Recursive: true
         Comment: "Displays artifacts relating to LogMeIn"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> RemoteUtilities - https://www.remoteutilities.com/
@@ -2785,7 +2789,8 @@ Keys:
         KeyPath: Software\Usoris\Remote Utilities\RManService\Host\Parameters
         ValueName: FUSClientPath
         Recursive: false
-        Comment: "Displays artifacts relating to RemoteUtilities Configuration"       
+        Comment: "Displays artifacts relating to RemoteUtilities Configuration"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> Splashtop - https://www.splashtop.com/
@@ -2804,6 +2809,7 @@ Keys:
         KeyPath: CurrentControlSet\Services\SSUService
         Recursive: true
         Comment: "Displays artifacts relating to Splashtop"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
@@ -2844,6 +2850,7 @@ Keys:
         KeyPath: WOW6432Node\FileZilla Client*
         Recursive: true
         Comment: "Displays artifacts relating to FileZilla"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> FreeFileSync - https://freefilesync.org/
@@ -2855,6 +2862,7 @@ Keys:
         KeyPath: WOW6432Node\FileZilla Client*
         Recursive: true
         Comment: "Displays artifacts relating to FreeFileSync"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> GoodSync - https://www.goodsync.com/
@@ -2866,6 +2874,7 @@ Keys:
         KeyPath: CurrentControlSet\Services\GsServer
         Recursive: true
         Comment: "Displays artifacts relating to GoodSync"
+
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # --------------------
