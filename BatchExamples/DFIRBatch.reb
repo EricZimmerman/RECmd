@@ -2693,6 +2693,190 @@ Keys:
         Recursive: false
         Comment: "Displays the location of the SQLite database associated with 4K Video Downloader"
 
+# Third Party Applications -> AnyDesk - https://anydesk.com
+
+    -
+        Description: AnyDesk
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\AnyDesk
+        Recursive: true
+        Comment: "Displays artifacts relating to AnyDesk"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> Atera - https://www.atera.com
+
+    -
+        Description: Atera
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\AteraAgent
+        Recursive: true
+        Comment: "Displays artifacts relating to Atera"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> ConnectWise (ScreenConnect) - https://screenconnect.connectwise.com/
+
+    -
+        Description: ConnectWise (ScreenConnect)
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\ScreenConnect Client*
+        ValueName: DisplayName
+        Recursive: false
+        Comment: "Displays artifacts relating to ConnectWise (ScreenConnect)"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> LogMeIn - https://www.logmein.com
+
+    -
+        Description: LogMeIn
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\LogMeIn
+        Recursive: true
+        Comment: "Displays artifacts relating to LogMeIn"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> RemoteUtilities - https://www.remoteutilities.com/
+
+    -
+        Description: RemoteUtilities
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\RManService
+        Recursive: true
+        Comment: "Displays artifacts relating to RemoteUtilities"
+    -
+        Description: RemoteUtilities
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: Usoris\Remote Utilities\RManService\Host\Parameters
+        Recursive: true
+        Comment: "Displays artifacts relating to Portable RemoteUtilities Configuration"
+    -
+        Description: RemoteUtilities
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Usoris\Remote Utilities\RManService\Host\Parameters
+        ValueName: General
+        Recursive: false
+        Comment: "Displays artifacts relating to RemoteUtilities Configuration - Base64 decode output"
+    -
+        Description: RemoteUtilities
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Usoris\Remote Utilities\RManService\Host\Parameters
+        ValueName: InternetId
+        Recursive: false
+        Comment: "Displays artifacts relating to RemoteUtilities Configuration - Base64 decode output"
+    -
+        Description: RemoteUtilities
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Usoris\Remote Utilities\RManService\Host\Parameters
+        ValueName: Security
+        Recursive: false
+        Comment: "Displays artifacts relating to RemoteUtilities Configuration - Base64 decode output"
+    -
+        Description: RemoteUtilities
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Usoris\Remote Utilities\RManService\Host\Parameters
+        ValueName: FUSClientPath
+        Recursive: false
+        Comment: "Displays artifacts relating to RemoteUtilities Configuration"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> Splashtop - https://www.splashtop.com/
+
+    -
+        Description: Splashtop
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\SplashtopRemoteService
+        Recursive: true
+        Comment: "Displays artifacts relating to Splashtop"
+    -
+        Description: Splashtop
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\SSUService
+        Recursive: true
+        Comment: "Displays artifacts relating to Splashtop"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
+
+    -
+        Description: TeamViewer
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\TeamViewer
+        Recursive: true
+        Comment: "Displays artifacts relating to Splashtop"
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> TightVNC - https://www.tightvnc.com/
+
+    -
+        Description: TightVNC
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: tvnserver
+        Recursive: true
+        Comment: "Displays artifacts relating to TightVNC"
+    -
+        Description: TightVNC
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\TightVNC\Server
+        Recursive: true
+        Comment: "Displays artifacts relating to TightVNC"
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> FileZilla - https://filezilla-project.org/
+
+    -
+        Description: FileZilla
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\FileZilla Client*
+        Recursive: true
+        Comment: "Displays artifacts relating to FileZilla"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> FreeFileSync - https://freefilesync.org/
+
+    -
+        Description: FreeFileSync
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\FileZilla Client*
+        Recursive: true
+        Comment: "Displays artifacts relating to FreeFileSync"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> GoodSync - https://www.goodsync.com/
+
+    -
+        Description: GoodSync
+        HiveType: SYSTEM
+        Category: Third Party Applications
+        KeyPath: CurrentControlSet\Services\GsServer
+        Recursive: true
+        Comment: "Displays artifacts relating to GoodSync"
+
+# https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
 # --------------------
 # CLOUD STORAGE
 # --------------------
