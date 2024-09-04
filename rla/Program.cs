@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Exceptionless;
 using Exceptionless.Extensions;
@@ -211,6 +212,7 @@ internal class Program
             okFileParts.Add("SYSCACHE");
             okFileParts.Add("SECURITY");
             okFileParts.Add("DRIVERS");
+            okFileParts.Add("DEFAULT");
             okFileParts.Add("COMPONENTS");
               var directoryEnumerationFilters = new DirectoryEnumerationFilters();
             directoryEnumerationFilters.InclusionFilter = fsei =>
@@ -357,6 +359,7 @@ internal class Program
                 "SYSCACHE.hve",
                 "SECURITY",
                 "DRIVERS",
+                "DEFAULT",
                 "COMPONENTS"
             };
             var ignoreExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -484,7 +487,25 @@ internal class Program
                         dirname = ".";
                     }
 
-                    var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+                    
+#if NET462
+                 var   logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+#elif NET6_0
+     var en = new EnumerationOptions
+                    {
+                     //   IgnoreInaccessible = true,
+                        MatchCasing = MatchCasing.CaseInsensitive,
+                       // RecurseSubdirectories = true,
+                        AttributesToSkip = 0
+                    };
+                    
+                var    logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?",en);
+#endif
+                    
+
+               
+                    
+                   // var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?",en);
 
                     if (logFiles.Length == 0)
                     {
@@ -558,13 +579,23 @@ internal class Program
                 {
                     Log.Verbose("In cn && ntuser|usrclass",outFileAll);
                     
-                    var dl = hiveToProcess[0].ToString();
-                    var segs = hiveToProcess.Split(Path.PathSeparator);
+                    var profileName = "Undetermined";
+                    var dl = "Undetermined";
+                    try {
+                        profileName = Regex.Match(hiveToProcess, @"(.)\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[3].Value;
+                        dl = Regex.Match(hiveToProcess, @"(.)\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[1].Value;
+                    } catch (ArgumentException ) {
+                        // Syntax error in the regular expression
+                    }
 
-                    var profile = segs[2];
+                    
+                  // var dl = hiveToProcess[0].ToString();
+                  //  var segs = hiveToProcess.Split(Path.DirectorySeparatorChar);
+
+                  
                     var filename = Path.GetFileName(hiveToProcess);
 
-                    var outFile2 = $"{dl}_{profile}_{filename}";
+                    var outFile2 = $"{dl}_{profileName}_{filename}";
 
                     outFileAll = Path.Combine(@out, outFile2);
                 }
