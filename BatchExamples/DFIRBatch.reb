@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.05
+Version: 2.06
 Id: 2e1589f5-e31a-4bef-822f-075d56afdddd
 Keys:
 #
@@ -1735,6 +1735,32 @@ Keys:
 # --------------------
 
     -
+        Description: LogonStats
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: software\Microsoft\Windows\CurrentVersion\Explorer\LogonStats
+        ValueName: FirstLogonTime
+        IncludeBinary: true
+        BinaryConvert: SYSTEMTIME
+        Recursive: false
+        Comment: "First Time a User Logs in to a System."
+
+# https://x.com/jasonshale/status/623081308722475009
+
+    -
+        Description: LogonStats
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: software\Microsoft\Windows\CurrentVersion\Explorer\LogonStats
+        ValueName: FirstLogonTimeOnCurrentInstallation
+        IncludeBinary: true
+        BinaryConvert: SYSTEMTIME
+        Recursive: false
+        Comment: "First Time a User Logs in to a System with Current Installation."
+
+# https://x.com/jasonshale/status/623081308722475009
+
+    -
         Description: Pinned Taskbar Items
         HiveType: NTUSER
         Category: User Activity
@@ -2567,6 +2593,13 @@ Keys:
         Comment: "WinSCP"
     -
         Description: WinSCP
+        HiveType: Other
+        Category: Third Party Applications
+        KeyPath: Software\Martin Prikryl
+        Recursive: true
+        Comment: "WinSCP"
+    -
+        Description: WinSCP
         HiveType: SOFTWARE
         Category: Third Party Applications
         KeyPath: WOW6432Node\Martin Prikryl
@@ -2757,7 +2790,7 @@ Keys:
         Category: Third Party Applications
         KeyPath: Usoris\Remote Utilities\RManService\Host\Parameters
         Recursive: true
-        Comment: "Displays artifacts relating to Portable RemoteUtilities Configuration"
+        Comment: "Displays artifacts relating to RemoteUtilities Configuration - Base64 decode output"
     -
         Description: RemoteUtilities
         HiveType: NTUSER
@@ -2765,7 +2798,7 @@ Keys:
         KeyPath: Software\Usoris\Remote Utilities\RManService\Host\Parameters
         ValueName: General
         Recursive: false
-        Comment: "Displays artifacts relating to RemoteUtilities Configuration - Base64 decode output"
+        Comment: "Displays artifacts relating to Portable RemoteUtilities Configuration"
     -
         Description: RemoteUtilities
         HiveType: NTUSER
@@ -2820,7 +2853,7 @@ Keys:
         Category: Third Party Applications
         KeyPath: CurrentControlSet\Services\TeamViewer
         Recursive: true
-        Comment: "Displays artifacts relating to Splashtop"
+        Comment: "Displays artifacts relating to TeamViewer"
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
 # Third Party Applications -> TightVNC - https://www.tightvnc.com/
@@ -2829,7 +2862,7 @@ Keys:
         Description: TightVNC
         HiveType: SYSTEM
         Category: Third Party Applications
-        KeyPath: tvnserver
+        KeyPath: CurrentControlSet\Services\tvnserver
         Recursive: true
         Comment: "Displays artifacts relating to TightVNC"
     -
@@ -2859,7 +2892,7 @@ Keys:
         Description: FreeFileSync
         HiveType: SOFTWARE
         Category: Third Party Applications
-        KeyPath: WOW6432Node\FileZilla Client*
+        KeyPath: WOW6432Node\FreeFileSync
         Recursive: true
         Comment: "Displays artifacts relating to FreeFileSync"
 
