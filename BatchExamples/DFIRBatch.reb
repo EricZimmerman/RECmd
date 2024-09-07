@@ -2593,13 +2593,6 @@ Keys:
         Comment: "WinSCP"
     -
         Description: WinSCP
-        HiveType: Other
-        Category: Third Party Applications
-        KeyPath: Software\Martin Prikryl
-        Recursive: true
-        Comment: "WinSCP"
-    -
-        Description: WinSCP
         HiveType: SOFTWARE
         Category: Third Party Applications
         KeyPath: WOW6432Node\Martin Prikryl
@@ -3579,7 +3572,7 @@ Keys:
 
     -
         Description: Exefile Shell Open Command
-        HiveType: usrclass
+        HiveType: UsrClass
         Category: Threat Hunting
         KeyPath: Exefile\Shell\Open\Command
         ValueName: (default)
