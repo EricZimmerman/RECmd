@@ -43,10 +43,16 @@ public class Key
         [Description("SYSTEM")] System = 5,
         [Description("USRCLASS")] UsrClass = 6,
         [Description("COMPONENTS")] Components = 7,
-        [Description("BCD")] Bcd = 8,
         [Description("DRIVERS")] Drivers = 8,
         [Description("AMCACHE")] Amcache = 9,
-        [Description("SYSCACHE")] Syscache = 10
+        [Description("SYSCACHE")] Syscache = 10,
+        [Description("BCD")] Bcd = 11,
+        [Description("BCD-Template")] BcdTemplate = 12,
+        [Description("ELAM")] Elam = 13,
+        [Description("userdiff")] userdiff = 14,
+        [Description("BBI")] Bbi = 15,
+        [Description("VSMIDK")] Vsmidk = 16,
+        [Description("DEFAULT")] Default = 17,
     }
 
     public string Description { get; set; }
