@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.07
+Version: 2.08
 Id: 2e1589f5-e31a-4bef-822f-075d56afdddd
 Keys:
 #
@@ -2617,6 +2617,13 @@ Keys:
         KeyPath: WOW6432Node\Martin Prikryl
         Recursive: true
         Comment: "WinSCP"
+    -
+        Description: WinSCP
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\Martin Prikryl
+        Recursive: true
+        Comment: "WinSCP"
 
 # Third Party Applications -> Ares - https://www.ares.net/
 
@@ -2921,6 +2928,42 @@ Keys:
         Comment: "Displays artifacts relating to GoodSync"
 
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> Advanced Port Scanner - https://www.advanced-port-scanner.com/
+
+    -
+        Description: Advanced Port Scanner
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Famatech\advanced_port_scanner
+        Recursive: true
+        Comment: "Displays artifacts relating to Advanced Port Scanner"
+
+    -
+        Description: Advanced Port Scanner
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\Famatech\advanced_port_scanner
+        Recursive: true
+        Comment: "Displays artifacts relating to Advanced Port Scanner"
+
+# Third Party Applications -> Advanced IP Scanner - https://www.advanced-ip-scanner.com/
+
+    -
+        Description: Advanced IP Scanner
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Famatech\advanced_ip_scanner
+        Recursive: true
+        Comment: "Displays artifacts relating to Advanced IP Scanner"
+
+    -
+        Description: Advanced IP Scanner
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\Famatech\advanced_ip_scanner
+        Recursive: true
+        Comment: "Displays artifacts relating to Advanced IP Scanner"
 
 # --------------------
 # CLOUD STORAGE
