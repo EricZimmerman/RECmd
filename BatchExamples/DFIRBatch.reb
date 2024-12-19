@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.08
+Version: 2.09
 Id: 2e1589f5-e31a-4bef-822f-075d56afdddd
 Keys:
 #
@@ -2964,6 +2964,40 @@ Keys:
         KeyPath: Software\Famatech\advanced_ip_scanner
         Recursive: true
         Comment: "Displays artifacts relating to Advanced IP Scanner"
+
+# Third Party Applications -> Angry IP Scanner - https://angryip.org/
+
+    -
+        Description: Angry IP Scanner - Legacy
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Angryziber\ipscan
+        Recursive: true
+        Comment: "Displays artifacts relating to Angry IP Scanner"
+
+    -
+        Description: Angry IP Scanner - Legacy
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\Angryziber\ipscan
+        Recursive: true
+        Comment: "Displays artifacts relating to Angry IP Scanner"
+
+    -
+        Description: Angry IP Scanner
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\JavaSoft\Prefs\ipscan
+        Recursive: true
+        Comment: "Displays artifacts relating to Angry IP Scanner"
+
+    -
+        Description: Angry IP Scanner
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\JavaSoft\Prefs\ipscan
+        Recursive: true
+        Comment: "Displays artifacts relating to Angry IP Scanner"
 
 # --------------------
 # CLOUD STORAGE
