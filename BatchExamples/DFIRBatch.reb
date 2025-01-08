@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.06
+Version: 2.09
 Id: 2e1589f5-e31a-4bef-822f-075d56afdddd
 Keys:
 #
@@ -1435,6 +1435,15 @@ Keys:
 
 # SCSI plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.SCSI
 
+# Devices -> Default Printers (DEFAULT)
+    -
+        Description: Default Printers
+        HiveType: DEFAULT
+        Category: User Activity
+        KeyPath: Printers\ConvertUserDevModesCount
+        Recursive: true
+        Comment: "Displays the printer options available to the user"
+
 # --------------------
 # NETWORK SHARES
 # --------------------
@@ -1546,6 +1555,16 @@ Keys:
         Comment: "Hides Accounts from being visible on Logon Screen and Start Menu, 0 = Hide User Account, 1 = Show User Account, 65536 (0x10000) = Hide User Accounts Starting with e.g. J with this value would hide all accounts starting with J"
 
 # https://superuser.com/questions/618555/what-values-are-defined-for-the-specialaccounts-userlist-key-and-what-i-is-their/926453#926453
+
+# User Accounts -> Stored Identites (DEFAULT)
+
+    -
+        Description: Stored Identities
+        HiveType: DEFAULT
+        Category: User Accounts
+        KeyPath: Software\Microsoft\IdentityCRL\StoredIdentities\*\*
+        Recursive: true
+        Comment: "Displays information about Microsoft accounts that have signed into a computer"
 
 # --------------------
 # PROGRAM EXECUTION
@@ -2598,6 +2617,13 @@ Keys:
         KeyPath: WOW6432Node\Martin Prikryl
         Recursive: true
         Comment: "WinSCP"
+    -
+        Description: WinSCP
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\Martin Prikryl
+        Recursive: true
+        Comment: "WinSCP"
 
 # Third Party Applications -> Ares - https://www.ares.net/
 
@@ -2903,6 +2929,76 @@ Keys:
 
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
 
+# Third Party Applications -> Advanced Port Scanner - https://www.advanced-port-scanner.com/
+
+    -
+        Description: Advanced Port Scanner
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Famatech\advanced_port_scanner
+        Recursive: true
+        Comment: "Displays artifacts relating to Advanced Port Scanner"
+
+    -
+        Description: Advanced Port Scanner
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\Famatech\advanced_port_scanner
+        Recursive: true
+        Comment: "Displays artifacts relating to Advanced Port Scanner"
+
+# Third Party Applications -> Advanced IP Scanner - https://www.advanced-ip-scanner.com/
+
+    -
+        Description: Advanced IP Scanner
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Famatech\advanced_ip_scanner
+        Recursive: true
+        Comment: "Displays artifacts relating to Advanced IP Scanner"
+
+    -
+        Description: Advanced IP Scanner
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\Famatech\advanced_ip_scanner
+        Recursive: true
+        Comment: "Displays artifacts relating to Advanced IP Scanner"
+
+# Third Party Applications -> Angry IP Scanner - https://angryip.org/
+
+    -
+        Description: Angry IP Scanner - Legacy
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Angryziber\ipscan
+        Recursive: true
+        Comment: "Displays artifacts relating to Angry IP Scanner"
+
+    -
+        Description: Angry IP Scanner - Legacy
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\Angryziber\ipscan
+        Recursive: true
+        Comment: "Displays artifacts relating to Angry IP Scanner"
+
+    -
+        Description: Angry IP Scanner
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\JavaSoft\Prefs\ipscan
+        Recursive: true
+        Comment: "Displays artifacts relating to Angry IP Scanner"
+
+    -
+        Description: Angry IP Scanner
+        HiveType: DEFAULT
+        Category: Third Party Applications
+        KeyPath: Software\JavaSoft\Prefs\ipscan
+        Recursive: true
+        Comment: "Displays artifacts relating to Angry IP Scanner"
+
 # --------------------
 # CLOUD STORAGE
 # --------------------
@@ -2999,6 +3095,16 @@ Keys:
         KeyPath: Microsoft\Windows\CurrentVersion\Explorer\SyncRootManager\Dropbox*\UserSyncRoots
         Recursive: true
         Comment: "Displays the user's specified storage location for Dropbox"
+
+# Cloud Storage -> Cloud-related Folders (DEFAULT)
+
+    -
+        Description: Cloud-related Folders
+        HiveType: DEFAULT
+        Category: Cloud Storage
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\StorageSense\SuggestedFolders\*\Suggestions\*
+        Recursive: true
+        Comment: "Displays evidence of cloud-related folders that exist or have existed previously"
 
 # --------------------
 # SERVICES

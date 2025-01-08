@@ -53,6 +53,9 @@ Example entry, please follow this format:
 | 2.04 | 2024-08-25 | Added Various Windows Defender, Microsoft Security Essentials and SmartScreen artifacts. Also added LogonBanner and SpecialAccounts |
 | 2.05 | 2024-09-01 | Added new artifacts related to the third party application MobaTek MobaXTerm |
 | 2.06 | 2024-09-06 | Added various JPCert artifacts around remote access tools, Added LogonStats and an example of DEFAULT registry hive use with WinSCP  |
+| 2.07 | 2024-11-26 | Added new artifacts from the DEFAULT registry hive  |
+| 2.08 | 2024-12-07 | Added WinSCP DEFAULT artifact back and added Advanced IP Scanner and Advanced Port Scanner Artifacts |
+| 2.09 | 2024-12-19 | Added Angry IP Scanner Artifacts |
 
 # Documentation
 
