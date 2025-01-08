@@ -10,14 +10,12 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Exceptionless;
-using Exceptionless.Extensions;
 using RawCopy;
 using Registry;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using ServiceStack;
-
 #if NET462
 using System.Text;
 using Alphaleonis.Win32.Filesystem;
@@ -25,6 +23,7 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+
 #else
 using Directory = System.IO.Directory;
 using File = System.IO.File;
@@ -55,7 +54,6 @@ internal class Program
 
         _rootCommand = new RootCommand
         {
-            
             new Option<string>(
                 "-f",
                 "Hive to process. -f or -d is required"),
@@ -76,7 +74,7 @@ internal class Program
                 "--cn",
                 () => true,
                 "When true, compress names for profile based hives"),
-            
+
             new Option<bool>(
                 "--nop",
                 () => false,
@@ -98,12 +96,11 @@ internal class Program
         _rootCommand.Handler = CommandHandler.Create(DoWork);
 
         await _rootCommand.InvokeAsync(args);
-        
+
         Log.CloseAndFlush();
     }
 
-    #if NET6_0
-    
+#if NET6_0 || NET9_0
     static IEnumerable<string> FindFiles(string directory, IEnumerable<string> masks, HashSet<string> ignoreMasks, EnumerationOptions options,long minimumSize = 0)
     {
         foreach (var file in masks.AsParallel().SelectMany(searchPattern => Directory.EnumerateFiles(directory, searchPattern, options)))
@@ -144,13 +141,13 @@ internal class Program
             levelSwitch.MinimumLevel = LogEventLevel.Verbose;
             template = "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}";
         }
-        
+
         var conf = new LoggerConfiguration()
             .WriteTo.Console(outputTemplate: template)
             .MinimumLevel.ControlledBy(levelSwitch);
-      
+
         Log.Logger = conf.CreateLogger();
-        
+
         if (f.IsNullOrEmpty() == false ||
             d.IsNullOrEmpty() == false)
         {
@@ -171,17 +168,17 @@ internal class Program
         var hivesToProcess = new List<string>();
 
         Console.WriteLine();
-        Log.Information("{Header}",Header);
+        Log.Information("{Header}", Header);
         Console.WriteLine();
-        
-        Log.Information("Command line: {Args}",string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
+
+        Log.Information("Command line: {Args}", string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
         Console.WriteLine();
 
         if (f?.Length > 0)
         {
             if (File.Exists(f) == false)
             {
-                Log.Error("File {F} does not exist",f);
+                Log.Error("File {F} does not exist", f);
                 Console.WriteLine();
                 return;
             }
@@ -190,15 +187,13 @@ internal class Program
         }
         else if (d?.Length > 0)
         {
-           
-            
             if (Directory.Exists(d) == false)
             {
-                Log.Error("Directory {D} does not exist",d);
+                Log.Error("Directory {D} does not exist", d);
                 Console.WriteLine();
                 return;
             }
-           
+
             IEnumerable<string> files;
 
 #if NET462
@@ -214,7 +209,7 @@ internal class Program
             okFileParts.Add("DRIVERS");
             okFileParts.Add("DEFAULT");
             okFileParts.Add("COMPONENTS");
-              var directoryEnumerationFilters = new DirectoryEnumerationFilters();
+            var directoryEnumerationFilters = new DirectoryEnumerationFilters();
             directoryEnumerationFilters.InclusionFilter = fsei =>
             {
                 if (fsei.Extension.ToUpperInvariant() == ".LOG1" || fsei.Extension.ToUpperInvariant() == ".LOG2" ||
@@ -321,25 +316,24 @@ internal class Program
 
             if (Directory.Exists(@out) == false)
             {
-                Log.Information("Creating --out directory {Out}...",@out);
+                Log.Information("Creating --out directory {Out}...", @out);
                 Directory.CreateDirectory(@out);
             }
             else
             {
                 if (Directory.GetFiles(@out).Length > 0 && cn)
                 {
-                    Log.Warning("{Out} contains files! This may cause {Switch} to revert back to uncompressed names. Ideally, {Out2} should be empty",@out,"--cn",@out);
+                    Log.Warning("{Out} contains files! This may cause {Switch} to revert back to uncompressed names. Ideally, {Out2} should be empty", @out, "--cn", @out);
                     Console.WriteLine();
                 }
             }
 
-            Log.Information("Searching {D} for hives...",d);
-            
-            files =
-                Alphaleonis.Win32.Filesystem.Directory.EnumerateFileSystemEntries(d, dirEnumOptions, directoryEnumerationFilters);
+            Log.Information("Searching {D} for hives...", d);
 
-#elif NET6_0
-          
+            files =
+                Directory.EnumerateFileSystemEntries(d, dirEnumOptions, directoryEnumerationFilters);
+
+#elif NET6_0 || NET9_0
             var enumerationOptions = new EnumerationOptions
             {
                 IgnoreInaccessible = true,
@@ -378,7 +372,7 @@ internal class Program
 
             files = FindFiles(d, mask, ignoreExt, enumerationOptions, 4);
 
-            
+
 #endif
             var count = 0;
 
@@ -387,11 +381,11 @@ internal class Program
                 hivesToProcess.AddRange(files);
                 count = hivesToProcess.Count;
 
-                Log.Information("\tHives found: {Count:N0}",count);
+                Log.Information("\tHives found: {Count:N0}", count);
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex,"Could not access all files in {D}! Error: {Message}",d,ex.Message);
+                Log.Fatal(ex, "Could not access all files in {D}! Error: {Message}", d, ex.Message);
                 Console.WriteLine();
                 Log.Fatal("Rerun the program with Administrator privileges to try again");
                 Console.WriteLine();
@@ -424,11 +418,11 @@ internal class Program
 
             byte[] updatedBytes = null;
 
-            Log.Information("Processing hive {HiveToProcess}",hiveToProcess);
+            Log.Information("Processing hive {HiveToProcess}", hiveToProcess);
 
             if (File.Exists(hiveToProcess) == false)
             {
-                Log.Warning("{HiveToProcess} does not exist. Skipping",hiveToProcess);
+                Log.Warning("{HiveToProcess} does not exist. Skipping", hiveToProcess);
                 continue;
             }
 
@@ -455,7 +449,7 @@ internal class Program
                         throw new UnauthorizedAccessException("Administrator privileges not found!");
                     }
 
-                    Log.Warning("\t{HiveToProcess} is in use. Rerouting...",hiveToProcess);
+                    Log.Warning("\t{HiveToProcess} is in use. Rerouting...", hiveToProcess);
                     Console.WriteLine();
 
                     var files = new List<string>();
@@ -487,10 +481,10 @@ internal class Program
                         dirname = ".";
                     }
 
-                    
+
 #if NET462
-                 var   logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-#elif NET6_0
+                    var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+#elif NET6_0 || NET9_0
      var en = new EnumerationOptions
                     {
                      //   IgnoreInaccessible = true,
@@ -501,22 +495,20 @@ internal class Program
                     
                 var    logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?",en);
 #endif
-                    
 
-               
-                    
-                   // var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?",en);
+
+                    // var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?",en);
 
                     if (logFiles.Length == 0)
                     {
                         if (ca)
                         {
-                            Log.Information("\tHive {HiveToProcess} is dirty, but no logs were found in the same directory. {Switch} is true. Copying...",hiveToProcess,"--ca");
+                            Log.Information("\tHive {HiveToProcess} is dirty, but no logs were found in the same directory. {Switch} is true. Copying...", hiveToProcess, "--ca");
                             updatedBytes = File.ReadAllBytes(hiveToProcess);
                         }
                         else
                         {
-                            Log.Information("\tHive {HiveToProcess} is dirty and no transaction logs were found in the same directory. {Switch} is false. Skipping...",hivesToProcess,"--cn");
+                            Log.Information("\tHive {HiveToProcess} is dirty and no transaction logs were found in the same directory. {Switch} is false. Skipping...", hivesToProcess, "--cn");
                             continue;
                         }
                     }
@@ -547,52 +539,55 @@ internal class Program
                 {
                     if (ca)
                     {
-                        Log.Information("\tHive {HiveToProcess} is not dirty, but {Switch} is {Val}. Copying...",hiveToProcess,"--ca",true);
+                        Log.Information("\tHive {HiveToProcess} is not dirty, but {Switch} is {Val}. Copying...", hiveToProcess, "--ca", true);
                         updatedBytes = File.ReadAllBytes(hiveToProcess);
                     }
                     else
                     {
-                        Log.Information("\tHive {HiveToProcess} is not dirty and {Switch} is {Val}. Skipping...",hiveToProcess,"--ca",false);
+                        Log.Information("\tHive {HiveToProcess} is not dirty and {Switch} is {Val}. Skipping...", hiveToProcess, "--ca", false);
                         continue;
                     }
                 }
-                
-                Log.Verbose("out: {Out} DS {DS}",@out,System.IO.Path.DirectorySeparatorChar);
-                
+
+                Log.Verbose("out: {Out} DS {DS}", @out, System.IO.Path.DirectorySeparatorChar);
+
                 var outFile = hiveToProcess.Replace(":", "").Replace(System.IO.Path.DirectorySeparatorChar.ToString(), "_");
-                
-                Log.Verbose("Outfile: {OutFile}",outFile);
+
+                Log.Verbose("Outfile: {OutFile}", outFile);
 
                 if (nop)
                 {
                     outFile = Path.GetFileName(hiveToProcess);
-                    Log.Verbose("nop Outfile: {OutFile}",outFile);
+                    Log.Verbose("nop Outfile: {OutFile}", outFile);
                 }
-                
-                var outFileAll = Path.Combine(@out, outFile);
-                
-                Log.Verbose("outFileAll: {OutFileAll}",outFileAll);
 
-                
+                var outFileAll = Path.Combine(@out, outFile);
+
+                Log.Verbose("outFileAll: {OutFileAll}", outFileAll);
+
+
                 if (cn &&
                     (outFileAll.ToUpperInvariant().Contains("NTUSER") || outFileAll.ToUpperInvariant().Contains("USRCLASS")))
                 {
-                    Log.Verbose("In cn && ntuser|usrclass",outFileAll);
-                    
+                    Log.Verbose("In cn && ntuser|usrclass", outFileAll);
+
                     var profileName = "Undetermined";
                     var dl = "Undetermined";
-                    try {
+                    try
+                    {
                         profileName = Regex.Match(hiveToProcess, @"(.)\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[3].Value;
                         dl = Regex.Match(hiveToProcess, @"(.)\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[1].Value;
-                    } catch (ArgumentException ) {
+                    }
+                    catch (ArgumentException)
+                    {
                         // Syntax error in the regular expression
                     }
 
-                    
-                  // var dl = hiveToProcess[0].ToString();
-                  //  var segs = hiveToProcess.Split(Path.DirectorySeparatorChar);
 
-                  
+                    // var dl = hiveToProcess[0].ToString();
+                    //  var segs = hiveToProcess.Split(Path.DirectorySeparatorChar);
+
+
                     var filename = Path.GetFileName(hiveToProcess);
 
                     var outFile2 = $"{dl}_{profileName}_{filename}";
@@ -606,10 +601,10 @@ internal class Program
 
                     outFileAll = Path.Combine(@out, outFile);
 
-                    Log.Warning("\tFile {OldOut} exists! Saving as non-compressed name: {OutFileAll}",oldOut,outFileAll);
+                    Log.Warning("\tFile {OldOut} exists! Saving as non-compressed name: {OutFileAll}", oldOut, outFileAll);
                 }
 
-                Log.Information("\tSaving updated hive to {OutFileAll}",outFileAll);
+                Log.Information("\tSaving updated hive to {OutFileAll}", outFileAll);
 
                 if (Directory.Exists(Path.GetDirectoryName(outFileAll)) == false)
                 {
@@ -631,7 +626,7 @@ internal class Program
                 {
                     if (ex.Message.Contains("Administrator privileges not found"))
                     {
-                        Log.Fatal("Could not access {HiveToProcess} because it is in use",hiveToProcess);
+                        Log.Fatal("Could not access {HiveToProcess} because it is in use", hiveToProcess);
                         Console.WriteLine();
                         Log.Fatal("Rerun the program with Administrator privileges to try again");
                         Console.WriteLine();
@@ -643,7 +638,7 @@ internal class Program
                     }
                     else
                     {
-                        Log.Error(ex,"There was an error: {Message}",ex.Message);
+                        Log.Error(ex, "There was an error: {Message}", ex.Message);
                     }
                 }
             }
@@ -652,9 +647,7 @@ internal class Program
         _sw.Stop();
         Console.WriteLine();
 
-        Log.Information("Total processing time: {TotalSeconds:N3} seconds",_sw.Elapsed.TotalSeconds);
+        Log.Information("Total processing time: {TotalSeconds:N3} seconds", _sw.Elapsed.TotalSeconds);
         Console.WriteLine();
     }
-
-   
 }
