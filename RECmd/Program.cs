@@ -311,7 +311,7 @@ internal class Program
         }
     }
     
-#if NET6_0 || NET9_0
+#if NET6_0_OR_GREATER
     
     static IEnumerable<string> FindFiles(string directory, IEnumerable<string> masks, HashSet<string> ignoreMasks, EnumerationOptions options,long minimumSize = 0)
     {
@@ -698,7 +698,7 @@ internal class Program
 
                     Log.Information("Searching '{Vss} for hives...",$"VSS{target.Replace($"{VssDir}\\", "")}");
 
-                    #if NET6_0 || NET9_0
+                    #if NET6_0_OR_GREATER
 
                         files2 = FindFiles(target, mask, ignoreExt, enumerationOptions, 4);
 

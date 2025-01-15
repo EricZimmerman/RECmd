@@ -100,7 +100,7 @@ internal class Program
         Log.CloseAndFlush();
     }
 
-#if NET6_0 || NET9_0
+#if NET6_0_OR_GREATER
     static IEnumerable<string> FindFiles(string directory, IEnumerable<string> masks, HashSet<string> ignoreMasks, EnumerationOptions options,long minimumSize = 0)
     {
         foreach (var file in masks.AsParallel().SelectMany(searchPattern => Directory.EnumerateFiles(directory, searchPattern, options)))
@@ -333,7 +333,7 @@ internal class Program
             files =
                 Directory.EnumerateFileSystemEntries(d, dirEnumOptions, directoryEnumerationFilters);
 
-#elif NET6_0 || NET9_0
+#elif NET6_0_OR_GREATER
             var enumerationOptions = new EnumerationOptions
             {
                 IgnoreInaccessible = true,
@@ -484,7 +484,7 @@ internal class Program
 
 #if NET462
                     var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-#elif NET6_0 || NET9_0
+#elif NET6_0_OR_GREATER
      var en = new EnumerationOptions
                     {
                      //   IgnoreInaccessible = true,
