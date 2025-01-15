@@ -27,16 +27,10 @@ namespace RECmd
 
         public string PluginDetailFile { get; set; }
 
-        // Method to format the LastWriteTimestamp
-        public string GetFormattedTimestamp()
-        {
-            string dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
-            return LastWriteTimestamp?.ToString(dateTimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
-        }
-
         // Method to write the CSV
         public static void WriteCsv(string filePath, List<BatchCsvOut> data)
         {
+            string dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
             using (StreamWriter writer = new StreamWriter(filePath))
             {
                 // Write CSV header
@@ -45,7 +39,8 @@ namespace RECmd
                 // Write CSV rows
                 foreach (var item in data)
                 {
-                    writer.WriteLine($"{item.HivePath},{item.HiveType},{item.Description},{item.Category},{item.KeyPath},{item.ValueName},{item.ValueType},{item.ValueData},{item.ValueData2},{item.ValueData3},{item.Comment},{item.Recursive},{item.Deleted},{item.GetFormattedTimestamp()},{item.PluginDetailFile}");
+                    string formattedTimestamp = item.LastWriteTimestamp?.ToString(dateTimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
+                    writer.WriteLine($"{item.HivePath},{item.HiveType},{item.Description},{item.Category},{item.KeyPath},{item.ValueName},{item.ValueType},{item.ValueData},{item.ValueData2},{item.ValueData3},{item.Comment},{item.Recursive},{item.Deleted},{formattedTimestamp},{item.PluginDetailFile}");
                 }
             }
         }
