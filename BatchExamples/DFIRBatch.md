@@ -56,6 +56,7 @@ Example entry, please follow this format:
 | 2.07 | 2024-11-26 | Added new artifacts from the DEFAULT registry hive  |
 | 2.08 | 2024-12-07 | Added WinSCP DEFAULT artifact back and added Advanced IP Scanner and Advanced Port Scanner Artifacts |
 | 2.09 | 2024-12-19 | Added Angry IP Scanner Artifacts |
+| 2.10 | 2025-01-18 | Added System ProductType and ProductSuite Artifacts |
 
 # Documentation
 
