@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.09
+Version: 2.10
 Id: 2e1589f5-e31a-4bef-822f-075d56afdddd
 Keys:
 #
@@ -517,6 +517,55 @@ Keys:
         ValueName: BuildLab
         Recursive: false
         Comment: "Current OS build information"
+    -
+        Description: System Info (Current)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: CurrentControlSet\Control\ProductOptions
+        ValueName: ProductType
+        Recursive: false
+        Comment: "Indicates Type of System - WinNT = Workstation, LanmanNT = Domain Controller (DC - Primary or Backup), ServerNT = Server"
+
+# https://community.tenable.com/s/article/Finding-the-Correct-Audit-File-for-Windows-Member-Servers-and-Domain-Controllers?language=en_US
+# https://support.microsoft.com/?kbid=152078
+# https://www.betaarchive.com/wiki/index.php/Microsoft_KB_Archive/152078
+
+    -
+        Description: System Info (Current)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet00*\Control\ProductOptions
+        ValueName: ProductType
+        Recursive: false
+        Comment: "Indicates Type of System - WinNT = Workstation, LanmanNT = Domain Controller (DC - Primary or Backup), ServerNT = Server"
+
+# https://community.tenable.com/s/article/Finding-the-Correct-Audit-File-for-Windows-Member-Servers-and-Domain-Controllers?language=en_US
+# https://support.microsoft.com/?kbid=152078
+# https://www.betaarchive.com/wiki/index.php/Microsoft_KB_Archive/152078
+
+    -
+        Description: System Info (Current)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: CurrentControlSet\Control\ProductOptions
+        ValueName: ProductSuite
+        Recursive: false
+        Comment: "Indicates Product Licence on System"
+
+# https://support.microsoft.com/?kbid=152078
+# https://www.betaarchive.com/wiki/index.php/Microsoft_KB_Archive/152078
+
+    -
+        Description: System Info (Current)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet00*\Control\ProductOptions
+        ValueName: ProductSuite
+        Recursive: false
+        Comment: "Indicates Product Licence on System"
+
+# https://support.microsoft.com/?kbid=152078
+# https://www.betaarchive.com/wiki/index.php/Microsoft_KB_Archive/152078
 
 # System Info -> System Info (Historical)
 
