@@ -576,7 +576,7 @@ internal class Program
                     try
                     {
                         profileName = Regex.Match(hiveToProcess, @"(.)\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[3].Value;
-                        dl = Regex.Match(hiveToProcess, @"(.)\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[1].Value;
+                        dl = Regex.Match(hiveToProcess, @"(.):\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[1].Value;
                     }
                     catch (ArgumentException)
                     {
