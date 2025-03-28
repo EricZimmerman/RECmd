@@ -3604,7 +3604,7 @@ Keys:
         KeyPath: SOFTWARE\Microsoft\Windows NT\CurrentVersion\WinLogon
         ValueName: Userinit
         Recursive: false
-        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'C:\Windows\system32\userinit.exe,'."
+        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'userinit.exe,'."
 
 # https://attack.mitre.org/techniques/T1547/004
 # https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
@@ -3616,7 +3616,7 @@ Keys:
         KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
         ValueName: Userinit
         Recursive: false
-        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'C:\Windows\system32\userinit.exe,'."
+        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'userinit.exe,'."
 
 # https://attack.mitre.org/techniques/T1547/004
 # https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
@@ -3628,7 +3628,7 @@ Keys:
         KeyPath: WOW6432Node\Microsoft\Windows NT\CurrentVersion\WinLogon
         ValueName: Userinit
         Recursive: false
-        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'C:\Windows\system32\userinit.exe,'."
+        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'userinit.exe,'."
 
 # https://attack.mitre.org/techniques/T1547/004
 # https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
