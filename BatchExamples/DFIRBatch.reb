@@ -1,7 +1,7 @@
 Description: DFIR RECmd Batch File
-Author: Andrew Rathbun
-Version: 2.10
-Id: 2e1589f5-e31a-4bef-822f-075d56afdddd
+Author: Andrew Rathbun, esecrpm
+Version: 2.11
+Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
 # DFIRBatch README: https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.md
@@ -3560,6 +3560,78 @@ Keys:
 # --------------------
 # THREAT HUNTING
 # --------------------
+
+    -
+        Description: WinLogon Shell
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: SOFTWARE\Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: Shell
+        Recursive: false
+        Comment: "Contains the default shell environment for Windows, normally 'explorer.exe'"
+
+# https://attack.mitre.org/techniques/T1547/004
+# https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
+
+    -
+        Description: WinLogon Shell
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: Shell
+        Recursive: false
+        Comment: "Contains the default shell environment for Windows, normally 'explorer.exe'"
+
+# https://attack.mitre.org/techniques/T1547/004
+# https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
+
+    -
+        Description: WinLogon Shell
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: WOW6432Node\Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: Shell
+        Recursive: false
+        Comment: "Contains the default shell environment for Windows, normally 'explorer.exe'"
+
+# https://attack.mitre.org/techniques/T1547/004
+# https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
+
+    -
+        Description: WinLogon UserInit
+        HiveType: NTUSER
+        Category: Threat Hunting
+        KeyPath: SOFTWARE\Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: Userinit
+        Recursive: false
+        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'userinit.exe,'."
+
+# https://attack.mitre.org/techniques/T1547/004
+# https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
+
+    -
+        Description: WinLogon UserInit
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: Userinit
+        Recursive: false
+        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'userinit.exe,'."
+
+# https://attack.mitre.org/techniques/T1547/004
+# https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
+
+    -
+        Description: WinLogon UserInit
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: WOW6432Node\Microsoft\Windows NT\CurrentVersion\WinLogon
+        ValueName: Userinit
+        Recursive: false
+        Comment: "Userinit.exe is launched by winlogon.exe and runs logon scripts for the user, reestablishes network connections, and then starts Explorer.exe. It also specifies programs Winlogon should run when a user logs on. Typically contains 'userinit.exe,'."
+
+# https://attack.mitre.org/techniques/T1547/004
+# https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1547.004/T1547.004.md
 
     -
         Description: Shadow RDP Sessions
