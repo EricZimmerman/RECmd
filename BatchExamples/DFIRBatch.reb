@@ -3048,7 +3048,7 @@ Keys:
         Recursive: true
         Comment: "Displays artifacts relating to Angry IP Scanner"
 
-# Third Party Applications -> Windows Notepad 
+# Third Party Applications -> Windows Notepad
 
     -
         Description: Windows Notepad
