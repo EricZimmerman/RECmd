@@ -3048,6 +3048,32 @@ Keys:
         Recursive: true
         Comment: "Displays artifacts relating to Angry IP Scanner"
 
+# Third Party Applications -> Windows Notepad 
+
+    -
+        Description: Windows Notepad
+        HiveType: OTHER
+        Category: Third Party Application
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32
+        Recursive: true
+        Comment: "MRU from %localappdata%\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat"
+    -
+        Description: Windows Notepad
+        HiveType: OTHER
+        Category: Third Party Application
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\TypedPaths
+        Recursive: true
+        Comment: "TypedPaths from %localappdata%\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat"
+    -
+        Description: Windows Notepad
+        HiveType: OTHER
+        Category: Third Party Application
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
+        Recursive: true
+        Comment: "MountPoints2 from %localappdata%\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat"
+
+# https://ogmini.github.io/2025/06/12/Windows-Notepad-Revisiting-Application-Hive.html / https://ogmini.github.io/research#windows-notepad
+
 # --------------------
 # CLOUD STORAGE
 # --------------------
