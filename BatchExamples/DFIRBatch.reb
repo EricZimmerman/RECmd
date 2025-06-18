@@ -1,7 +1,7 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun, esecrpm
-Version: 2.11
-Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
+Version: 2.12
+Id: 6e68cc0b-c945-428b-a‘b91-c02d91c877b8
 Keys:
 #
 # DFIRBatch README: https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.md
@@ -3056,23 +3056,24 @@ Keys:
         Category: Third Party Application
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32
         Recursive: true
-        Comment: "MRU from %localappdata%\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat"
+        Comment: "MRU from .\AppData\Local\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat”
     -
         Description: Windows Notepad
         HiveType: OTHER
         Category: Third Party Application
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\TypedPaths
         Recursive: true
-        Comment: "TypedPaths from %localappdata%\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat"
+        Comment: "TypedPaths from .\AppData\Local\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat”
     -
         Description: Windows Notepad
         HiveType: OTHER
         Category: Third Party Application
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
         Recursive: true
-        Comment: "MountPoints2 from %localappdata%\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat"
+        Comment: "MountPoints2 from .\AppData\Local\Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\SystemAppData\Helium\User.dat”
 
-# https://ogmini.github.io/2025/06/12/Windows-Notepad-Revisiting-Application-Hive.html / https://ogmini.github.io/research#windows-notepad
+# https://ogmini.github.io/2025/06/12/Windows-Notepad-Revisiting-Application-Hive.html
+# https://ogmini.github.io/research#windows-notepad
 
 # --------------------
 # CLOUD STORAGE
