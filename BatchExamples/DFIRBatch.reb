@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun, esecrpm
-Version: 2.11
+Version: 2.12
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -2313,6 +2313,27 @@ Keys:
 # Do not include anything in NTUSER or SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall as that is covered already by Installed Software entries
 # Sometimes, there are values for third party applications not covered under the standard DisplayVersion, Publisher, InstallLocation, InstallDate, and DisplayName entries. I've seen Inno Setup: User, Inno Setup: Language, and Inno Setup: App Path
 # For this section, please include a subheader and a URL, even if its only one entry per program
+
+# Third Party Applications -> MobaXterm
+
+    -
+        Description: MobaXTerm Sessions
+        HiveType: NTUSER
+        Category: Third-Party Applications
+        KeyPath: SOFTWARE\MobaXterm
+        Recursive: true
+        Comment: "Collects all MobaXTerm session artifacts"
+
+    -
+        Description: MobaXTerm
+        HiveType: NTUSER
+        Category: Third-Party Applications
+        KeyPath: SOFTWARE\Mobatek
+        Recursive: true
+        Comment: "Collects all MobaXTerm/MobaTek administrative artifacts"
+
+# https://mobaxterm.mobatek.net/
+
 
 # Third Party Applications -> Citrix
 
