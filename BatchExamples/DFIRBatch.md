@@ -58,6 +58,7 @@ Example entry, please follow this format:
 | 2.09 | 2024-12-19 | Added Angry IP Scanner Artifacts |
 | 2.10 | 2025-01-18 | Added System ProductType and ProductSuite Artifacts |
 | 2.11 | 2025-03-31 | Added Threat Hunt for WinLogon Shell and Userinit values |
+| 2.12 | 2025-07-01 | Added MobaXTerm artifacts [Third Party Applications] |
 
 # Documentation
 
