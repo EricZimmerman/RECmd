@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
-Author: Andrew Rathbun, esecrpm
-Version: 2.12
+Author: Andrew Rathbun
+Version: 2.13
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -4409,5 +4409,120 @@ Keys:
 
 # https://twitter.com/RoxpinTeddy/status/1531726171292983297?t=yan4rRk3w1epMk2Vxncfxw&s=19
 # https://businessinsights.bitdefender.com/technical-advisory-cve-2022-30190-zero-day-vulnerability-follina-in-microsoft-support-diagnostic-tool
+
+# Threat Hunting -> User Account Control (UAC)
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: EnableLUA
+        Recursive: false
+        Comment: "Run all administrators in Admin Approval Mode - Disables UAC, 0 = Disabled (UAC Off), 1 = Enabled (UAC On)"
+
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/958053ae-5397-4f96-977f-b7700ee461ec
+# https://learn.microsoft.com/en-us/windows-hardware/customize/desktop/unattend/microsoft-windows-lua-settings-enablelua
+# https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1548.002/T1548.002.md#atomic-test-8---disable-uac-using-regexe
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: ConsentPromptBehaviorAdmin
+        Recursive: false
+        Comment: "Behavior of the elevation prompt for administrators in Admin Approval Mode - Disables UAC, 0 = Disabled (UAC Off), 1 = Prompt for credentials (Secure Desktop), 2 = Prompt for Consent Yes No (Secure Desktop), 3 = Prompt for credentials (Secure Desktop Off), 4 = Prompt for Consent Yes No (Secure Desktop Off), 5 = Prompt for Non-Windows Binaries (Default)"
+
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/341747f5-6b5d-4d30-85fc-fa1cc04038d4
+# https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1548.002/T1548.002.md#atomic-test-22---disable-uac-admin-consent-prompt-via-consentpromptbehavioradmin-registry-key
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: ConsentPromptBehaviorUser
+        Recursive: false
+        Comment: "Behavior of the elevation prompt for standard users, 0 = Deny Elevation Requests, 1 = Prompt for credentials (Secure Desktop - Default), 3 = Prompt for credentials (Secure Desktop Off)"
+
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/15f4f7b3-d966-4ff4-8393-cb22ea1c3a63
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: FilterAdministratorToken
+        Recursive: false
+        Comment: "Use Admin Approval Mode for the built-in Administrator account, 0 = Disabled (UAC Off - Default), 1 = Enabled (UAC On)"
+
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/7c705718-f58e-4886-8057-37c8fd9aede1
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: EnableUIADesktopToggle
+        Recursive: false
+        Comment: "Allow UIAccess applications to prompt for elevation without using the secure desktop, 0 = Disabled (Secure Desktop On - Default), 1 = Enabled (Secure Desktop Off)"
+
+# https://learn.microsoft.com/en-us/windows/security/application-security/application-control/user-account-control/settings-and-configuration?tabs=intune
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: EnableInstallerDetection
+        Recursive: false
+        Comment: "Detect application installations and prompt for elevation, 0 = Disabled (No Prompt), 1 = Enabled (Prompt)"
+
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/c2b4efc5-2fe8-4dc9-95f7-2417b3d4cc6d
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: ValidateAdminCodeSignatures
+        Recursive: false
+        Comment: "Only elevate executable files that are signed and validated, 0 = Disabled (Default), 1 = Enabled (Force PKI certification path validation)"
+
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/a9b816e0-075b-4674-a1a9-cecd1d9523e7
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: EnableSecureUIAPaths
+        Recursive: false
+        Comment: "Only elevate UIAccess applications that are installed in secure locations, 0 = Disabled (User Interface Accessibility Integrity Level in Insecure Locations Allowed), 1 = Enabled (Default)"
+
+# https://learn.microsoft.com/en-us/windows/security/application-security/application-control/user-account-control/settings-and-configuration?tabs=intune
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: PromptOnSecureDesktop
+        Recursive: false
+        Comment: "Switch to the secure desktop when prompting for elevation, 0 = Disabled (Secure Desktop Off), 1 = Enabled (Default)"
+
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/9ad50fd3-4d8d-4870-9f5b-978ce292b9d8
+
+    -
+        Description: User Account Control (UAC)
+        HiveType: SOFTWARE
+        Category: Threat Hunting
+        KeyPath: Microsoft\Windows\CurrentVersion\Policies\System
+        ValueName: EnableVirtualization
+        Recursive: false
+        Comment: "Virtualize file and registry write failures to per-user locations, 0 = Disabled (Fail to Write Data), 1 = Enabled (Default)"
+
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpsb/932a34b5-48e7-44c0-b6d2-a57aadef1799
 
 # More to come...stay tuned!
