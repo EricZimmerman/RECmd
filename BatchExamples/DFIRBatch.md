@@ -61,6 +61,7 @@ Example entry, please follow this format:
 | 2.11 | 2025-03-31 | Added Threat Hunt for WinLogon Shell and Userinit values |
 | 2.12 | 2025-07-01 | Added MobaXTerm artifacts [Third Party Applications] |
 | 2.13 | 2025-07-01 | Added User Account Control Artifacts |
+| 2.14 | 2025-07-05 | Added System Info, Processor Info, Recent File List and Registry Editor Usage Artifacts |
 
 # Documentation
 

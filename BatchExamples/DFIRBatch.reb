@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.13
+Version: 2.14
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -519,6 +519,38 @@ Keys:
         Comment: "Current OS build information"
     -
         Description: System Info (Current)
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion
+        ValueName: BuildLabEx
+        Recursive: false
+        Comment: "Current OS extended build information"
+    -
+        Description: System Info (Current)
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion
+        ValueName: ReleaseID
+        Recursive: false
+        Comment: "Current OS Release ID - Deprecated in Windows 10 21H1 and Newer (Shows 2009)"
+    -
+        Description: System Info (Current)
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion
+        ValueName: CSDVersion
+        Recursive: false
+        Comment: "Current OS Service Pack Number"
+    -
+        Description: System Info (Current)
+        HiveType: SOFTWARE
+        Category: System Info
+        KeyPath: Microsoft\Windows NT\CurrentVersion
+        ValueName: UBR
+        Recursive: false
+        Comment: "Current OS Update Build Revision Number"
+    -
+        Description: System Info (Current)
         HiveType: SYSTEM
         Category: System Info
         KeyPath: CurrentControlSet\Control\ProductOptions
@@ -685,6 +717,38 @@ Keys:
         ValueName: BuildLab
         Recursive: false
         Comment: "Historical OS build information"
+    -
+        Description: System Info (Historical)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: Setup\Source OS*
+        ValueName: BuildLabEx
+        Recursive: false
+        Comment: "Historical OS extended build information"
+    -
+        Description: System Info (Historical)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: Setup\Source OS*
+        ValueName: ReleaseID
+        Recursive: false
+        Comment: "Historical OS Release ID - Deprecated in Windows 10 21H1 and Newer (Shows 2009)"
+    -
+        Description: System Info (Historical)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: Setup\Source OS*
+        ValueName: CSDVersion
+        Recursive: false
+        Comment: "Historical OS Service Pack Number"
+    -
+        Description: System Info (Historical)
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: Setup\Source OS*
+        ValueName: UBR
+        Recursive: false
+        Comment: "Historical OS Update Build Revision Number"
 
 # https://az4n6.blogspot.com/2017/02/when-windows-lies.html
 # https://www.nextofwindows.com/when-was-my-windows-10-originally-installed
@@ -1342,6 +1406,75 @@ Keys:
 # NetworkSetup2 plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.NetworkSetup2
 # https://thinkdfir.com/2019/10/05/hunting-for-mac-addresses
 
+# System Info - Processor Information
+
+    -
+        Description: Processor Information
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: CurrentControlSet\Control\Session Manager\Environment
+        ValueName: PROCESSOR_ARCHITECTURE
+        Recursive: False
+        Comment: "Displays Processor Architecture of this system"
+    -
+        Description: Processor Information
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\Session Manager\Environment
+        ValueName: PROCESSOR_ARCHITECTURE
+        Recursive: False
+        Comment: "Displays Processor Architecture of this system"
+    -
+        Description: Processor Information
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: CurrentControlSet\Control\Session Manager\Environment
+        ValueName: PROCESSOR_IDENTIFIER
+        Recursive: False
+        Comment: "Displays Processor Identifier of this system"
+    -
+        Description: Processor Information
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\Session Manager\Environment
+        ValueName: PROCESSOR_IDENTIFIER
+        Recursive: False
+        Comment: "Displays Processor Identifier of this system"
+    -
+        Description: Processor Information
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: CurrentControlSet\Control\Session Manager\Environment
+        ValueName: PROCESSOR_LEVEL
+        Recursive: False
+        Comment: "Displays Processor Level of this system"
+    -
+        Description: Processor Information
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\Session Manager\Environment
+        ValueName: PROCESSOR_LEVEL
+        Recursive: False
+        Comment: "Displays Processor Level of this system"
+    -
+        Description: Processor Information
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: CurrentControlSet\Control\Session Manager\Environment
+        ValueName: PROCESSOR_REVISION
+        Recursive: False
+        Comment: "Displays Processor Revision of this system"
+    -
+        Description: Processor Information
+        HiveType: SYSTEM
+        Category: System Info
+        KeyPath: ControlSet*\Control\Session Manager\Environment
+        ValueName: PROCESSOR_REVISION
+        Recursive: False
+        Comment: "Displays Processor Revision of this system"
+
+# https://learn.microsoft.com/en-us/troubleshoot/windows-server/setup-upgrade-and-drivers/determine-the-type-of-processor
+
 # --------------------
 # DEVICES
 # --------------------
@@ -1977,8 +2110,46 @@ Keys:
         KeyPath: Software\*\*\Recent File List
         Recursive: false
         Comment: "Displays recent files accessed by the user with an application"
+    -
+        Description: Recent File List
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Paint\Recent File List
+        Recursive: false
+        Comment: "Displays recent files accessed by the user with MS Paint"
 
-# https://www.forensafe.com/blogs/paintmru.html
+# https://forensafe.com/blogs/PaintMRU.html
+
+    -
+        Description: Recent File List
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Wordpad\Recent File List
+        Recursive: false
+        Comment: "Displays recent files accessed by the user with MS WordPad"
+
+# https://forensafe.com/blogs/wordpad_recent_files.html
+
+    -
+        Description: Registry Editor Usage
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Regedit
+        ValueName: LastKey
+        Recursive: false
+        Comment: "Displays the last registry key accessed by the user in RegEdit"
+
+# https://forensafe.com/blogs/lastkey.html
+
+    -
+        Description: Registry Editor Usage
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Regedit\Favorites
+        Recursive: false
+        Comment: "Displays favourite registry keys saved by the user in RegEdit"
+
+# https://www.tenforums.com/tutorials/6961-add-remove-registry-favorites-windows.html
 
     -
         Description: Recent Folder List
@@ -2006,13 +2177,6 @@ Keys:
         HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\*\*\RecentFind
-        Recursive: false
-        Comment: ""
-    -
-        Description: Recent File List
-        HiveType: NTUSER
-        Category: User Activity
-        KeyPath: Software\Microsoft\*\Recent File List
         Recursive: false
         Comment: ""
     -
