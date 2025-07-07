@@ -506,6 +506,9 @@ internal class Program
             okFileParts.Add("DRIVERS");
             okFileParts.Add("COMPONENTS");
             okFileParts.Add("DEFAULT");
+            okFileParts.Add("User");
+            okFileParts.Add("UserClasses");
+            okFileParts.Add("settings");
 
             IEnumerable<string> files2;
 
@@ -646,7 +649,10 @@ internal class Program
                 "*SYSCACHE.hve",
                 "*SECURITY",
                 "*DRIVERS",
-                "*COMPONENTS"
+                "*COMPONENTS",
+                "*User.dat",
+                "*UserClasses.dat",
+                "*settings.dat"
             };
             var ignoreExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
