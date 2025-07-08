@@ -509,6 +509,7 @@ internal class Program
             okFileParts.Add("User");
             okFileParts.Add("UserClasses");
             okFileParts.Add("settings");
+            okFileParts.Add("Registry");
 
             IEnumerable<string> files2;
 
@@ -652,7 +653,8 @@ internal class Program
                 "*COMPONENTS",
                 "*User.dat",
                 "*UserClasses.dat",
-                "*settings.dat"
+                "*settings.dat",
+                "*Registry.dat"
             };
             var ignoreExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
