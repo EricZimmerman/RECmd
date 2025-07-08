@@ -52,7 +52,11 @@ public class Key
         [Description("userdiff")] userdiff = 14,
         [Description("BBI")] Bbi = 15,
         [Description("VSMIDK")] Vsmidk = 16,
-        [Description("DEFAULT")] Default = 17
+        [Description("DEFAULT")] Default = 17,
+        [Description("User")] User = 18,
+        [Description("UserClasses")] UserClasses = 19,
+        [Description("settings")] settings = 20,
+        [Description("Registry")] Registry = 21
     }
 
     public string Description { get; set; }
