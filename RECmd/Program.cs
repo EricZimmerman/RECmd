@@ -506,10 +506,10 @@ internal class Program
             okFileParts.Add("DRIVERS");
             okFileParts.Add("COMPONENTS");
             okFileParts.Add("DEFAULT");
-            okFileParts.Add("User");
-            okFileParts.Add("UserClasses");
-            okFileParts.Add("settings");
-            okFileParts.Add("Registry");
+            okFileParts.Add("USER");
+            okFileParts.Add("USERCLASSES");
+            okFileParts.Add("SETTINGS");
+            okFileParts.Add("REGISTRY");
 
             IEnumerable<string> files2;
 
