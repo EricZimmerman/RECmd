@@ -641,7 +641,7 @@ internal class Program
             var mask = new List<string>
             {
                 "*USRCLASS.DAT",
-                "*NTUSER.DAT",
+                "*USER.DAT",
                 "*SYSTEM",
                 "*SAM",
                 "*SOFTWARE",
@@ -651,7 +651,6 @@ internal class Program
                 "*SECURITY",
                 "*DRIVERS",
                 "*COMPONENTS",
-                "*User.dat",
                 "*UserClasses.dat",
                 "*settings.dat",
                 "*Registry.dat"
