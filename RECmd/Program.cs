@@ -506,10 +506,10 @@ internal class Program
             okFileParts.Add("DRIVERS");
             okFileParts.Add("COMPONENTS");
             okFileParts.Add("DEFAULT");
-            okFileParts.Add("User");
-            okFileParts.Add("UserClasses");
-            okFileParts.Add("settings");
-            okFileParts.Add("Registry");
+            okFileParts.Add("USER");
+            okFileParts.Add("USERCLASSES");
+            okFileParts.Add("SETTINGS");
+            okFileParts.Add("REGISTRY");
 
             IEnumerable<string> files2;
 
@@ -641,7 +641,7 @@ internal class Program
             var mask = new List<string>
             {
                 "*USRCLASS.DAT",
-                "*NTUSER.DAT",
+                "*USER.DAT",
                 "*SYSTEM",
                 "*SAM",
                 "*SOFTWARE",
@@ -651,7 +651,6 @@ internal class Program
                 "*SECURITY",
                 "*DRIVERS",
                 "*COMPONENTS",
-                "*User.dat",
                 "*UserClasses.dat",
                 "*settings.dat",
                 "*Registry.dat"
