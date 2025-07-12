@@ -9,6 +9,7 @@ Special thanks to those who have contributed to this Batch file:
 * Chris Kudless
 * [Reece394](https://github.com/reece394)
 * [esecrpm](https://github.com/esecrpm)
+* [ogmini](https://github.com/ogmini)
 
 # Version History
 
@@ -62,6 +63,7 @@ Example entry, please follow this format:
 | 2.12 | 2025-07-01 | Added MobaXTerm artifacts [Third Party Applications] |
 | 2.13 | 2025-07-01 | Added User Account Control Artifacts |
 | 2.14 | 2025-07-05 | Added System Info, Processor Info, Recent File List and Registry Editor Usage Artifacts |
+| 2.15 | 2025-07-12 | Added Initial User.dat Windows Store UWP and WinSCP Windows Store Artifacts |
 
 # Documentation
 

@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.14
+Version: 2.15
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -1574,6 +1574,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
         Recursive: true
         Comment: "Mount Points - NTUSER"
+    -
+        Description: MountPoints2
+        HiveType: User
+        Category: Devices
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
+        Recursive: true
+        Comment: "Mount Points - User.dat Windows Store UWP"
 
 # https://www.sans.org/security-resources/posters/windows-forensic-analysis/170/download
 # https://eforensicsmag.com/investigating-usb-drives-using-mount-points-not-drive-letters-by-ali-hadi/
@@ -1838,6 +1845,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\CIDSizeMRU
         Recursive: false
         Comment: "Recently ran applications, lower MRU # (Value Data3) = more recent"
+    -
+        Description: CIDSizeMRU
+        HiveType: User
+        Category: Program Execution
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\CIDSizeMRU
+        Recursive: false
+        Comment: "Recently ran applications, lower MRU # (Value Data3) = more recent - Windows Store UWP"
 
 # CIDSizeMRU plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.CIDSizeMRU
 # https://windowsir.blogspot.com/2013/07/howto-determine-user-access-to-files.html
@@ -1887,6 +1901,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\*\Count
         Recursive: false
         Comment: "GUI-based programs launched from the desktop"
+    -
+        Description: UserAssist
+        HiveType: User
+        Category: Program Execution
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\*\Count
+        Recursive: false
+        Comment: "GUI-based programs launched from the desktop - Windows Store UWP"
 
 # UserAssist plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.UserAssist
 # https://www.sans.org/security-resources/posters/windows-forensic-analysis/170/download
@@ -1980,6 +2001,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\TypedPaths
         Recursive: false
         Comment: "Displays paths that were typed by the user in Windows Explorer"
+    -
+        Description: TypedPaths
+        HiveType: User
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\TypedPaths
+        Recursive: false
+        Comment: "Displays paths that were typed by the user in Windows Explorer - Windows Store UWP"
 
 # https://www.hecfblog.com/2018/09/daily-blog-483-typed-paths-amnesia.html
 # http://windowsir.blogspot.com/2013/07/howto-determine-user-access-to-files.html
@@ -2020,6 +2048,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery
         Recursive: true
         Comment: "User Searches"
+    -
+        Description: WordWheelQuery
+        HiveType: User
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery
+        Recursive: true
+        Comment: "User Searches - Windows Store UWP"
 
 # https://www.sans.org/security-resources/posters/windows-forensic-analysis/170/download
 # https://tzworks.net/prototype_page.php?proto_id=19
@@ -2044,6 +2079,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSavePidlMRU
         Recursive: false
         Comment: "Tracks files that have been opened or saved within a Windows shell dialog box"
+    -
+        Description: OpenSavePidlMRU
+        HiveType: User
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSavePidlMRU
+        Recursive: false
+        Comment: "Tracks files that have been opened or saved within a Windows shell dialog box - Windows Store UWP"
 
 # OpenSavePidlMRU plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.OpenSavePidlMRU
 # https://www.sans.org/blog/opensavemru-and-lastvisitedmru/
@@ -2065,6 +2107,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedPidlMRU
         Recursive: false
         Comment: "Tracks the specific executable used by an application to open the files documented in OpenSavePidlMRU"
+    -
+        Description: LastVisitedPidlMRU
+        HiveType: User
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedPidlMRU
+        Recursive: false
+        Comment: "Tracks the specific executable used by an application to open the files documented in OpenSavePidlMRU - Windows Store UWP"
 
 # LastVisitedPidlMRU plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.LastVisitedPidlMRU
 # https://www.sans.org/blog/opensavemru-and-lastvisitedmru
@@ -2095,6 +2144,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs
         Recursive: true
         Comment: "Files recently opened from Windows Explorer"
+    -
+        Description: RecentDocs
+        HiveType: User
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs
+        Recursive: true
+        Comment: "Files recently opened from Windows Explorer - Windows Store UWP"
 
 # RecentDocs plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.RecentDocs
 # https://forensic4cast.com/2019/03/the-recentdocs-key-in-windows-10/
@@ -2119,6 +2175,17 @@ Keys:
         Comment: "Displays recent files accessed by the user with MS Paint"
 
 # https://forensafe.com/blogs/PaintMRU.html
+
+    -
+        Description: Recent File List
+        HiveType: User
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Paint\Recent File List
+        Recursive: false
+        Comment: "Displays recent files accessed by the user with MS Paint Windows Store Version"
+
+# https://forensafe.com/blogs/PaintMRU.html
+# https://ogmini.github.io/2025/06/14/Microsoft-Paint-Application-Hive.html
 
     -
         Description: Recent File List
@@ -2857,6 +2924,13 @@ Keys:
         KeyPath: Software\Martin Prikryl
         Recursive: true
         Comment: "WinSCP"
+    -
+        Description: WinSCP
+        HiveType: User
+        Category: Third Party Applications
+        KeyPath: Software\Martin Prikryl
+        Recursive: true
+        Comment: "WinSCP Windows Store Version"
 
 # Third Party Applications -> Ares - https://www.ares.net/
 
@@ -3627,6 +3701,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts
         Recursive: false
         Comment: "Tracks programs associated with file extensions"
+    -
+        Description: File Extensions
+        HiveType: User
+        Category: Installed Software
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts
+        Recursive: false
+        Comment: "Tracks programs associated with file extensions - Windows Store UWP"
 
 # FileExts plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.FileExts
 # https://www.marshall.edu/forensics/files/Brewer-PosterFinal.pdf
