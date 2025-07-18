@@ -64,6 +64,7 @@ Example entry, please follow this format:
 | 2.13 | 2025-07-01 | Added User Account Control Artifacts |
 | 2.14 | 2025-07-05 | Added System Info, Processor Info, Recent File List and Registry Editor Usage Artifacts |
 | 2.15 | 2025-07-12 | Added Initial User.dat Windows Store UWP and WinSCP Windows Store Artifacts |
+| 2.16 | 2025-07-18 | Added More User.dat Windows Store UWP Artifacts - Network Share and WordPad |
 
 # Documentation
 

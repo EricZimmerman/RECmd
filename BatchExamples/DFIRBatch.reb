@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.15
+Version: 2.16
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -1648,6 +1648,14 @@ Keys:
         Comment: "Displays the UNC path for a mounted network share"
     -
         Description: Network Shares
+        HiveType: User
+        Category: Network Shares
+        KeyPath: Network
+        ValueName: RemotePath
+        Recursive: true
+        Comment: "Displays the UNC path for a mounted network share - Windows Store UWP"
+    -
+        Description: Network Shares
         HiveType: NTUSER
         Category: Network Shares
         KeyPath: Network
@@ -1656,12 +1664,28 @@ Keys:
         Comment: "Displays the user account associated with the mounted network share"
     -
         Description: Network Shares
+        HiveType: User
+        Category: Network Shares
+        KeyPath: Network
+        ValueName: UserName
+        Recursive: true
+        Comment: "Displays the user account associated with the mounted network share - Windows Store UWP"
+    -
+        Description: Network Shares
         HiveType: NTUSER
         Category: Network Shares
         KeyPath: Network
         ValueName: ProviderName
         Recursive: true
         Comment: "Displays the provider of the mounted network share"
+    -
+        Description: Network Shares
+        HiveType: User
+        Category: Network Shares
+        KeyPath: Network
+        ValueName: ProviderName
+        Recursive: true
+        Comment: "Displays the provider of the mounted network share - Windows Store UWP"
 
 # https://social.technet.microsoft.com/Forums/ie/en-US/65eb8a2f-988f-40a7-b6ff-616a050c8efc/list-all-mapped-drives-for-all-users-that-have-logged-into-a-computer?forum=ITCG
 
@@ -1672,6 +1696,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\Map Network Drive MRU
         Recursive: false
         Comment: "Displays drives that were mapped by the user"
+    -
+        Description: Network Drive MRU
+        HiveType: User
+        Category: Network Shares
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\Map Network Drive MRU
+        Recursive: false
+        Comment: "Displays drives that were mapped by the user - Windows Store UWP"
 
 # https://community.spiceworks.com/topic/137045-remove-previously-mapped-network-drive-paths
 # https://answers.microsoft.com/en-us/windows/forum/windows_7-networking/cleanup-network-drives-list/1247aca3-deb6-493d-b937-24b40087cbc7?auth=1
@@ -2194,6 +2225,13 @@ Keys:
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Wordpad\Recent File List
         Recursive: false
         Comment: "Displays recent files accessed by the user with MS WordPad"
+    -
+        Description: Recent File List
+        HiveType: User
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Wordpad\Recent File List
+        Recursive: false
+        Comment: "Displays recent files accessed by the user with MS WordPad Windows Store Version"
 
 # https://forensafe.com/blogs/wordpad_recent_files.html
 
