@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.16
+Version: 2.17
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -2065,6 +2065,27 @@ Keys:
         KeyPath: SOFTWARE\Microsoft\Office\*\*\User MRU\*\File MRU
         Recursive: false
         Comment: "Microsoft Office Recent Files, lower Item value (Value Name) = more recent"
+    -
+        Description: Microsoft Office MRU
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: SOFTWARE\Microsoft\Office\*\*\File MRU
+        Recursive: false
+        Comment: "Microsoft Office Recent Files, lower Item value (Value Name) = more recent"
+    -
+        Description: Microsoft Office MRU
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: SOFTWARE\Microsoft\Office\*\*\User MRU\*\Place MRU
+        Recursive: false
+        Comment: "Microsoft Office Recent Places"
+    -
+        Description: Microsoft Office MRU
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: SOFTWARE\Microsoft\Office\*\*\Place MRU
+        Recursive: false
+        Comment: "Microsoft Office Recent Places"
 
 # OfficeMRU plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.OfficeMRU
 # https://www.eshlomo.us/windows-forensics-analysis-evidence/
@@ -3750,6 +3771,21 @@ Keys:
 # FileExts plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.FileExts
 # https://www.marshall.edu/forensics/files/Brewer-PosterFinal.pdf
 # https://digital-forensics.sans.org/summit-archives/2012/taking-registry-analysis-to-the-next-level.pdf
+
+    -
+        Description: ApplicationAssociationToasts
+        HiveType: NTUSER
+        Category: Installed Software
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts
+        Recursive: false
+        Comment: "Tracks programs associated with file extensions - Linked to Open With Dialog"
+    -
+        Description: ApplicationAssociationToasts
+        HiveType: User
+        Category: Installed Software
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts
+        Recursive: false
+        Comment: "Tracks programs associated with file extensions - Linked to Open With Dialog - Windows Store UWP"
 
 # Installed Software -> Add/Remove Program Entries
     -
