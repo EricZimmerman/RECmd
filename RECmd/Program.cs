@@ -2350,8 +2350,8 @@ internal class Program
                             int int16_7 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 12 + index);
                             int int16_8 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 14 + index);
 
-                            var st = new DateTimeOffset(new DateTime(int16_1, int16_2, int16_4, int16_5, int16_6, int16_7, int16_8, DateTimeKind.Utc)).ToUniversalTime().ToString();
-                            rebOut.ValueData = st;
+                            var st = new DateTimeOffset(new DateTime(int16_1, int16_2, int16_4, int16_5, int16_6, int16_7, int16_8, DateTimeKind.Utc));
+                            rebOut.ValueData = st.ToUniversalTime().ToString(dt);
 
                         }
                         catch (Exception)
@@ -2416,8 +2416,8 @@ internal class Program
                         int int16_7 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 12 + index);
                         int int16_8 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 14 + index);
 
-                        var st = new DateTimeOffset(new DateTime(int16_1, int16_2, int16_4, int16_5, int16_6, int16_7, int16_8, DateTimeKind.Utc)).ToUniversalTime().ToString();
-                        rebOut.ValueData = st;
+                        var st = new DateTimeOffset(new DateTime(int16_1, int16_2, int16_4, int16_5, int16_6, int16_7, int16_8, DateTimeKind.Utc));
+                        rebOut.ValueData = st.ToUniversalTime().ToString(dt);
 
                     }
                     catch (Exception)
