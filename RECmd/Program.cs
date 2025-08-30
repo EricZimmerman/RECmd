@@ -2361,6 +2361,33 @@ internal class Program
                         }
 
 						break;
+                    case Key.BinConvert.DateTimeTicks:
+                        try
+                        {
+                            var dticks = BitConverter.ToInt64(regVal.ValueDataRaw, 0);
+                            var dtVal = new DateTime(dticks, DateTimeKind.Utc);
+                            rebOut.ValueData = dtVal.ToUniversalTime().ToString(dt);
+                        }
+                        catch (Exception)
+                        {
+                            Log.Warning("Error converting to DateTime.Ticks. Using bytes instead!");
+                            rebOut.ValueData = regVal.ValueData;
+                        }
+
+						break;
+                    case Key.BinConvert.OLE:
+                        try
+                        {
+                            var ft = DateTime.FromOADate(BitConverter.ToDouble(regVal.ValueDataRaw, 0));
+                            rebOut.ValueData = ft.ToString(dt);
+                        }
+                        catch (Exception)
+                        {
+                            Log.Warning("Error converting to OLE Automation Date OLE2.0. Using bytes instead!");
+                            rebOut.ValueData = regVal.ValueData;
+                        }
+
+                       break;
                     default:
                         rebOut.ValueData = regVal.ValueData;
                         break;
@@ -2423,6 +2450,36 @@ internal class Program
                     catch (Exception)
                     {
                         Log.Warning("Error converting to SYSTEMTIME. Using bytes instead!");
+                        rebOut.ValueData = regVal.ValueData;
+                    }
+
+                    break;
+
+                case Key.BinConvert.DateTimeTicks:
+                    try
+                    {
+                        var dticks = BitConverter.ToInt64(regVal.ValueDataRaw, 0);
+                        var dtVal = new DateTime(dticks, DateTimeKind.Utc);
+
+                        rebOut.ValueData = dtVal.ToUniversalTime().ToString(dt);
+                    }
+                    catch (Exception)
+                    {
+                        Log.Warning("Error converting to DateTime.Ticks. Using bytes instead!");
+                        rebOut.ValueData = regVal.ValueData;
+                    }
+
+                    break;
+
+                case Key.BinConvert.OLE:
+                    try
+                    {
+                        var ft = DateTime.FromOADate(BitConverter.ToDouble(regVal.ValueDataRaw, 0));
+                        rebOut.ValueData = ft.ToString(dt);
+                    }
+                    catch (Exception)
+                    {
+                        Log.Warning("Error converting to OLE Automation Date OLE2.0. Using bytes instead!");
                         rebOut.ValueData = regVal.ValueData;
                     }
 

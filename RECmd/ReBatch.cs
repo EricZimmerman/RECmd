@@ -30,7 +30,9 @@ public class Key
         [Description("IPv4 address")] Ip = 2,
         [Description("DWord to Epoch")] Epoch = 3,
         [Description("Binary to SID")] Sid = 4,
-        [Description("128 bit Windows SYSTEMTIME")] Systemtime = 5
+        [Description("128 bit Windows SYSTEMTIME")] Systemtime = 5,
+        [Description("DateTime.Ticks")] DateTimeTicks = 6,
+        [Description("OLE Automation Date OLE2.0")] OLE = 7
     }
 
     public enum HiveType_
