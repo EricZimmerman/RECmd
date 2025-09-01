@@ -66,6 +66,7 @@ Example entry, please follow this format:
 | 2.15 | 2025-07-12 | Added Initial User.dat Windows Store UWP and WinSCP Windows Store Artifacts |
 | 2.16 | 2025-07-18 | Added More User.dat Windows Store UWP Artifacts - Network Share and WordPad |
 | 2.17 | 2025-07-20 | Added ApplicationAssociationToasts and More Office MRU Artifacts |
+| 2.18 | 2025-09-01 | Added ConsentStore Artifacts |
 
 # Documentation
 
