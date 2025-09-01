@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.17
+Version: 2.18
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -2463,6 +2463,112 @@ Keys:
 # https://docs.microsoft.com/en-us/troubleshoot/windows-server/remote/remove-entries-from-remote-desktop-connection-computer
 # https://www.cyberfox.blog/tag/rdp-mru/
 # https://ir3e.com/chapter-14-other-applications/
+
+# User Activity -> ConsentStore (Global)
+
+    -
+        Description: ConsentStore (Global)
+        HiveType: SOFTWARE
+        Category: User Activity
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*
+        ValueName: Value
+        Recursive: true
+        Comment: "Displays Permissions Set For Applications to Access. Allow, Deny and Prompt"
+    -
+        Description: ConsentStore (Global)
+        HiveType: SOFTWARE
+        Category: User Activity
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*\*
+        ValueName: LastUsedTimeStart
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Displays timestamp of when a permission started being used with a given application"
+    -
+        Description: ConsentStore (Global)
+        HiveType: SOFTWARE
+        Category: User Activity
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*\NonPackaged\*
+        ValueName: LastUsedTimeStart
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Displays timestamp of when a permission started being used with a given application"
+    -
+        Description: ConsentStore (Global)
+        HiveType: SOFTWARE
+        Category: User Activity
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*\*
+        ValueName: LastUsedTimeStop
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Displays the timestamp of when a permission stopped being used with a given application"
+    -
+        Description: ConsentStore (Global)
+        HiveType: SOFTWARE
+        Category: User Activity
+        KeyPath: Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*\NonPackaged\*
+        ValueName: LastUsedTimeStop
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Displays the timestamp of when a permission stopped being used with a given application"
+
+# https://www.cyberengage.org/post/registry-system-configiuration-tracking-microphone-and-camera-usage-in-windows-program-execution
+
+# User Activity -> ConsentStore (User)
+
+    -
+        Description: ConsentStore (User)
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*
+        ValueName: Value
+        Recursive: true
+        Comment: "Displays Permissions Set For Applications to Access. Allow, Deny and Prompt"
+    -
+        Description: ConsentStore (User)
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*\*
+        ValueName: LastUsedTimeStart
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Displays timestamp of when a permission started being used with a given application"
+    -
+        Description: ConsentStore (User)
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*\NonPackaged\*
+        ValueName: LastUsedTimeStart
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Displays timestamp of when a permission started being used with a given application"
+    -
+        Description: ConsentStore (User)
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*\*
+        ValueName: LastUsedTimeStop
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Displays the timestamp of when a permission stopped being used with a given application"
+    -
+        Description: ConsentStore (User)
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\*\NonPackaged\*
+        ValueName: LastUsedTimeStop
+        IncludeBinary: true
+        BinaryConvert: FILETIME
+        Recursive: false
+        Comment: "Displays the timestamp of when a permission stopped being used with a given application"
+
+# https://www.cyberengage.org/post/registry-system-configiuration-tracking-microphone-and-camera-usage-in-windows-program-execution
 
 # --------------------
 # AUTORUNS
