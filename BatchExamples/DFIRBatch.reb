@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.18
+Version: 2.19
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -2570,6 +2570,20 @@ Keys:
 
 # https://www.cyberengage.org/post/registry-system-configiuration-tracking-microphone-and-camera-usage-in-windows-program-execution
 
+# User Activity -> Desktop IconLayouts
+
+    -
+        Description: Desktop IconLayouts
+        HiveType: NTUSER
+        Category: User Activity
+        KeyPath: Software\Microsoft\Windows\Shell\Bags\1\Desktop
+        Recursive: false
+        Comment: "Displays the desktop icon layout, Observed in Windows 11 to be arranged from top to bottom in columns from the top left of the screen."
+
+# IconLayouts plugin - https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.IconLayouts
+# In Windows 11 icons appear from the top left of the screen, filling downwards, then moving to the next column going from left to right.
+# https://github.com/kacos2000/Win10/blob/master/Desktop_IconLayouts.pdf
+
 # --------------------
 # AUTORUNS
 # --------------------
@@ -3470,6 +3484,26 @@ Keys:
         KeyPath: Software\JavaSoft\Prefs\ipscan
         Recursive: true
         Comment: "Displays artifacts relating to Angry IP Scanner"
+
+# Third Party Applications -> DB Browser for SQLite - https://sqlitebrowser.org/
+
+    -
+        Description: DB Browser for SQLite
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\sqlitebrowser\sqlitebrowser
+        Recursive: true
+        Comment: "Displays artifacts relating to DB Browser for SQLite"
+
+# Third Party Applications -> WinMerge - https://winmerge.org/
+
+    -
+        Description: WinMerge
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Thingamahoochie\WinMerge
+        Recursive: true
+        Comment: "Displays artifacts relating to WinMerge"
 
 # --------------------
 # CLOUD STORAGE
