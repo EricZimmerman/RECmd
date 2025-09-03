@@ -67,6 +67,7 @@ Example entry, please follow this format:
 | 2.16 | 2025-07-18 | Added More User.dat Windows Store UWP Artifacts - Network Share and WordPad |
 | 2.17 | 2025-07-20 | Added ApplicationAssociationToasts and More Office MRU Artifacts |
 | 2.18 | 2025-09-01 | Added ConsentStore Artifacts |
+| 2.19 | 2025-09-02 | Added Desktop IconLayouts, DB Browser for SQLite and WinMerge Artifacts |
 
 # Documentation
 
@@ -85,6 +86,5 @@ As of May 2024, the following plugins are not being leveraged:
 
 * [DHCPNetworkHint](https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.DHCPNetworkHint)
 * [FeatureUsage](https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.FeatureUsage)
-* [IconLayouts](https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.IconLayouts)
 * [NetworkSettings](https://github.com/EricZimmerman/RegistryPlugins/tree/master/RegistryPlugin.NetworkSettings)
 * [TaskFlowShellActivities](https://github.com/EricZimmerman/RegistryPlugins/blob/master/RegistryPlugin.TaskFlowShellActivities/TaskFlowShellActivities.cs)
