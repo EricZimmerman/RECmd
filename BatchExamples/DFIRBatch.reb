@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.19
+Version: 2.20
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -3378,6 +3378,18 @@ Keys:
         Recursive: true
         Comment: "Displays artifacts relating to TightVNC"
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+
+# Third Party Applications -> PuTTY - https://www.chiark.greenend.org.uk/~sgtatham/putty/
+
+    -
+        Description: PuTTY
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\SimonTatham\PuTTY
+        Recursive: true
+        Comment: "Displays artifacts relating to PuTTY"
+
+# https://docs.velociraptor.app/artifact_references/pages/windows.registry.puttyhostkeys/
 
 # Third Party Applications -> FileZilla - https://filezilla-project.org/
 

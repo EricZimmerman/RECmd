@@ -10,6 +10,7 @@ Special thanks to those who have contributed to this Batch file:
 * [Reece394](https://github.com/reece394)
 * [esecrpm](https://github.com/esecrpm)
 * [ogmini](https://github.com/ogmini)
+* [Evangelos Dragonas (@theAtropos4n6)](https://github.com/theAtropos4n6)
 
 # Version History
 
@@ -68,6 +69,7 @@ Example entry, please follow this format:
 | 2.17 | 2025-07-20 | Added ApplicationAssociationToasts and More Office MRU Artifacts |
 | 2.18 | 2025-09-01 | Added ConsentStore Artifacts |
 | 2.19 | 2025-09-02 | Added Desktop IconLayouts, DB Browser for SQLite and WinMerge Artifacts |
+| 2.20 | 2025-10-03 | Added Putty Artifacts |
 
 # Documentation
 
