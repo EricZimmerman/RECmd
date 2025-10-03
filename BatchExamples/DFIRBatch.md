@@ -69,7 +69,7 @@ Example entry, please follow this format:
 | 2.17 | 2025-07-20 | Added ApplicationAssociationToasts and More Office MRU Artifacts |
 | 2.18 | 2025-09-01 | Added ConsentStore Artifacts |
 | 2.19 | 2025-09-02 | Added Desktop IconLayouts, DB Browser for SQLite and WinMerge Artifacts |
-| 2.20 | 2025-10-03 | Added PuTTY Artifacts |
+| 2.20 | 2025-10-03 | Added PuTTY, CCleaner, File Shredder, Splashtop Artifacts |
 
 # Documentation
 

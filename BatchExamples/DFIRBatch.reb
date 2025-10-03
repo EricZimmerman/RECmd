@@ -3347,8 +3347,30 @@ Keys:
         KeyPath: CurrentControlSet\Services\SSUService
         Recursive: true
         Comment: "Displays artifacts relating to Splashtop"
+    -
+        Description: Splashtop
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Splashtop Inc.
+        Recursive: true
+        Comment: "Displays artifacts relating to Splashtop"
+    -
+        Description: Splashtop
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\Splashtop Inc.
+        Recursive: true
+        Comment: "Displays artifacts relating to Splashtop"
+    -
+        Description: Splashtop
+        HiveType: SOFTWARE
+        Category: Third Party Applications
+        KeyPath: WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Splashtop Software Updater
+        Recursive: true
+        Comment: "Displays artifacts relating to Splashtop"
 
 # https://jsac.jpcert.or.jp/archive/2023/pdf/JSAC2023_1_1_yamashige-nakatani-tanaka_en.pdf
+# https://www.synacktiv.com/publications/legitimate-rats-a-comprehensive-forensic-analysis-of-the-usual-suspects
 
 # Third Party Applications -> TeamViewer - https://www.teamviewer.com/en-us/
 
@@ -3390,6 +3412,31 @@ Keys:
         Comment: "Displays artifacts relating to PuTTY"
 
 # https://docs.velociraptor.app/artifact_references/pages/windows.registry.puttyhostkeys/
+
+# Third Party Applications -> CCleaner - https://www.ccleaner.com/
+
+    -
+        Description: CCleaner
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Piriform\CCleaner
+        Recursive: true
+        Comment: "Displays artifacts relating to CCleaner"
+
+# https://www.synacktiv.com/publications/ccleaner-forensics
+# https://www.magnetforensics.com/resources/oh-no-the-suspect-ran-ccleaner-to-get-rid-of-the-evidence/
+
+# Third Party Applications -> File Shredder - fileshredder.org
+
+    -
+        Description: File Shredder
+        HiveType: NTUSER
+        Category: Third Party Applications
+        KeyPath: Software\Shredder
+        Recursive: true
+        Comment: "Displays artifacts relating to File Shredder"
+
+# N/A
 
 # Third Party Applications -> FileZilla - https://filezilla-project.org/
 
