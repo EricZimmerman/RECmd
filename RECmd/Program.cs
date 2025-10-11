@@ -163,7 +163,7 @@ internal class Program
 
             new Option<string>(
                 "--csv",
-                "Directory to save CSV formatted results to. Required when -bn is used"),
+                "Directory to save CSV formatted results to"),
             
             new Option<string>(
                 "--csvf",
@@ -342,6 +342,13 @@ internal class Program
 
         ActiveDateTimeFormat = dt;
         
+        ServiceStack.Text.JsConfig<DateTimeOffset?>.SerializeFn = time => time?.ToString(dt, CultureInfo.InvariantCulture);
+        ServiceStack.Text.JsConfig<DateTimeOffset>.SerializeFn = time => time.ToString(dt, CultureInfo.InvariantCulture);
+        ServiceStack.Text.JsConfig<DateTime?>.SerializeFn = time => time?.ToString(dt, CultureInfo.InvariantCulture);
+        ServiceStack.Text.JsConfig<DateTime>.SerializeFn = time => time.ToString(dt, CultureInfo.InvariantCulture);
+        ServiceStack.Text.JsConfig.IncludeNullValues = true;
+        ServiceStack.Text.JsConfig.IncludeNullValuesInDictionaries = true;
+
         var formatter  =
             new DateTimeOffsetFormatter(CultureInfo.CurrentCulture);
 
@@ -428,9 +435,15 @@ internal class Program
                 return;
             }
 
-            if (csv.IsNullOrEmpty())
+            if (csv.IsNullOrEmpty() && json.IsNullOrEmpty())
             {
-                Log.Error("{S1} is required when using {S2}. Exiting","--csv","--bn");
+                Log.Error("Either {S1} or {S2} is required when using {S3}. Exiting","--csv","--json","--bn");
+                return;
+            }
+
+            if (csv.IsNullOrEmpty() == false && json.IsNullOrEmpty() == false)
+            {
+                Log.Error("Only use one of {S1} or {S2} when using {S3}. Exiting", "--csv", "--json", "--bn");
                 return;
             }
 
@@ -1596,7 +1609,7 @@ internal class Program
                 } //end min size option
                 else if (bn?.Length > 0) //batch mode
                 {
-                    ProcessBatch(reBatch, reg, d, f, csv, csvf, dt);
+                    ProcessBatch(reBatch, reg, d, f, csv, csvf, json, jsonf, dt);
                 }
             }
             catch (Exception ex)
@@ -1637,43 +1650,77 @@ internal class Program
             Log.Information("Total search time: {TotalSeconds:N3} seconds",totalSeconds);
             if (_batchCsvOutList.Count > 0)
             {
-                if (Directory.Exists(csv) == false)
+                if (csv.IsNullOrEmpty() == false)
                 {
-                    Log.Information(
-                        "Path to {Csv} doesn't exist. Creating...",csv);
-                    Directory.CreateDirectory(csv);
+                    if (Directory.Exists(csv) == false)
+                    {
+                        Log.Information(
+                            "Path to {Csv} doesn't exist. Creating...", csv);
+                        Directory.CreateDirectory(csv);
+                    }
+
+                    var outName =
+                        $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(bn)}_Output.csv";
+
+                    if (csvf.IsNullOrEmpty() == false)
+                    {
+                        outName = Path.GetFileName(csvf);
+                    }
+
+                    var outFile = Path.Combine(csv, outName);
+
+                    Console.WriteLine();
+                    Log.Information("Saving batch mode CSV file to {OutFile}", outFile);
+
+                    var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
+                    var csvWriter = new CsvWriter(swCsv, CultureInfo.InvariantCulture);
+
+                    var foo = csvWriter.Context.AutoMap<BatchCsvOut>();
+
+                    foo.Map(t => t.LastWriteTimestamp).Convert(t =>
+                        $"{t.Value.LastWriteTimestamp?.ToString(dt)}");
+
+                    csvWriter.Context.RegisterClassMap(foo);
+
+                    csvWriter.WriteHeader<BatchCsvOut>();
+                    csvWriter.NextRecord();
+
+                    csvWriter.WriteRecords(_batchCsvOutList);
+
+                    swCsv.Flush();
+                    swCsv.Close();
                 }
 
-                var outName =
-                    $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(bn)}_Output.csv";
-
-                if (csvf.IsNullOrEmpty() == false)
+                if (json.IsNullOrEmpty() == false)
                 {
-                    outName = Path.GetFileName(csvf);
+                    if (Directory.Exists(json) == false)
+                    {
+                        Log.Information(
+                            "Path to {Json} doesn't exist. Creating...",json);
+                        Directory.CreateDirectory(json);
+                    }
+
+                    var outName =
+                        $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(bn)}_Output.json";
+
+                    if (jsonf.IsNullOrEmpty() == false)
+                    {
+                        outName = Path.GetFileName(jsonf);
+                    }
+
+                    var outFile = Path.Combine(json, outName);
+
+                    Console.WriteLine();
+                    Log.Information("Saving batch mode JSON file to {OutFile}",outFile);
+
+                    using (var writer = new StreamWriter(outFile, false, Encoding.UTF8))
+                    {
+                        foreach (var item in _batchCsvOutList)
+                        {
+                            writer.WriteLine(item.ToJson());
+                        }
+                    }
                 }
-
-                var outFile = Path.Combine(csv, outName);
-
-                Console.WriteLine();
-                Log.Information("Saving batch mode CSV file to {OutFile}",outFile);
-
-                var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
-                var csvWriter = new CsvWriter(swCsv, CultureInfo.InvariantCulture);
-
-                var foo = csvWriter.Context.AutoMap<BatchCsvOut>();
-
-                foo.Map(t => t.LastWriteTimestamp).Convert(t =>
-                    $"{t.Value.LastWriteTimestamp?.ToString(dt)}");
-
-                csvWriter.Context.RegisterClassMap(foo);
-
-                csvWriter.WriteHeader<BatchCsvOut>();
-                csvWriter.NextRecord();
-
-                csvWriter.WriteRecords(_batchCsvOutList);
-
-                swCsv.Flush();
-                swCsv.Close();
             }
         }
 
@@ -1841,7 +1888,7 @@ internal class Program
         Directory.Delete(Path.Combine(BaseDirectory, "RECmd-master"), true);
     }
 
-    private static void ProcessBatchKey(RegistryKey key, Key batchKey, string hivePath, string d, string f, string csv, string csvf, string dt)
+    private static void ProcessBatchKey(RegistryKey key, Key batchKey, string hivePath, string d, string f, string csv, string csvf, string json, string jsonf, string dt)
     {
         var regKey = key;
 
@@ -1859,7 +1906,7 @@ internal class Program
             if (regVal != null)
             {
                 Log.Verbose("Found value {ValueName} in key {KeyPath}!",batchKey.ValueName,regKey.KeyPath);
-                BatchDumpKey(key, batchKey, hivePath, d, f, csv, csvf, dt);
+                BatchDumpKey(key, batchKey, hivePath, d, f, csv, csvf, json, jsonf, dt);
             }
         }
 
@@ -1867,7 +1914,7 @@ internal class Program
         {
             //do not need to find a value, 
             Log.Verbose("Found key {KeyPath}!",key.KeyPath);
-            BatchDumpKey(key, batchKey, hivePath, d, f, csv, csvf, dt);
+            BatchDumpKey(key, batchKey, hivePath, d, f, csv, csvf, json, jsonf, dt);
         }
 
 
@@ -1878,11 +1925,11 @@ internal class Program
 
         foreach (var regKeySubKey in regKey.SubKeys)
         {
-            ProcessBatchKey(regKeySubKey, batchKey, hivePath, d, f, csv, csvf, dt);
+            ProcessBatchKey(regKeySubKey, batchKey, hivePath, d, f, csv, csvf, json, jsonf, dt);
         }
     }
 
-    private static void ProcessBatch(ReBatch reBatch, RegistryHive regHive, string d, string f, string csv, string csvf, string dt)
+    private static void ProcessBatch(ReBatch reBatch, RegistryHive regHive, string d, string f, string csv, string csvf, string json, string jsonf, string dt)
     {
         foreach (var key in reBatch.Keys)
         {
@@ -1906,7 +1953,7 @@ internal class Program
                     continue;
                 }
 
-                ProcessBatchKey(regKey, key, regHive.HivePath, d, f, csv, csvf, dt);
+                ProcessBatchKey(regKey, key, regHive.HivePath, d, f, csv, csvf, json, jsonf, dt);
             }
             else if (key.KeyPath.Contains("*"))
             {
@@ -1952,7 +1999,7 @@ internal class Program
                     //BatchDumpKey(regKey, key, regHive.HivePath);
 
                     //switch to this for better recursive support vs BatchDumpKey
-                    ProcessBatchKey(regKey, key, regHive.HivePath, d, f, csv, csvf, dt);
+                    ProcessBatchKey(regKey, key, regHive.HivePath, d, f, csv, csvf, json, jsonf, dt);
                 }
             }
             else
@@ -1965,7 +2012,7 @@ internal class Program
                     continue;
                 }
 
-                ProcessBatchKey(regKey, key, regHive.HivePath, d, f, csv, csvf, dt);
+                ProcessBatchKey(regKey, key, regHive.HivePath, d, f, csv, csvf, json, jsonf, dt);
             }
         }
     }
@@ -2044,7 +2091,7 @@ internal class Program
         return pluginsToActivate;
     }
 
-    private static void BatchDumpKey(RegistryKey regKey, Key key, string hivePath, string d, string f, string csv, string csvf, string dt)
+    private static void BatchDumpKey(RegistryKey regKey, Key key, string hivePath, string d, string f, string csv, string csvf, string json, string jsonf, string dt)
     {
         Log.Verbose("Batch dumping {KeyPath} in {HivePath}",regKey.KeyPath,hivePath);
 
@@ -2066,7 +2113,7 @@ internal class Program
 
                 pig.ProcessValues(regKey);
 
-                var pluginDetailsFile = DumpPluginValues(pig, hivePath, d, f, csv, csvf);
+                var pluginDetailsFile = DumpPluginValues(pig, hivePath, d, f, csv, csvf, json, jsonf);
 
                 var path = hivePath;
 
@@ -2144,7 +2191,7 @@ internal class Program
         }
     }
 
-    private static string DumpPluginValues(IRegistryPluginGrid plugin, string hivePath, string d, string f, string csv, string csvf)
+    private static string DumpPluginValues(IRegistryPluginGrid plugin, string hivePath, string d, string f, string csv, string csvf, string json, string jsonf)
     {
         var pluginType = plugin.GetType();
 
@@ -2169,11 +2216,18 @@ internal class Program
 
         var outbase = $"{RunTimestamp}_{pluginType.Name}_{hiveName1}.csv";
 
-        if (Directory.Exists(csv) == false)
+        if (csv.IsNullOrEmpty() == false && Directory.Exists(csv) == false)
         {
             Log.Information(
                 "Path to {Csv} doesn't exist. Creating...",csv);
             Directory.CreateDirectory(csv);
+        }
+
+        if (json.IsNullOrEmpty() == false && Directory.Exists(json) == false)
+        {
+            Log.Information(
+                "Path to {json} doesn't exist. Creating...",json);
+            Directory.CreateDirectory(json);
         }
 
         if (csvf.IsNullOrEmpty() == false)
@@ -2182,14 +2236,67 @@ internal class Program
                 $"{Path.GetFileNameWithoutExtension(csvf)}_{pluginType.Name}{Path.GetExtension(csvf)}";
         }
 
-        var outFile = Path.Combine(csv, RunTimestamp, outbase);
-
-        if (Directory.Exists(Path.GetDirectoryName(outFile)) == false)
+        string outputDir = null;
+        if (json.IsNullOrEmpty() == false)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(outFile));
+            outputDir = json;
+        }
+        else if (csv.IsNullOrEmpty() == false)
+        {
+            outputDir = csv;
+        }
+        else
+        {
+            return null;
+        }
+
+        var outFile = Path.Combine(outputDir, RunTimestamp, outbase);
+        var outDir = Path.GetDirectoryName(outFile);
+        if (!string.IsNullOrEmpty(outDir) && !Directory.Exists(outDir))
+        {
+            Directory.CreateDirectory(outDir);
         }
 
         var exists = File.Exists(outFile);
+
+        if (json.IsNullOrEmpty() == false)
+        {
+            outbase = $"{RunTimestamp}_{pluginType.Name}_{hiveName1}.json";
+            if (jsonf.IsNullOrEmpty() == false)
+            {
+                outbase =
+                    $"{Path.GetFileNameWithoutExtension(jsonf)}_{pluginType.Name}{Path.GetExtension(jsonf)}";
+            }       
+            
+            outFile = Path.Combine(outputDir, RunTimestamp, outbase);
+
+            using (var writer = new StreamWriter(outFile, true, Encoding.UTF8))
+            {
+                if (plugin.Values.Count > 0)
+                {
+                    var propsToExclude = plugin.Values[0].GetType().GetProperties()
+                        .Where(p => p.Name.StartsWith("BatchValueData"))
+                        .Select(p => p.Name)
+                        .ToList();
+
+                    foreach (var item in plugin.Values)
+                    {
+                        var dict = new Dictionary<string, object>();
+                        foreach (var prop in item.GetType().GetProperties())
+                        {
+                            if (propsToExclude.Contains(prop.Name) == false)
+                            {
+                                dict.Add(prop.Name, prop.GetValue(item));
+                            }
+                        }
+                        writer.WriteLine(dict.ToJson());
+                    }
+                }
+            }
+
+            return outFile;
+        }
+
 
         using var sw = new StreamWriter(outFile, true, Encoding.UTF8);
         var csvWriter = new CsvWriter(sw, CultureInfo.InvariantCulture);
