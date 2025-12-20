@@ -1576,7 +1576,7 @@ Keys:
         Comment: "Mount Points - NTUSER"
     -
         Description: MountPoints2
-        HiveType: User
+        HiveType: NTUSER
         Category: Devices
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2
         Recursive: true
@@ -1648,7 +1648,7 @@ Keys:
         Comment: "Displays the UNC path for a mounted network share"
     -
         Description: Network Shares
-        HiveType: User
+        HiveType: NTUSER
         Category: Network Shares
         KeyPath: Network
         ValueName: RemotePath
@@ -1664,7 +1664,7 @@ Keys:
         Comment: "Displays the user account associated with the mounted network share"
     -
         Description: Network Shares
-        HiveType: User
+        HiveType: NTUSER
         Category: Network Shares
         KeyPath: Network
         ValueName: UserName
@@ -1680,7 +1680,7 @@ Keys:
         Comment: "Displays the provider of the mounted network share"
     -
         Description: Network Shares
-        HiveType: User
+        HiveType: NTUSER
         Category: Network Shares
         KeyPath: Network
         ValueName: ProviderName
@@ -1698,7 +1698,7 @@ Keys:
         Comment: "Displays drives that were mapped by the user"
     -
         Description: Network Drive MRU
-        HiveType: User
+        HiveType: NTUSER
         Category: Network Shares
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\Map Network Drive MRU
         Recursive: false
@@ -1878,7 +1878,7 @@ Keys:
         Comment: "Recently ran applications, lower MRU # (Value Data3) = more recent"
     -
         Description: CIDSizeMRU
-        HiveType: User
+        HiveType: NTUSER
         Category: Program Execution
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\CIDSizeMRU
         Recursive: false
@@ -1934,7 +1934,7 @@ Keys:
         Comment: "GUI-based programs launched from the desktop"
     -
         Description: UserAssist
-        HiveType: User
+        HiveType: NTUSER
         Category: Program Execution
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\*\Count
         Recursive: false
@@ -2034,7 +2034,7 @@ Keys:
         Comment: "Displays paths that were typed by the user in Windows Explorer"
     -
         Description: TypedPaths
-        HiveType: User
+        HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\TypedPaths
         Recursive: false
@@ -2102,7 +2102,7 @@ Keys:
         Comment: "User Searches"
     -
         Description: WordWheelQuery
-        HiveType: User
+        HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery
         Recursive: true
@@ -2133,7 +2133,7 @@ Keys:
         Comment: "Tracks files that have been opened or saved within a Windows shell dialog box"
     -
         Description: OpenSavePidlMRU
-        HiveType: User
+        HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSavePidlMRU
         Recursive: false
@@ -2161,7 +2161,7 @@ Keys:
         Comment: "Tracks the specific executable used by an application to open the files documented in OpenSavePidlMRU"
     -
         Description: LastVisitedPidlMRU
-        HiveType: User
+        HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\LastVisitedPidlMRU
         Recursive: false
@@ -2198,7 +2198,7 @@ Keys:
         Comment: "Files recently opened from Windows Explorer"
     -
         Description: RecentDocs
-        HiveType: User
+        HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs
         Recursive: true
@@ -2230,7 +2230,7 @@ Keys:
 
     -
         Description: Recent File List
-        HiveType: User
+        HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Paint\Recent File List
         Recursive: false
@@ -2248,7 +2248,7 @@ Keys:
         Comment: "Displays recent files accessed by the user with MS WordPad"
     -
         Description: Recent File List
-        HiveType: User
+        HiveType: NTUSER
         Category: User Activity
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Applets\Wordpad\Recent File List
         Recursive: false
@@ -3105,7 +3105,7 @@ Keys:
         Comment: "WinSCP"
     -
         Description: WinSCP
-        HiveType: User
+        HiveType: NTUSER
         Category: Third Party Applications
         KeyPath: Software\Martin Prikryl
         Recursive: true
@@ -3961,7 +3961,7 @@ Keys:
         Comment: "Tracks programs associated with file extensions"
     -
         Description: File Extensions
-        HiveType: User
+        HiveType: NTUSER
         Category: Installed Software
         KeyPath: Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts
         Recursive: false
@@ -3980,7 +3980,7 @@ Keys:
         Comment: "Tracks programs associated with file extensions - Linked to Open With Dialog"
     -
         Description: ApplicationAssociationToasts
-        HiveType: User
+        HiveType: NTUSER
         Category: Installed Software
         KeyPath: Software\Microsoft\Windows\CurrentVersion\ApplicationAssociationToasts
         Recursive: false
