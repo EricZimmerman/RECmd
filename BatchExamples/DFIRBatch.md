@@ -70,7 +70,7 @@ Example entry, please follow this format:
 | 2.18 | 2025-09-01 | Added ConsentStore Artifacts |
 | 2.19 | 2025-09-02 | Added Desktop IconLayouts, DB Browser for SQLite and WinMerge Artifacts |
 | 2.20 | 2025-10-03 | Added PuTTY, CCleaner, File Shredder, Splashtop Artifacts |
-
+| 2.21 | 2026-01-06 | Added WOW6432Node Run Keys and Expanded Edge and Chrome Artifacts |
 # Documentation
 
 https://docs.microsoft.com/en-US/troubleshoot/windows-server/performance/windows-registry-advanced-users
