@@ -1,6 +1,6 @@
 Description: DFIR RECmd Batch File
 Author: Andrew Rathbun
-Version: 2.20
+Version: 2.21
 Id: 6e68cc0b-c945-428b-ab91-c02d91c877b8
 Keys:
 #
@@ -2639,6 +2639,26 @@ Keys:
 # https://docs.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys
 
     -
+        Description: Run (SYSTEM)
+        HiveType: SOFTWARE
+        Category: Autoruns
+        KeyPath: WOW6432Node\Microsoft\Windows\CurrentVersion\Run
+        Recursive: false
+        Comment: "Program execution upon successful user logon"
+
+# https://docs.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys
+
+    -
+        Description: RunOnce (SYSTEM)
+        HiveType: SOFTWARE
+        Category: Autoruns
+        KeyPath: WOW6432Node\Microsoft\Windows\CurrentVersion\RunOnce
+        Recursive: false
+        Comment: "Program execution upon successful user logon"
+
+# https://docs.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys
+
+    -
         Description: RunNotification
         HiveType: NTUSER
         Category: Autoruns
@@ -3859,7 +3879,7 @@ Keys:
         Description: Google Chrome
         HiveType: NTUSER
         Category: Web Browsers
-        KeyPath: Software\Google\Chrome
+        KeyPath: Software\Google\Chrome*
         Recursive: true
         Comment: "Google Chrome Registry artifacts"
     -
@@ -3926,7 +3946,7 @@ Keys:
         Description: Microsoft Edge
         HiveType: NTUSER
         Category: Web Browsers
-        KeyPath: Software\Microsoft\Edge
+        KeyPath: Software\Microsoft\Edge*
         Recursive: true
         Comment: "Microsoft Edge Registry artifacts"
     -
