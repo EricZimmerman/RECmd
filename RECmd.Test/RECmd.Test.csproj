@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="[7.2.2,8.0.0)" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="NUnit" Version="5.0.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="6.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- run as separate processes (dotnet RECmd.dll, dotnet rla.dll); rla's OutputNames is tested directly -->
+    <ProjectReference Include="..\RECmd\RECmd.csproj" />
+    <ProjectReference Include="..\rla\rla.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="TestFiles\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

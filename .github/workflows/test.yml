@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+name: test
+on:
+  workflow_dispatch: # Allow running the workflow manually from the GitHub UI
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    branches:
+      - '*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  run_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6  # SDK version from global.json
+    # RECmd and rla for net472 and net10.0, and the tests (which run the net10.0 builds)
+    - name: Build
+      run: dotnet build --configuration Release
+    - name: Run tests
+      run: dotnet test --configuration Release --no-build

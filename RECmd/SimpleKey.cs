@@ -13,7 +13,7 @@ internal class SimpleKey
 
     public string KeyPath { get; set; }
     public string KeyName { get; set; }
-    public DateTimeOffset LastWriteTimestamp { get; set; }
+    public DateTimeOffset? LastWriteTimestamp { get; set; }
     public List<SimpleKey> SubKeys { get; set; }
     public List<SimpleValue> Values { get; set; }
 }

@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFrameworks>net472;net9.0</TargetFrameworks>
+        <TargetFrameworks>net472;net10.0</TargetFrameworks>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
         <AssemblyTitle>rla</AssemblyTitle>
         <Company>Eric Zimmerman 501-313-3778</Company>
         <Product>rla</Product>
         <Description>Registry Transaction Log Apply</Description>
         <Copyright>Eric Zimmerman</Copyright>
-        <Version>2026.5.0</Version>
+        <Version>2026.10.0</Version>
+        <IsPackable>false</IsPackable>
         <LangVersion>10</LangVersion>
     </PropertyGroup>
     <PropertyGroup>
@@ -17,26 +18,29 @@
     <ItemGroup>
         <PackageReference Include="ERZHelpers" Version="2026.5.3" />
         <PackageReference Include="runtime.native.System.Net.Http" Version="4.3.1"/>
-        <PackageReference Include="System.CommandLine" Version="2.0.7" />
+        <PackageReference Include="System.CommandLine" Version="2.0.13" />
         
         <PackageReference Include="System.Net.Http" Version="4.3.4"/>
         <PackageReference Include="System.Private.Uri" Version="4.3.2"/>
         <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1"/>
     </ItemGroup>
     <ItemGroup>
+        <InternalsVisibleTo Include="RECmd.Test" />
+    </ItemGroup>
+    <ItemGroup>
         <Content Include="RegistryCheck.ico"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Costura.Fody" Version="6.0.0">
+        <PackageReference Include="Costura.Fody" Version="6.2.0">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Fody" Version="6.9.3">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Exceptionless" Version="6.1.0" />
-        <PackageReference Include="Serilog" Version="4.3.1" />
+        <PackageReference Include="Exceptionless" Version="6.2.0" />
+        <PackageReference Include="Serilog" Version="4.4.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
-        <PackageReference Include="Registry" Version="2026.5.0" />
-        <PackageReference Include="ServiceStack.Text" Version="10.0.6" />
+        <PackageReference Include="Registry" Version="2026.10.0" />
+        <PackageReference Include="ServiceStack.Text" Version="10.4.0" />
     </ItemGroup>
 </Project>

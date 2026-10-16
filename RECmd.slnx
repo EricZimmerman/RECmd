@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="RECmd.Test/RECmd.Test.csproj" />
+  <Project Path="RECmd/RECmd.csproj" />
+  <Project Path="rla/rla.csproj" />
+</Solution>

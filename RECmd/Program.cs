@@ -77,9 +77,11 @@ internal class Program
         "\r\n\r\nAuthor: Eric Zimmerman (saericzimmerman@gmail.com)" +
         "\r\nhttps://github.com/EricZimmerman/RECmd\r\n\r\nNote: Enclose all strings containing spaces (and all RegEx) with double quotes";
 
-    private static readonly string Footer = @"Example: RECmd.exe --f ""C:\Temp\UsrClass 1.dat"" --sk URL --recover false --nl" +
+    private static readonly string Footer = @"Example: RECmd.exe -f ""C:\Temp\UsrClass 1.dat"" --sk URL --recover false --nl" +
                                             "\r\n\t " +
-                                           @"    RECmd.exe --f ""D:\temp\UsrClass 1.dat"" --regex --sv ""(App|Display)Name""";
+                                           @"  RECmd.exe -f ""D:\temp\UsrClass 1.dat"" --regex --sv ""(App|Display)Name""" +
+                                            "\r\n\t " +
+                                           @"  RECmd.exe -d ""D:\triage"" --bn BatchExamples\DFIRBatch.reb --csv ""D:\out""" + "\r\n";
 
     private static readonly HashSet<string> _seenHashes = new();
 
@@ -127,7 +129,7 @@ internal class Program
         }
     }
 
-    private static async Task Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         ExceptionlessClient.Default.Startup("fTcEOUkt1CxljTyOZfsr8AcSGQwWE4aYaYqk7cE1");
     
@@ -333,6 +335,8 @@ internal class Program
           traceOpt
         };
 
+        _rootCommand.Description = Header + "\r\n\r\n" + Footer;
+
         _rootCommand.SetAction(result => DoWork(result.GetValue(dOpt), result.GetValue(fOpt), result.GetValue(knOpt),
             result.GetValue(vnOpt), result.GetValue(bnOpt), result.GetValue(csvOpt), result.GetValue(csvfOpt),
             result.GetValue(saveToOpt),result.GetValue(jsonOpt),result.GetValue(jsonfOpt),result.GetValue(detailsOpt),result.GetValue(base64Opt),
@@ -340,9 +344,11 @@ internal class Program
             result.GetValue(ndOpt),result.GetValue(regexOpt),result.GetValue(dtOpt),result.GetValue(nlOpt),result.GetValue(recoverOpt),result.GetValue(vssOpt),result.GetValue(dedupeOpt),
             result.GetValue(syncOpt),result.GetValue(debugOpt),result.GetValue(traceOpt)));
             
-        var foo = _rootCommand.Parse(args).InvokeAsync();
+        var exitCode = await _rootCommand.Parse(args).InvokeAsync();
 
         Log.CloseAndFlush();
+
+        return exitCode;
     }
 
     class DateTimeOffsetFormatter : IFormatProvider, ICustomFormatter
@@ -402,7 +408,8 @@ internal class Program
     }
 #endif
     
-    private static void DoWork(string d, string f, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
+    /// <returns>0, or 1 when the arguments are bad or a hive could not be processed</returns>
+    private static int DoWork(string d, string f, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
 
@@ -442,7 +449,7 @@ internal class Program
         {
             Log.Error("{Switch} is present, but administrator rights not found. Exiting","--vss");
             Console.WriteLine();
-            return;
+            return 1;
         }
 
         if (vss & !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -461,9 +468,10 @@ internal class Program
             catch (Exception e)
             {
                 Log.Error(e, "There was an error checking for updates: {Message}",e.Message);
+                return 1;
             }
 
-            Environment.Exit(0);
+            return 0;
         }
 
         var hivesToProcess = new List<string>();
@@ -498,22 +506,26 @@ internal class Program
             if (File.Exists(bn) == false)
             {
                 Log.Error("Batch file {Bn} does not exist",bn);
-                return;
+                return 1;
             }
 
             if (csv.IsNullOrEmpty() && json.IsNullOrEmpty())
             {
                 Log.Error("Either {S1} or {S2} is required when using {S3}. Exiting","--csv","--json","--bn");
-                return;
+                return 1;
             }
 
             if (csv.IsNullOrEmpty() == false && json.IsNullOrEmpty() == false)
             {
                 Log.Error("Only use one of {S1} or {S2} when using {S3}. Exiting", "--csv", "--json", "--bn");
-                return;
+                return 1;
             }
 
             reBatch = ValidateBatchFile(bn);
+            if (reBatch == null)
+            {
+                return 1;
+            }
         }
 
 
@@ -522,7 +534,7 @@ internal class Program
             if (File.Exists(f) == false)
             {
                 Log.Error("File {F} does not exist",f);
-                return;
+                return 1;
             }
 
             if (CheckMinSwitches(sk, sv, sd, ss, sa, kn, minSize, base64, bn) == false)
@@ -531,7 +543,7 @@ internal class Program
                 var aaa = new CustomHelpAction(new HelpAction());
                 aaa.Invoke(_rootCommand.Parse("One of the following switches is required: --sa | --sk | --sv | --sd | --ss | --kn | --base64 | --minSize | --bn"));
                 Console.WriteLine();
-                return;
+                return 1;
             }
 
             hivesToProcess.Add(f);
@@ -559,7 +571,7 @@ internal class Program
             {
                 Log.Error("Directory {D} does not exist",d);
                 Console.WriteLine();
-                return;
+                return 1;
             }
 
             if (CheckMinSwitches(sk, sv, sd, ss, sa, kn, minSize, base64, bn) == false)
@@ -570,7 +582,7 @@ internal class Program
                 
                 Console.WriteLine();
                 
-                return;
+                return 1;
             }
 
             var okFileParts = new HashSet<string>();
@@ -822,7 +834,7 @@ internal class Program
             aaa.Invoke(_rootCommand.Parse(""));
 
 
-            return;
+            return 1;
         }
 
 
@@ -830,7 +842,7 @@ internal class Program
         {
             Log.Warning("No hives were found. Exiting...");
 
-            return;
+            return 0;
         }
 
         var totalHits = 0;
@@ -843,6 +855,7 @@ internal class Program
         LoadPlugins();
 
         var hiveInfoWithHits = new List<string>();
+        var failed = 0;
 
         foreach (var hiveToProcess in hivesToProcess)
         {
@@ -897,7 +910,7 @@ internal class Program
 
                     reg = new RegistryHive(fs.ReadFully(), hiveToProcess)
                     {
-                        RecoverDeleted = true
+                        RecoverDeleted = recover
                     };
                 }
                 catch (IOException ex)
@@ -917,12 +930,7 @@ internal class Program
                     var files = new List<string>();
                     files.Add(hiveToProcess);
 
-                    var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-
-                    foreach (var logFile in logFiles)
-                    {
-                        files.Add(logFile);
-                    }
+                    files.AddRange(LogFiles(string.IsNullOrEmpty(dirname) ? "." : dirname, hiveBase));
 
                     rawFiles = Helper.GetRawFiles(files);
 
@@ -945,20 +953,34 @@ internal class Program
 
                     var bb = rawFiles.First().FileStream.ReadFully();
 
-                    reg = new RegistryHive(bb, rawFiles.First().InputFilename);
+                    reg = new RegistryHive(bb, rawFiles.First().InputFilename)
+                    {
+                        RecoverDeleted = recover
+                    };
                 }
 
-                if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+                if (string.IsNullOrEmpty(dirname))
                 {
-                    if (string.IsNullOrEmpty(dirname))
-                    {
-                        dirname = ".";
-                    }
+                    dirname = ".";
+                }
 
-                    var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
+                //dirty: the sequence numbers differ, or the header's checksum is wrong and there are logs to take it from (as Windows does)
+                var sequenceNumbersDiffer = reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber;
+                var badChecksum = reg.Header.ValidateCheckSum() == false;
+                var logFiles = sequenceNumbersDiffer || badChecksum
+                    ? rawFiles != null ? rawFiles.Skip(1).Select(t => t.InputFilename).ToList() : LogFiles(dirname, hiveBase)
+                    : new List<string>();
+
+                if (sequenceNumbersDiffer == false && badChecksum && logFiles.Count == 0)
+                {
+                    Log.Warning("The hive's header checksum is wrong and no transaction logs were found in the same directory. Continuing...");
+                }
+
+                if (sequenceNumbersDiffer || badChecksum && logFiles.Count > 0)
+                {
 
 
-                    if (logFiles.Length == 0)
+                    if (logFiles.Count == 0)
                     {
                         if (nl == false)
                         {
@@ -980,15 +1002,17 @@ internal class Program
                                 {
                                     var bb1 = rawCopyReturn.FileStream.ReadFully();
 
-                                    var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename, bb1);
-                                    lt.Add(tt);
+                                    if (bb1.Length > 0)
+                                    {
+                                        lt.Add(new TransactionLogFileInfo(rawCopyReturn.InputFilename, bb1));
+                                    }
                                 }
 
                                 reg.ProcessTransactionLogs(lt, true);
                             }
                             else
                             {
-                                reg.ProcessTransactionLogs(logFiles.ToList(), true);
+                                reg.ProcessTransactionLogs(logFiles, true);
                             }
                     }
                 }
@@ -1370,7 +1394,7 @@ internal class Program
 
                     if (vn?.Length > 0)
                     {
-                        val = key.Values.SingleOrDefault(c =>
+                        val = key.Values.FirstOrDefault(c =>
                             c.ValueName == vn);
 
                         if (val == null)
@@ -1475,15 +1499,15 @@ internal class Program
                                                     RegistryKey.KeyFlagsEnum.Deleted;
                                 if (skeyIsDeleted)
                                 {
-                                    Log.Information("\t------------ Subkey #{I:N0} ({Deleted: {Del}}) ------------",i,true);
+                                    Log.Information("\t------------ Subkey #{I:N0} (Deleted: {Del}) ------------",i,true);
                                     Log.Information(
-                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {ValuesCount:N0}",registryKey.KeyName,registryKey.LastWriteTime.Value,registryKey.Values.Count);
+                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {ValuesCount:N0}",registryKey.KeyName,registryKey.LastWriteTime,registryKey.Values.Count);
                                 }
                                 else
                                 {
                                     Log.Information("\t------------ Subkey #{I:N0} ------------",i);
                                     Log.Information(
-                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {Count:N0}",registryKey.KeyName,registryKey.LastWriteTime.Value,registryKey.Values.Count);
+                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {Count:N0}",registryKey.KeyName,registryKey.LastWriteTime,registryKey.Values.Count);
                                 }
                                 
                                 Console.WriteLine();
@@ -1498,7 +1522,7 @@ internal class Program
                             {
                                 if (keyIsDeleted)
                                 {
-                                    Log.Information("\t------------ Value #{I:N0} ({Deleted: {Del}) ------------",i,true);
+                                    Log.Information("\t------------ Value #{I:N0} (Deleted: {Del}) ------------",i,true);
                                     Log.Information("\tName: {ValueName} ({ValueType})",keyValue.ValueName,keyValue.ValueType);
 
                                     var slack = "";
@@ -1540,7 +1564,7 @@ internal class Program
                         if (keyIsDeleted)
                         {
                             Log.Information("\tKey path: {Path} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath),true);
-                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime.Value);
+                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime);
                            
 
                             Console.WriteLine();
@@ -1557,7 +1581,7 @@ internal class Program
                         else
                         {
                             Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
-                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime.Value);
+                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime);
 
                             Console.WriteLine();
 
@@ -1688,16 +1712,19 @@ internal class Program
                         Log.Fatal("Rerun the program with Administrator privileges to try again");
                         Console.WriteLine();
                     }
-                    else if (ex.Message.Contains("Data in byte array is not a Registry hive")|| ex.Message.Contains("No logs were supplied"))
+                    else if (ex.Message.Contains("Data in byte array is not a Registry hive") && f.IsNullOrEmpty())
                     {
-                        //handled elsewhere
+                        //a file in -d with a hive's name that isn't one (a script named system, say)
+                        Log.Debug("Skipping {HiveToProcess}: {Message}",hiveToProcess,ex.Message);
+                        continue;
                     }
-                        
                     else
                     {
-                        Log.Error(ex,"There was an error: {Message}",ex.Message);
+                        Log.Error(ex,"There was an error processing {HiveToProcess}: {Message}",hiveToProcess,ex.Message);
                     }
                 }
+
+                failed++;
             }
 
             _sw.Stop();
@@ -1830,6 +1857,37 @@ internal class Program
 //                Alphaleonis.Win32.Filesystem.Directory.Delete(VssDir, true, true);
             }
         }
+
+        if (failed > 0)
+        {
+            Log.Warning("{Failed:N0} hive(s) could not be processed",failed);
+            Console.WriteLine();
+        }
+
+        return failed > 0 ? 1 : 0;
+    }
+
+    /// <summary>The hive's transaction logs (.LOG, .LOG1, .LOG2, in any case) next to it that aren't empty</summary>
+    private static List<string> LogFiles(string dirname, string hiveBase)
+    {
+        var logs = new List<string>();
+        foreach (var file in Directory.GetFiles(dirname))
+        {
+            var name = Path.GetFileName(file);
+            if (name.StartsWith(hiveBase + ".LOG", StringComparison.OrdinalIgnoreCase) == false || name.Length > hiveBase.Length + 5)
+            {
+                continue;
+            }
+
+            //.LOG, .LOG1, .LOG2
+            var suffix = name.Substring(hiveBase.Length + 4);
+            if (suffix is "" or "1" or "2" && new FileInfo(file).Length > 0)
+            {
+                logs.Add(file);
+            }
+        }
+
+        return logs.OrderBy(t => t, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
     private static void UpdateFromRepo()
@@ -1965,7 +2023,7 @@ internal class Program
         if (batchKey.ValueName.IsNullOrEmpty() == false)
         {
             //we need to check for a value
-            regVal = regKey.Values.SingleOrDefault(t =>
+            regVal = regKey.Values.FirstOrDefault(t =>
                 string.Equals(t.ValueName, batchKey.ValueName, StringComparison.InvariantCultureIgnoreCase));
 
             if (regVal != null)
@@ -2039,7 +2097,7 @@ internal class Program
                     if (key.ValueName.IsNullOrEmpty() == false)
                     {
                         //we need to check for a value
-                        regVal = regKey.Values.SingleOrDefault(t =>
+                        regVal = regKey.Values.FirstOrDefault(t =>
                             t.ValueName.ToUpperInvariant() == key.ValueName.ToUpperInvariant());
 
                         if (regVal == null)
@@ -2201,7 +2259,7 @@ internal class Program
                         HivePath = path,
                         HiveType = key.HiveType.ToString(),
                         KeyPath = regKey.KeyPath,
-                        LastWriteTimestamp = regKey.LastWriteTime.Value,
+                        LastWriteTimestamp = regKey.LastWriteTime,
                         Recursive = key.Recursive,
                         ValueType = "(plugin)",
                         ValueData = conv.BatchValueData1,
@@ -2224,7 +2282,7 @@ internal class Program
             if (key.ValueName.IsNullOrEmpty() == false)
             {
                 //one value only
-                var regVal = regKey.Values.SingleOrDefault(t =>
+                var regVal = regKey.Values.FirstOrDefault(t =>
                     t.ValueName.ToLowerInvariant() == key.ValueName.ToLowerInvariant());
 
                 if (regVal != null)
@@ -2432,7 +2490,7 @@ internal class Program
             HivePath = path,
             HiveType = key.HiveType.ToString(),
             KeyPath = regKey.KeyPath,
-            LastWriteTimestamp = regKey.LastWriteTime.Value,
+            LastWriteTimestamp = regKey.LastWriteTime,
             Recursive = key.Recursive,
             ValueType = regVal == null ? "" : regVal.ValueType
         };
@@ -2677,7 +2735,10 @@ internal class Program
             var validator = new ReBatchValidator();
 
             var validate = validator.Validate(re);
-            DisplayValidationResults(validate, bn);
+            if (DisplayValidationResults(validate, bn) == false)
+            {
+                return null;
+            }
         }
         catch (SyntaxErrorException se)
         {
@@ -2688,7 +2749,8 @@ internal class Program
             var lines = File.ReadLines(bn).ToList();
             var fileContents = bn.ReadAllText();
 
-            var badLine = lines[(int)se.Start.Line - 1];
+            var lineIndex = (int)Math.Min(Math.Max(se.Start.Line - 1, 0), Math.Max(lines.Count - 1, 0));
+            var badLine = lines.Count > 0 ? lines[lineIndex] : string.Empty;
 
             Console.WriteLine();
             Log.Fatal("Bad line (or close to it) {BadLine} has invalid data at column {Column}",badLine,se.Start.Column);
@@ -2728,18 +2790,19 @@ internal class Program
             Console.WriteLine();
             Log.Warning("The batch file failed validation. Fix the issues and try again");
             Console.WriteLine();
-            Environment.Exit(0);
+            return null;
         }
 
         return re;
     }
 
-    private static void DisplayValidationResults(ValidationResult result, string source)
+    /// <returns>false when there were errors</returns>
+    private static bool DisplayValidationResults(ValidationResult result, string source)
     {
         Log.Verbose("Performing validation on {Source}: {Result}",source,result.Dump());
         if (result.Errors.Count == 0)
         {
-            return;
+            return true;
         }
 
         Console.WriteLine();
@@ -2754,7 +2817,7 @@ internal class Program
         Log.Error("Correct the errors and try again. Exiting");
         Console.WriteLine();
 
-        Environment.Exit(0);
+        return false;
     }
 
     private static SimpleKey BuildJson(RegistryKey key)
@@ -2763,7 +2826,7 @@ internal class Program
         {
             KeyName = key.KeyName,
             KeyPath = key.KeyPath,
-            LastWriteTimestamp = key.LastWriteTime.Value
+            LastWriteTimestamp = key.LastWriteTime
         };
         foreach (var keyValue in key.Values)
         {

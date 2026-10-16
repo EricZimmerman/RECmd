@@ -48,7 +48,7 @@ internal class Program
                                             "\r\n\t " +
                                             @"  rla.exe -d ""D:\temp\"" --out c:\temp" + "\r\n";
 
-    private static async Task Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         ExceptionlessClient.Default.Startup("fTcEOUkt1CxljTyOZfsr8AcSGQwWE4aYaYqk7cE1");
 
@@ -62,7 +62,7 @@ internal class Program
         };
         var outOpt = new Option<string>("--out")
         {
-            Description = "Directory to save updated hives to. Only dirty hives with logs applied will end up in --out directory"
+            Description = "Directory to save hives to, dirty ones with their transaction logs applied (see --ca)"
         };
         var caOpt = new Option<bool>("--ca")
         {
@@ -71,12 +71,12 @@ internal class Program
         };
         var cnOpt = new Option<bool>("--cn")
         {
-            Description = "When true, compress names for profile based hives",
+            Description = "When true and --nop is true, name profile based hives (NTUSER.DAT, UsrClass.dat) drive_profile_name, so they don't collide",
             DefaultValueFactory = _ => true
         };
         var nopOpt = new Option<bool>("--nop")
         {
-            Description = "When true, do not recreate paths where the hives were located",
+            Description = "When true, save hives directly in --out. When false, save them under their original path in --out (C:\\Windows\\System32\\config\\SAM as <out>\\C\\Windows\\System32\\config\\SAM)",
             DefaultValueFactory = _ => false
         };
         var debugOpt = new Option<bool>("--debug")
@@ -108,9 +108,34 @@ internal class Program
             result.GetValue(caOpt), result.GetValue(cnOpt), result.GetValue(nopOpt), result.GetValue(debugOpt),
             result.GetValue(traceOpt)));
             
-        var foo = _rootCommand.Parse(args).InvokeAsync();
+        var exitCode = await _rootCommand.Parse(args).InvokeAsync();
 
         Log.CloseAndFlush();
+
+        return exitCode;
+    }
+
+    /// <summary>The hive's transaction logs (.LOG, .LOG1, .LOG2, in any case) next to it that aren't empty</summary>
+    private static List<string> LogFiles(string dirname, string hiveBase)
+    {
+        var logs = new List<string>();
+        foreach (var file in Directory.GetFiles(dirname))
+        {
+            var name = Path.GetFileName(file);
+            if (name.StartsWith(hiveBase + ".LOG", StringComparison.OrdinalIgnoreCase) == false || name.Length > hiveBase.Length + 5)
+            {
+                continue;
+            }
+
+            //.LOG, .LOG1, .LOG2
+            var suffix = name.Substring(hiveBase.Length + 4);
+            if (suffix is "" or "1" or "2" && new FileInfo(file).Length > 0)
+            {
+                logs.Add(file);
+            }
+        }
+
+        return logs.OrderBy(t => t, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
 #if NET9_0_OR_GREATER
@@ -137,7 +162,8 @@ internal class Program
     }
 #endif
 
-    private static void DoWork(string f, string d, string @out, bool ca, bool cn, bool nop, bool debug, bool trace)
+    /// <returns>0, or 1 when the arguments are bad or a hive could not be processed</returns>
+    private static int DoWork(string f, string d, string @out, bool ca, bool cn, bool nop, bool debug, bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
 
@@ -170,7 +196,7 @@ internal class Program
                 aaa.Invoke(_rootCommand.Parse("--out is required. Exiting"));
                 
                 Console.WriteLine();
-                return;
+                return 1;
             }
         }
 
@@ -189,7 +215,7 @@ internal class Program
             {
                 Log.Error("File {F} does not exist", f);
                 Console.WriteLine();
-                return;
+                return 1;
             }
 
             hivesToProcess.Add(f);
@@ -200,7 +226,7 @@ internal class Program
             {
                 Log.Error("Directory {D} does not exist", d);
                 Console.WriteLine();
-                return;
+                return 1;
             }
 
             IEnumerable<string> files;
@@ -406,7 +432,7 @@ internal class Program
             var aaa = new CustomHelpAction(new HelpAction());
             aaa.Invoke(_rootCommand.Parse(""));
 
-            return;
+            return 1;
         }
 
 
@@ -414,11 +440,14 @@ internal class Program
         {
             Log.Warning("No hives were found. Exiting...");
 
-            return;
+            return 0;
         }
 
         _sw = new Stopwatch();
         _sw.Start();
+
+        var outputNames = new OutputNames();
+        var failed = 0;
 
         foreach (var hiveToProcess in hivesToProcess)
         {
@@ -463,12 +492,7 @@ internal class Program
                     var files = new List<string>();
                     files.Add(hiveToProcess);
 
-                    var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-
-                    foreach (var logFile in logFiles)
-                    {
-                        files.Add(logFile);
-                    }
+                    files.AddRange(LogFiles(string.IsNullOrEmpty(dirname) ? "." : dirname, hiveBase));
 
                     rawFiles = Helper.GetRawFiles(files);
 
@@ -482,63 +506,63 @@ internal class Program
                     reg = new RegistryHive(bb, rawFiles.First().InputFilename);
                 }
 
-                if (reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber)
+                if (string.IsNullOrEmpty(dirname))
                 {
-                    if (string.IsNullOrEmpty(dirname))
-                    {
-                        dirname = ".";
-                    }
+                    dirname = ".";
+                }
 
+                //dirty: the sequence numbers differ, or the header's checksum is wrong and there are logs to take it from (as Windows does)
+                var logFiles = LogFiles(dirname, hiveBase);
+                var hasLogs = logFiles.Count > 0 || rawFiles?.Count > 1;
+                var dirty = reg.Header.PrimarySequenceNumber != reg.Header.SecondarySequenceNumber || reg.Header.ValidateCheckSum() == false && hasLogs;
 
-#if !NET9_0_OR_GREATER
-                    var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?");
-#elif NET9_0_OR_GREATER
-     var en = new EnumerationOptions
-                    {
-                     //   IgnoreInaccessible = true,
-                        MatchCasing = MatchCasing.CaseInsensitive,
-                       // RecurseSubdirectories = true,
-                        AttributesToSkip = 0
-                    };
-                    
-                var    logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?",en);
-#endif
+                if (dirty)
+                {
 
-
-                    // var logFiles = Directory.GetFiles(dirname, $"{hiveBase}.LOG?",en);
-
-                    if (logFiles.Length == 0)
+                    if (logFiles.Count == 0 && (rawFiles == null || rawFiles.Count < 2))
                     {
                         if (ca)
                         {
                             Log.Information("\tHive {HiveToProcess} is dirty, but no logs were found in the same directory. {Switch} is true. Copying...", hiveToProcess, "--ca");
-                            updatedBytes = File.ReadAllBytes(hiveToProcess);
+                            updatedBytes = rawFiles != null ? reg.FileBytes : File.ReadAllBytes(hiveToProcess);
                         }
                         else
                         {
-                            Log.Information("\tHive {HiveToProcess} is dirty and no transaction logs were found in the same directory. {Switch} is false. Skipping...", hivesToProcess, "--cn");
+                            Log.Information("\tHive {HiveToProcess} is dirty and no transaction logs were found in the same directory. {Switch} is false. Skipping...", hiveToProcess, "--ca");
                             continue;
                         }
                     }
 
                     if (updatedBytes == null)
                     {
-                        if (rawFiles != null)
+                        try
                         {
-                            var lt = new List<TransactionLogFileInfo>();
-                            foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
+                            if (rawFiles != null)
                             {
-                                var bb1 = rawCopyReturn.FileStream.ReadFully();
+                                var lt = new List<TransactionLogFileInfo>();
+                                foreach (var rawCopyReturn in rawFiles.Skip(1).ToList())
+                                {
+                                    var bb1 = rawCopyReturn.FileStream.ReadFully();
 
-                                var tt = new TransactionLogFileInfo(rawCopyReturn.InputFilename, bb1);
-                                lt.Add(tt);
+                                    if (bb1.Length > 0)
+                                    {
+                                        lt.Add(new TransactionLogFileInfo(rawCopyReturn.InputFilename, bb1));
+                                    }
+                                }
+
+                                updatedBytes = reg.ProcessTransactionLogs(lt);
                             }
-
-                            updatedBytes = reg.ProcessTransactionLogs(lt);
+                            else
+                            {
+                                updatedBytes = reg.ProcessTransactionLogs(logFiles);
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            updatedBytes = reg.ProcessTransactionLogs(logFiles.ToList());
+                            //it used to be skipped without a word
+                            Log.Error("\tTransaction logs for {HiveToProcess} could not be applied: {Message}", hiveToProcess, ex.Message);
+                            failed++;
+                            continue;
                         }
                     }
                 }
@@ -548,7 +572,7 @@ internal class Program
                     if (ca)
                     {
                         Log.Information("\tHive {HiveToProcess} is not dirty, but {Switch} is {Val}. Copying...", hiveToProcess, "--ca", true);
-                        updatedBytes = File.ReadAllBytes(hiveToProcess);
+                        updatedBytes = rawFiles != null ? reg.FileBytes : File.ReadAllBytes(hiveToProcess);
                     }
                     else
                     {
@@ -557,60 +581,8 @@ internal class Program
                     }
                 }
 
-                Log.Verbose("out: {Out} DS {DS}", @out, System.IO.Path.DirectorySeparatorChar);
-
-                var outFile = hiveToProcess.Replace(":", "").Replace(System.IO.Path.DirectorySeparatorChar.ToString(), "_");
-
-                Log.Verbose("Outfile: {OutFile}", outFile);
-
-                if (nop)
-                {
-                    outFile = Path.GetFileName(hiveToProcess);
-                    Log.Verbose("nop Outfile: {OutFile}", outFile);
-                }
-
-                var outFileAll = Path.Combine(@out, outFile);
-
-                Log.Verbose("outFileAll: {OutFileAll}", outFileAll);
-
-
-                if (cn &&
-                    (outFileAll.ToUpperInvariant().Contains("NTUSER") || outFileAll.ToUpperInvariant().Contains("USRCLASS")))
-                {
-                    Log.Verbose("In cn && ntuser|usrclass", outFileAll);
-
-                    var profileName = "Undetermined";
-                    var dl = "Undetermined";
-                    try
-                    {
-                        profileName = Regex.Match(hiveToProcess, @"(.)\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[3].Value;
-                        dl = Regex.Match(hiveToProcess, @"(.):\\\b(.sers|.indows)\b\\(.+?)\\", RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace).Groups[1].Value;
-                    }
-                    catch (ArgumentException)
-                    {
-                        // Syntax error in the regular expression
-                    }
-
-
-                    // var dl = hiveToProcess[0].ToString();
-                    //  var segs = hiveToProcess.Split(Path.DirectorySeparatorChar);
-
-
-                    var filename = Path.GetFileName(hiveToProcess);
-
-                    var outFile2 = $"{dl}_{profileName}_{filename}";
-
-                    outFileAll = Path.Combine(@out, outFile2);
-                }
-
-                if (File.Exists(outFileAll))
-                {
-                    var oldOut = outFileAll;
-
-                    outFileAll = Path.Combine(@out, outFile);
-
-                    Log.Warning("\tFile {OldOut} exists! Saving as non-compressed name: {OutFileAll}", oldOut, outFileAll);
-                }
+                //the path under --out (#112), with a number when another hive in this run got the same name
+                var outFileAll = outputNames.Get(hiveToProcess, @out, nop, cn);
 
                 Log.Information("\tSaving updated hive to {OutFileAll}", outFileAll);
 
@@ -639,16 +611,23 @@ internal class Program
                         Log.Fatal("Rerun the program with Administrator privileges to try again");
                         Console.WriteLine();
                     }
-                    else if (ex.Message.Contains("Data in byte array is not a Registry hive") || ex.Message.Contains("No logs were supplied"))
+                    else if (ex.Message.Contains("Data in byte array is not a Registry hive") && f.IsNullOrEmpty())
                     {
-                        //it already gets reported
-                        //Log.Error("\t{Message}",ex.Message);
+                        //a file in -d with a hive's name that isn't one (a script named system, say)
+                        Log.Debug("\tSkipping {HiveToProcess}: {Message}", hiveToProcess, ex.Message);
+                        continue;
                     }
                     else
                     {
-                        Log.Error(ex, "There was an error: {Message}", ex.Message);
+                        Log.Error("\tThere was an error processing {HiveToProcess}: {Message}", hiveToProcess, ex.Message);
                     }
                 }
+                else
+                {
+                    Log.Error("\t{HiveToProcess}: {Message}", hiveToProcess, ex.Message);
+                }
+
+                failed++;
             }
         }
 
@@ -657,6 +636,14 @@ internal class Program
 
         Log.Information("Total processing time: {TotalSeconds:N3} seconds", _sw.Elapsed.TotalSeconds);
         Console.WriteLine();
+
+        if (failed > 0)
+        {
+            Log.Warning("{Failed:N0} hive(s) could not be processed", failed);
+            Console.WriteLine();
+        }
+
+        return failed > 0 ? 1 : 0;
     }
     
     private class CustomHelpAction : SynchronousCommandLineAction
