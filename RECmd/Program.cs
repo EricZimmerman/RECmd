@@ -129,8 +129,38 @@ internal class Program
         }
     }
 
+    // JSON time stamps: ISO 8601 in UTC (2024-01-02T03:04:05.6780000Z), as JLECmd writes them, instead of ServiceStack's \/Date(ms)\/
+    private const string JsonDateFormat = "yyyy-MM-ddTHH:mm:ss.fffffffZ";
+
+    private static void ConfigureJsonDates()
+    {
+        JsConfig.DateHandler = DateHandler.ISO8601;
+        JsConfig<DateTimeOffset>.SerializeFn = JsonDate;
+        JsConfig<DateTimeOffset?>.SerializeFn = d => d.HasValue ? JsonDate(d.Value) : null;
+        JsConfig<DateTime>.SerializeFn = JsonDate;
+        JsConfig<DateTime?>.SerializeFn = d => d.HasValue ? JsonDate(d.Value) : null;
+    }
+
+    private static string JsonDate(DateTimeOffset d)
+    {
+        return d.UtcDateTime.ToString(JsonDateFormat, CultureInfo.InvariantCulture);
+    }
+
+    private static string JsonDate(DateTime d)
+    {
+        //timestamps without a kind are already UTC; ToUniversalTime would treat them as local time
+        if (d.Kind == DateTimeKind.Unspecified)
+        {
+            d = DateTime.SpecifyKind(d, DateTimeKind.Utc);
+        }
+
+        return d.ToUniversalTime().ToString(JsonDateFormat, CultureInfo.InvariantCulture);
+    }
+
     private static async Task<int> Main(string[] args)
     {
+        ConfigureJsonDates();
+
         ExceptionlessClient.Default.Startup("fTcEOUkt1CxljTyOZfsr8AcSGQwWE4aYaYqk7cE1");
     
 
@@ -415,10 +445,6 @@ internal class Program
 
         ActiveDateTimeFormat = dt;
         
-        ServiceStack.Text.JsConfig<DateTimeOffset?>.SerializeFn = time => time?.ToString(dt, CultureInfo.InvariantCulture);
-        ServiceStack.Text.JsConfig<DateTimeOffset>.SerializeFn = time => time.ToString(dt, CultureInfo.InvariantCulture);
-        ServiceStack.Text.JsConfig<DateTime?>.SerializeFn = time => time?.ToString(dt, CultureInfo.InvariantCulture);
-        ServiceStack.Text.JsConfig<DateTime>.SerializeFn = time => time.ToString(dt, CultureInfo.InvariantCulture);
         ServiceStack.Text.JsConfig.IncludeNullValues = true;
         ServiceStack.Text.JsConfig.IncludeNullValuesInDictionaries = true;
 
