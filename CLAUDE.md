@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - A hive is dirty when its sequence numbers differ, or when its header checksum is wrong and it has logs. A dirty hive without logs is an error unless `--nl` (RECmd); rla copies it as it is with `--ca`. Logs are `.LOG`, `.LOG1` and `.LOG2` next to the hive, in any case, and empty ones are skipped. A hive in use is read raw (Windows, administrator), with its logs.
 - `--recover` (default true) is passed to `RegistryHive.RecoverDeleted`.
 - In `-d` mode, a file with a hive's name that isn't a hive is skipped (debug message); with `-f` it is an error.
-- Exit codes: 0 on success, 1 for bad arguments, a bad batch file, or a hive that could not be processed. No `Environment.Exit`.
+- Exit codes: 0 on success, 1 for bad arguments, a bad batch file, a hive that could not be processed, a `-d` folder that could not be searched completely, or (RECmd) a failed `--saveTo`, key JSON or batch CSV/JSON export. No `Environment.Exit`.
 - Value lookups use `FirstOrDefault` (a key can have the same value name twice).
 - Batch CSV columns (`BatchCsvOut`) are what KAPE and users' scripts read: keep them and their order.
 

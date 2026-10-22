@@ -438,13 +438,16 @@ internal class Program
     }
 #endif
     
-    /// <returns>0, or 1 when the arguments are bad or a hive could not be processed</returns>
+    /// <returns>0, or 1 when the arguments are bad, a hive could not be processed, or a save or export failed</returns>
     private static int DoWork(string d, string f, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
     {
+        //files that could not be enumerated, failed saves (--saveTo) and failed exports (key JSON, batch CSV/JSON)
+        var errors = 0;
+
         var levelSwitch = new LoggingLevelSwitch();
 
         ActiveDateTimeFormat = dt;
-        
+
         ServiceStack.Text.JsConfig.IncludeNullValues = true;
         ServiceStack.Text.JsConfig.IncludeNullValuesInDictionaries = true;
 
@@ -806,7 +809,7 @@ internal class Program
                 Console.WriteLine();
                 Log.Fatal("Rerun the program with Administrator privileges to try again");
                 Console.WriteLine();
-                //Environment.Exit(-1);
+                errors++;
             }
 
             if (vss)
@@ -847,7 +850,7 @@ internal class Program
                         Console.WriteLine();
                         Log.Fatal("Rerun the program with Administrator privileges to try again");
                         Console.WriteLine();
-                        //Environment.Exit(-1);
+                        errors++;
                     }
                 }
             }
@@ -868,7 +871,7 @@ internal class Program
         {
             Log.Warning("No hives were found. Exiting...");
 
-            return 0;
+            return errors > 0 ? 1 : 0;
         }
 
         var totalHits = 0;
@@ -1450,6 +1453,7 @@ internal class Program
                             {
                                 Log.Error(ex,
                                     "Save failed to {SaveTo}. Error: {Message}",saveTo,ex.Message);
+                                errors++;
                             }
                         }
                     }
@@ -1488,6 +1492,7 @@ internal class Program
                             {
                                 Log.Error(e,
                                     "Error saving key {KeyPath} to directory {Json}: {Message}",key.KeyPath,json,e.Message);
+                                errors++;
                             }
                         }
 
@@ -1766,79 +1771,87 @@ internal class Program
 
             Log.Information("Found {BatchCsvOutListCount:N0} key/value {Suffix2} across {Count:N0} {Suffix4}",_batchCsvOutList.Count,$"pair{suffix2}",hivesToProcess.Count,$"file{suffix4}");
             Log.Information("Total search time: {TotalSeconds:N3} seconds",totalSeconds);
-            if (_batchCsvOutList.Count > 0)
+            try
             {
-                if (csv.IsNullOrEmpty() == false)
+                if (_batchCsvOutList.Count > 0)
                 {
-                    if (Directory.Exists(csv) == false)
+                    if (csv.IsNullOrEmpty() == false)
                     {
-                        Log.Information(
-                            "Path to {Csv} doesn't exist. Creating...", csv);
-                        Directory.CreateDirectory(csv);
-                    }
-
-                    var outName =
-                        $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(bn)}_Output.csv";
-
-                    if (csvf.IsNullOrEmpty() == false)
-                    {
-                        outName = Path.GetFileName(csvf);
-                    }
-
-                    var outFile = Path.Combine(csv, outName);
-
-                    Console.WriteLine();
-                    Log.Information("Saving batch mode CSV file to {OutFile}", outFile);
-
-                    var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
-                    var csvWriter = new CsvWriter(swCsv, CultureInfo.InvariantCulture);
-
-                    var foo = csvWriter.Context.AutoMap<BatchCsvOut>();
-
-                    foo.Map(t => t.LastWriteTimestamp).Convert(t =>
-                        $"{t.Value.LastWriteTimestamp?.ToString(dt)}");
-
-                    csvWriter.Context.RegisterClassMap(foo);
-
-                    csvWriter.WriteHeader<BatchCsvOut>();
-                    csvWriter.NextRecord();
-
-                    csvWriter.WriteRecords(_batchCsvOutList);
-
-                    swCsv.Flush();
-                    swCsv.Close();
-                }
-
-                if (json.IsNullOrEmpty() == false)
-                {
-                    if (Directory.Exists(json) == false)
-                    {
-                        Log.Information(
-                            "Path to {Json} doesn't exist. Creating...",json);
-                        Directory.CreateDirectory(json);
-                    }
-
-                    var outName =
-                        $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(bn)}_Output.json";
-
-                    if (jsonf.IsNullOrEmpty() == false)
-                    {
-                        outName = Path.GetFileName(jsonf);
-                    }
-
-                    var outFile = Path.Combine(json, outName);
-
-                    Console.WriteLine();
-                    Log.Information("Saving batch mode JSON file to {OutFile}",outFile);
-
-                    using (var writer = new StreamWriter(outFile, false, Encoding.UTF8))
-                    {
-                        foreach (var item in _batchCsvOutList)
+                        if (Directory.Exists(csv) == false)
                         {
-                            writer.WriteLine(item.ToJson());
+                            Log.Information(
+                                "Path to {Csv} doesn't exist. Creating...", csv);
+                            Directory.CreateDirectory(csv);
+                        }
+
+                        var outName =
+                            $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(bn)}_Output.csv";
+
+                        if (csvf.IsNullOrEmpty() == false)
+                        {
+                            outName = Path.GetFileName(csvf);
+                        }
+
+                        var outFile = Path.Combine(csv, outName);
+
+                        Console.WriteLine();
+                        Log.Information("Saving batch mode CSV file to {OutFile}", outFile);
+
+                        var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
+                        var csvWriter = new CsvWriter(swCsv, CultureInfo.InvariantCulture);
+
+                        var foo = csvWriter.Context.AutoMap<BatchCsvOut>();
+
+                        foo.Map(t => t.LastWriteTimestamp).Convert(t =>
+                            $"{t.Value.LastWriteTimestamp?.ToString(dt)}");
+
+                        csvWriter.Context.RegisterClassMap(foo);
+
+                        csvWriter.WriteHeader<BatchCsvOut>();
+                        csvWriter.NextRecord();
+
+                        csvWriter.WriteRecords(_batchCsvOutList);
+
+                        swCsv.Flush();
+                        swCsv.Close();
+                    }
+
+                    if (json.IsNullOrEmpty() == false)
+                    {
+                        if (Directory.Exists(json) == false)
+                        {
+                            Log.Information(
+                                "Path to {Json} doesn't exist. Creating...",json);
+                            Directory.CreateDirectory(json);
+                        }
+
+                        var outName =
+                            $"{RunTimestamp}_RECmd_Batch_{Path.GetFileNameWithoutExtension(bn)}_Output.json";
+
+                        if (jsonf.IsNullOrEmpty() == false)
+                        {
+                            outName = Path.GetFileName(jsonf);
+                        }
+
+                        var outFile = Path.Combine(json, outName);
+
+                        Console.WriteLine();
+                        Log.Information("Saving batch mode JSON file to {OutFile}",outFile);
+
+                        using (var writer = new StreamWriter(outFile, false, Encoding.UTF8))
+                        {
+                            foreach (var item in _batchCsvOutList)
+                            {
+                                writer.WriteLine(item.ToJson());
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error exporting batch results: {Message}", ex.Message);
+                errors++;
             }
         }
 
@@ -1881,7 +1894,7 @@ internal class Program
             Console.WriteLine();
         }
 
-        return failed > 0 ? 1 : 0;
+        return failed > 0 || errors > 0 ? 1 : 0;
     }
 
     /// <summary>

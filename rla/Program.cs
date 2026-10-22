@@ -162,7 +162,7 @@ internal class Program
     }
 #endif
 
-    /// <returns>0, or 1 when the arguments are bad or a hive could not be processed</returns>
+    /// <returns>0, or 1 when the arguments are bad, the -d folder could not be searched, or a hive could not be processed</returns>
     private static int DoWork(string f, string d, string @out, bool ca, bool cn, bool nop, bool debug, bool trace)
     {
         var levelSwitch = new LoggingLevelSwitch();
@@ -201,6 +201,9 @@ internal class Program
         }
 
         var hivesToProcess = new List<string>();
+
+        //the -d folder could not be searched completely
+        var enumerationFailed = false;
 
         Console.WriteLine();
         Log.Information("{Header}", Header);
@@ -424,7 +427,7 @@ internal class Program
                 Console.WriteLine();
                 Log.Fatal("Rerun the program with Administrator privileges to try again");
                 Console.WriteLine();
-                //Environment.Exit(-1);
+                enumerationFailed = true;
             }
         }
         else
@@ -440,7 +443,7 @@ internal class Program
         {
             Log.Warning("No hives were found. Exiting...");
 
-            return 0;
+            return enumerationFailed ? 1 : 0;
         }
 
         _sw = new Stopwatch();
@@ -643,7 +646,7 @@ internal class Program
             Console.WriteLine();
         }
 
-        return failed > 0 ? 1 : 0;
+        return failed > 0 || enumerationFailed ? 1 : 0;
     }
     
     private class CustomHelpAction : SynchronousCommandLineAction
