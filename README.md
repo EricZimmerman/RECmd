@@ -7,7 +7,7 @@ don't apply transaction logs themselves.
 
 | | |
 |---|---|
-| **Version** | RECmd 2026.10.0 &middot; rla 2026.10.0 |
+| **Version** | RECmd 2026.10.1 &middot; rla 2026.10.0 |
 | **Download** | RECmd: [.NET 10](https://download.ericzimmermanstools.com/net/RECmd.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/RECmd.zip)<br>rla: [.NET 10](https://download.ericzimmermanstools.com/net/rla.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/rla.zip) |
 | **All tools** | [ericzimmerman.github.io](https://ericzimmerman.github.io) or [Get-ZimmermanTools](https://download.ericzimmermanstools.com/Get-ZimmermanTools.zip), which downloads them all and keeps them current |
 | **Changes** | [ChangeLog](https://ericzimmerman.github.io/changelog/) |
@@ -158,6 +158,7 @@ instead of overwriting it.
 
 ## What's new in 2026.10
 
+- RECmd 2026.10.1: the LastVisitedPidlMRU, OpenSavePidlMRU, RecentDocs and Taskband plugins read 0x2E root folder items with extension blocks after the GUID (a known folder such as Downloads) are read, and zip contents with data in bytes 4-9 (RegistryPluginBase 2026.10.6, ExtensionBlocks 2026.10.8).
 - Hives load about 2x faster with less memory (Registry 2026.10.0). Over the test hives, DFIRBatch finds about 9% more
   rows (logs found and replayed in full, damaged hives read, more deleted keys).
 - Transaction logs are applied as Windows applies them; old format (`.LOG`) logs are used, log files are found whatever
