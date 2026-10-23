@@ -1,125 +1,193 @@
-# RECmd
+# RECmd and rla
 
-## Ongoing Projects
+RECmd is command line Registry access: it searches hives for keys, values, data and slack, dumps keys and values, and in
+batch mode uses a batch file (`.reb`) and the Registry plugins to pull the useful keys and values out of many hives into
+one CSV or JSON file. rla (Registry log applier) replays transaction logs into dirty hives and saves them, for tools that
+don't apply transaction logs themselves.
 
- * [DFIR Batch File (Formally Kroll Batch)](https://github.com/EricZimmerman/RECmd/projects/1) - Development roadmap for the [DFIR Batch File](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.reb). Please feel free to contribute by adding ideas or by finishing tasks in the `To Do` column. Any help is appreciated! 
+| | |
+|---|---|
+| **Version** | RECmd 2026.10.0 &middot; rla 2026.10.0 |
+| **Download** | RECmd: [.NET 10](https://download.ericzimmermanstools.com/net/RECmd.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/RECmd.zip)<br>rla: [.NET 10](https://download.ericzimmermanstools.com/net/rla.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/rla.zip) |
+| **All tools** | [ericzimmerman.github.io](https://ericzimmerman.github.io) or [Get-ZimmermanTools](https://download.ericzimmermanstools.com/Get-ZimmermanTools.zip), which downloads them all and keeps them current |
+| **Changes** | [ChangeLog.txt](https://download.ericzimmermanstools.com/ChangeLog.txt) |
+| **Issues** | [EricZimmerman/RECmd](https://github.com/EricZimmerman/RECmd/issues) or [EricZimmerman/Issues](https://github.com/EricZimmerman/Issues/issues) |
 
-## Command Line Interface
+## Requirements
 
-    Description:
-      RECmd version 2026.10.0
-      
-      Author: Eric Zimmerman (saericzimmerman@gmail.com)
-      https://github.com/EricZimmerman/RECmd
-      
-      Note: Enclose all strings containing spaces (and all RegEx) with double quotes
-      
-      Example: RECmd.exe -f "C:\Temp\UsrClass 1.dat" --sk URL --recover false --nl
-             RECmd.exe -f "D:\temp\UsrClass 1.dat" --regex --sv "(App|Display)Name"
-             RECmd.exe -d "D:\triage" --bn BatchExamples\DFIRBatch.reb --csv "D:\out"
-      
+- **.NET 10 build**: the [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0). Run `RECmd.exe` or `rla.exe`
+  on Windows, or `dotnet RECmd.dll` or `dotnet rla.dll` on any system with the runtime (`--vss` and reading hives that
+  are in use need Windows).
+- **.NET Framework build**: .NET Framework 4.7.2 or later (Windows only).
 
-    Usage:
-      RECmd [options]
+## Command line
 
-    Options:
-      -f <f>               Hive to search. -f or -d is required
-      -d <d>               Directory to look for hives (recursively). -f or -d is required
-      --kn <kn>            Display details for key name. Includes subkeys and values
-      --vn <vn>            Value name. Only this value will be dumped
-      --bn <bn>            Use settings from supplied file to find keys/values. See included sample file for examples
-      --csv <csv>          Directory to save CSV formatted results to. Be sure to include the full path in double quotes
-      --csvf <csvf>        File name to save CSV formatted results to. When present, overrides default name
-      --saveTo <saveTo>    Saves --vn value data in binary form to file. Expects path to a FILE
-      --json <json>        Directory to save JSON formatted results to. Be sure to include the full path in double quotes
-      --jsonf <jsonf>      File name to save JSON formatted results to. When present, overrides default name
-      --details            Show more details when displaying results
-      --base64 <base64>    Find Base64 encoded values with size >= Base64 (specified in bytes)
-      --minSize <minSize>  Find values with data size >= MinSize (specified in bytes)
-      --sa <sa>            Search for <string> in keys, values, data, and slack
-      --sk <sk>            Search for <string> in value record's key names
-      --sv <sv>            Search for <string> in value record's value names
-      --sd <sd>            Search for <string> in value record's value data
-      --ss <ss>            Search for <string> in value record's value slack
-      --literal            If true, --sd and --ss search value will not be interpreted as ASCII or Unicode byte strings
-      --nd                 If true, do not show data when using --sd or --ss
-      --regex              If present, treat <string> in --sk, --sv, --sd, and --ss as a regular expression
-      --dt <dt>            The custom date/time format to use when displaying time stamps. See https://goo.gl/CNVq0k for options [default: yyyy-MM-dd HH:mm:ss.fffffff]
-      --nl                 When true, allow transaction log files to not exist for dirty hives
-      --recover            If true, recover deleted keys/values. Default is true
-      --vss                Process all Volume Shadow Copies that exist on drive specified by -f or -d
-      --dedupe             Deduplicate -f or -d & VSCs based on SHA-1. First file found wins
-      --sync               If true, the latest batch files from https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples are downloaded and local files updated
-      --debug              Show debug information during processing
-      --trace              Show trace information during processing
-      -?, -h, --help       Show help and usage information
-      --version            Show version information
+```text
+Usage:
+  RECmd [options]
 
-## Documentation
+Options:
+  -f <f>               Hive to search. -f or -d is required
+  -d <d>               Directory to look for hives (recursively). -f or -d is required
+  --kn <kn>            Display details for key name. Includes subkeys and values
+  --vn <vn>            Value name. Only this value will be dumped
+  --bn <bn>            Use settings from supplied file to find keys/values. See included sample file for examples
+  --csv <csv>          Directory to save CSV formatted results to. Be sure to include the full path in double quotes
+  --csvf <csvf>        File name to save CSV formatted results to. When present, overrides default name
+  --saveTo <saveTo>    Saves --vn value data in binary form to file. Expects path to a FILE
+  --json <json>        Directory to save JSON formatted results to. Be sure to include the full path in double quotes
+  --jsonf <jsonf>      File name to save JSON formatted results to. When present, overrides default name
+  --details            Show more details when displaying results
+  --base64 <base64>    Find Base64 encoded values with size >= Base64 (specified in bytes)
+  --minSize <minSize>  Find values with data size >= MinSize (specified in bytes)
+  --sa <sa>            Search for <string> in keys, values, data, and slack
+  --sk <sk>            Search for <string> in value record's key names
+  --sv <sv>            Search for <string> in value record's value names
+  --sd <sd>            Search for <string> in value record's value data
+  --ss <ss>            Search for <string> in value record's value slack
+  --literal            If true, --sd and --ss search value will not be interpreted as ASCII or Unicode byte strings
+  --nd                 If true, do not show data when using --sd or --ss
+  --regex              If present, treat <string> in --sk, --sv, --sd, and --ss as a regular expression
+  --dt <dt>            The custom date/time format to use when displaying time stamps. See https://goo.gl/CNVq0k for options [default: yyyy-MM-dd HH:mm:ss.fffffff]
+  --nl                 When true, allow transaction log files to not exist for dirty hives
+  --recover            If true, recover deleted keys/values. Default is true
+  --vss                Process all Volume Shadow Copies that exist on drive specified by -f or -d
+  --dedupe             Deduplicate -f or -d & VSCs based on SHA-1. First file found wins
+  --sync               If true, the latest batch files from https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples are downloaded and local files updated
+  --debug              Show debug information during processing
+  --trace              Show trace information during processing
+  -?, -h, --help       Show help and usage information
+  --version            Show version information
+```
 
-Command line Registry access, including batch mode!
+Short options (a single letter) start with one dash, long options with two. Enclose all strings containing spaces (and
+all regular expressions) in double quotes.
 
-See the manual for more examples.
+## Examples
 
-If you get an error message like "error loading plugin" when running RECmd after downloading the ZIP archive and extracting it using Windows' ZIP tool, use the following PowerShell command to unblock the DLLs:
+```text
+RECmd.exe -f "C:\Temp\UsrClass 1.dat" --sk URL --recover false --nl
+RECmd.exe -f "D:\temp\UsrClass 1.dat" --regex --sv "(App|Display)Name"
+RECmd.exe -d "D:\triage" --bn BatchExamples\DFIRBatch.reb --csv "D:\out"
+```
 
-``` PowerShell
+## Output
+
+- **Console**: the search hits (`--sa`, `--sk`, `--sv`, `--sd`, `--ss`, `--base64`, `--minSize`), or the key with its
+  subkeys and values (`--kn`; with `--vn` only that value; `--details` shows more).
+- **Batch mode** (`--bn` with `--csv` or `--json`, one of them): one file for all hives,
+  `<timestamp>_RECmd_Batch_<batch file name>_Output.csv` (or `.json`), with the columns `HivePath`, `HiveType`,
+  `Description`, `Category`, `KeyPath`, `ValueName`, `ValueType`, `ValueData`, `ValueData2`, `ValueData3`, `Comment`,
+  `Recursive`, `Deleted`, `LastWriteTimestamp` and `PluginDetailFile`. Keys a Registry plugin knows get a row with
+  `(plugin)` as the value type, and the plugin's full output is written to a `<timestamp>` folder in the output folder
+  (`<timestamp>_<plugin>_<hive>.csv` or `.json`), named in `PluginDetailFile`.
+- **JSON** (`--kn` with `--json`): the key, its subkeys and values in `<key name>.json`. Time stamps in JSON are ISO 8601
+  UTC (`2024-01-02T03:04:05.6780000Z`).
+- **Binary** (`--vn` with `--saveTo`): the value's data, as it is, in that file.
+
+Deleted keys and values are recovered unless `--recover false` is given. A dirty hive (its sequence numbers differ, or its
+header checksum is wrong and it has logs) gets its transaction logs (`.LOG`, `.LOG1` and `.LOG2` next to it, in any case)
+replayed; without them it is an error unless `--nl` is given. A hive that is in use is read raw (Windows, administrator),
+with its logs.
+
+## Plugins
+
+The Registry plugins (`RegistryPlugin.*.dll` in the `Plugins` folder next to RECmd, from the
+[RegistryPlugins](https://github.com/EricZimmerman/RegistryPlugins) repository) parse the values they know in batch mode.
+
+If you get an error message like "error loading plugin" when running RECmd after downloading the ZIP archive and
+extracting it using Windows' ZIP tool, use the following PowerShell command to unblock the DLLs:
+
+```powershell
 PS> Unblock-File .\Plugins\*.dll
 ```
 
-Both tools return exit code 0 on success and 1 when the arguments are bad or a hive could not be processed (for example a dirty hive without its transaction logs, unless `--nl` is used).
+## Batch files
 
-## Batch Files
+RECmd uses batch files to make your Registry output more actionable: a batch file lists the keys and values to report.
+The ones in [BatchExamples](BatchExamples) come with RECmd and are maintained mostly by the community; `--sync` downloads
+the latest ones from this repository and updates the local files. Learn about batch files
+[here](BatchExamples/README.md), and about the DFIR batch file (`DFIRBatch.reb`) used by RECmd and KAPE
+[here](BatchExamples/DFIRBatch.md).
 
-RECmd uses Batch Files to make your Registry output more actionable. Learn about Batch Files [here](https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples#readme)!
+## rla
 
-As of May 2024, there is a README specifically for the DFIRBatch file used by RECmd and KAPE. Find it [here](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.md)!
+### Command line
 
-# RLA
+```text
+Usage:
+  rla [options]
 
-## Command Line Interface
+Options:
+  -f <f>          File to process. Either this or -d is required
+  -d <d>          Directory to recursively process. Either this or -f is required
+  --out <out>     Directory to save hives to, dirty ones with their transaction logs applied (see --ca)
+  --ca            When true, always copy hives to --out directory, even if they aren't dirty
+  --cn            When true and --nop is true, name profile based hives (NTUSER.DAT, UsrClass.dat) drive_profile_name, so they don't collide
+  --nop           When true, save hives directly in --out. When false, save them under their original path in --out (C:\Windows\System32\config\SAM as <out>\C\Windows\System32\config\SAM)
+  --debug         Show debug information during processing
+  --trace         Show trace information during processing
+  -?, -h, --help  Show help and usage information
+  --version       Show version information
+```
 
-    Description:
-      rla version 2026.10.0
-      
-      Author: Eric Zimmerman (saericzimmerman@gmail.com)
-      https://github.com/EricZimmerman/RECmd
-      
-      Note: Enclose all strings containing spaces with double quotes
-      
-      Example: rla.exe -f "C:\Temp\UsrClass 1.dat" --out C:\temp
-             rla.exe -d "D:\temp\" --out c:\temp
-      
+### Examples
 
-    Usage:
-      rla [options]
+```text
+rla.exe -f "C:\Temp\UsrClass 1.dat" --out C:\temp
+rla.exe -d "D:\temp\" --out c:\temp
+```
 
-    Options:
-      -f <f>          File to process. Either this or -d is required
-      -d <d>          Directory to recursively process. Either this or -f is required
-      --out <out>     Directory to save hives to, dirty ones with their transaction logs applied (see --ca)
-      --ca            When true, always copy hives to --out directory, even if they aren't dirty
-      --cn            When true and --nop is true, name profile based hives (NTUSER.DAT, UsrClass.dat) drive_profile_name, so they don't collide
-      --nop           When true, save hives directly in --out. When false, save them under their original path in --out (C:\Windows\System32\config\SAM as <out>\C\Windows\System32\config\SAM)
-      --debug         Show debug information during processing
-      --trace         Show trace information during processing
-      -?, -h, --help  Show help and usage information
-      --version       Show version information
+### Output
 
-## Documentation
+Dirty hives are saved to `--out` with their transaction logs applied (with `--ca`, clean hives are copied there too). A
+hive is dirty when its sequence numbers differ, or when its header checksum is wrong and it has transaction logs (`.LOG`,
+`.LOG1`, `.LOG2`, in any case).
 
-RLA is a single purpose tool to replay transaction logs in Registry hives. This is useful when parsing with tools that don't recognize and replay transaction logs on their own.
+By default (`--nop false`), each hive is saved under its original path in `--out`: `C:\Windows\System32\config\SAM`
+becomes `<out>\C\Windows\System32\config\SAM`. With `--nop true` hives are saved directly in `--out`; `--cn` then names
+profile hives `drive_profile_name` (`C_eric_NTUSER.DAT`), and a hive whose name is already taken gets a number (`SAM_2`)
+instead of overwriting it.
 
-By default (`--nop false`), each hive is saved under its original path in `--out`: `C:\Windows\System32\config\SAM` becomes `<out>\C\Windows\System32\config\SAM`. With `--nop true` hives are saved directly in `--out`; `--cn` then names profile hives `drive_profile_name` (`C_eric_NTUSER.DAT`), and a hive whose name is already taken gets a number (`SAM_2`) instead of overwriting it.
+## Exit codes
 
-A hive is dirty when its sequence numbers differ, or when its header checksum is wrong and it has transaction logs (`.LOG`, `.LOG1`, `.LOG2`, in any case).
+| Code | Meaning |
+|---|---|
+| `0` | Success. Damaged hives are reported (as could not be processed) but are not a failure, nor is nothing to do (no hives found, `--kn` or `--vn` not found) |
+| `1` | The tool failed: invalid arguments or batch file, a missing `-f` or `-d` path, a hive or its logs that can't be read, a dirty hive without its transaction logs (RECmd without `--nl`, rla with `--ca false`), output that can't be written, or (RECmd batch mode) a plugin that throws or can't be loaded. Folders under `-d` that can't be read are reported (`Unable to read folder <path>: <reason>`) and the rest is still processed |
 
-# Download Eric Zimmerman's Tools
+## What's new in 2026.10
 
-All of Eric Zimmerman's tools can be downloaded [here](https://ericzimmerman.github.io/#!index.md). 
+- Hives load about 2x faster with less memory (Registry 2026.10.0). Over the test hives, DFIRBatch finds about 9% more
+  rows (logs found and replayed in full, damaged hives read, more deleted keys).
+- Transaction logs are applied as Windows applies them; old format (`.LOG`) logs are used, log files are found whatever
+  their case, and empty ones are skipped.
+- RECmd: `--recover false` is honored, and hives in use read raw recover deleted keys too; `--vss` works again and
+  removes only its own links from `C:\___vssMount`; JSON time stamps are ISO 8601 UTC.
+- RECmd plugins: shell items in OpenSavePidlMRU, LastVisitedPidlMRU and Pinned Taskbar Items are read as ShellBags
+  Explorer reads them; new 7-Zip copy history, folder history and extraction path history plugins.
+- rla: `--nop false` (the default) saves each hive under its original path again, and hives with the same name no longer
+  overwrite each other with `--nop true` (#112); hives in use are copied from the raw read.
+- Exit code 1 when the tool fails (it was always 0). Folders under `-d` that can't be read are reported instead of
+  skipped silently. Error reports include source file and line numbers.
 
-# Special Thanks
+The full list is in the [ChangeLog](https://download.ericzimmermanstools.com/ChangeLog.txt).
 
-Open Source Development funding and support provided by the following contributors: 
-- [SANS Institute](http://sans.org/) and [SANS DFIR](http://dfir.sans.org/).
-- [Tines](https://www.tines.com/?utm_source=oss&utm_medium=sponsorship&utm_campaign=ericzimmerman)
+## Building
+
+```text
+dotnet build RECmd.slnx -c Release
+```
+
+Builds RECmd and rla for `net10.0` and `net472`, and the tests. Hive parsing is in the
+[Registry](https://github.com/EricZimmerman/Registry) library ([NuGet](https://www.nuget.org/packages/Registry)), and the
+plugins are in [RegistryPlugins](https://github.com/EricZimmerman/RegistryPlugins).
+
+## Special thanks
+
+Open source development funding and support provided by the [SANS Institute](https://www.sans.org/) and
+[SANS DFIR](https://www.sans.org/digital-forensics-incident-response/).
+
+## License
+
+[MIT](LICENSE.md), Copyright (c) Eric R. Zimmerman 2027.
