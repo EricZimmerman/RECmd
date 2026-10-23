@@ -70,6 +70,37 @@ public abstract class ToolTests
         return (process.ExitCode, stdout.Result + stderr.Result);
     }
 
+    /// <summary>
+    ///     Creates <paramref name="folder" /> (with a file in it) and denies the current user read access to it until the
+    ///     result is disposed (Windows only)
+    /// </summary>
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    protected static IDisposable Unreadable(string folder)
+    {
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, "SYSTEM"), "hidden");
+        var info = new DirectoryInfo(folder);
+        var rule = new System.Security.AccessControl.FileSystemAccessRule(System.Security.Principal.WindowsIdentity.GetCurrent().User!,
+            System.Security.AccessControl.FileSystemRights.ReadAndExecute,
+            System.Security.AccessControl.InheritanceFlags.ContainerInherit | System.Security.AccessControl.InheritanceFlags.ObjectInherit,
+            System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Deny);
+        var security = info.GetAccessControl();
+        security.AddAccessRule(rule);
+        info.SetAccessControl(security);
+        return new Deny(info, rule);
+    }
+
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private sealed class Deny(DirectoryInfo info, System.Security.AccessControl.FileSystemAccessRule rule) : IDisposable
+    {
+        public void Dispose()
+        {
+            var security = info.GetAccessControl();
+            security.RemoveAccessRule(rule);
+            info.SetAccessControl(security);
+        }
+    }
+
     /// <summary>A hive's primary and secondary sequence numbers are equal and its header checksum is right</summary>
     protected static bool IsClean(string hive)
     {

@@ -420,26 +420,100 @@ internal class Program
     
 #if NET9_0_OR_GREATER
     
-    static IEnumerable<string> FindFiles(string directory, IEnumerable<string> masks, HashSet<string> ignoreMasks, EnumerationOptions options,long minimumSize = 0)
+    /// <summary>
+    ///     Files under a folder, recursively, matching any of the masks (as Directory.EnumerateFiles with the same options, once
+    ///     for all masks). Folders that can't be read are skipped and kept in Unreadable (IgnoreInaccessible skipped them
+    ///     silently)
+    /// </summary>
+    private sealed class HiveFinder : System.IO.Enumeration.FileSystemEnumerator<string>
     {
-        foreach (var file in masks.AsParallel().SelectMany(searchPattern => Directory.EnumerateFiles(directory, searchPattern, options)))
+        private readonly string[] _masks;
+        private string _lastRecursed;
+
+        /// <summary>The folder (null: the one searched) and why it could not be read</summary>
+        public readonly List<(string Folder, string Reason)> Unreadable = new();
+
+        public HiveFinder(string directory, IEnumerable<string> masks, EnumerationOptions options) : base(directory, options)
         {
-            var fi = new FileInfo(file);
-            if (fi.Length < minimumSize)
+            _masks = masks.ToArray();
+        }
+
+        protected override bool ShouldRecurseIntoEntry(ref System.IO.Enumeration.FileSystemEntry entry)
+        {
+            _lastRecursed = entry.ToFullPath();
+            return true;
+        }
+
+        protected override bool ShouldIncludeEntry(ref System.IO.Enumeration.FileSystemEntry entry)
+        {
+            _lastRecursed = null;
+            if (entry.IsDirectory)
             {
-                Log.Debug("Skipping {File} with size {Length:N0}",file,fi.Length);
-                continue;
+                return false;
             }
 
-            var ext = Path.GetExtension(file);
-            if (ignoreMasks.Contains(ext))
+            foreach (var mask in _masks)
             {
-                Log.Debug("Skipping {File} since its extension ({Ext}) is in ignoreMasks",file,ext);
-                continue;
+                if (System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(mask, entry.FileName, true))
+                {
+                    return true;
+                }
             }
-        
-            yield return file;
+
+            return false;
         }
+
+        protected override string TransformEntry(ref System.IO.Enumeration.FileSystemEntry entry)
+        {
+            return entry.ToFullPath();
+        }
+
+        protected override bool ContinueOnError(int error)
+        {
+            //the folder just queued for recursion when its handle could not be opened (null: the folder searched itself)
+            Unreadable.Add((_lastRecursed, new System.ComponentModel.Win32Exception(error).Message));
+            _lastRecursed = null;
+            return true;
+        }
+    }
+
+    /// <summary>Hives under a folder; each folder that could not be read is logged and counted in unreadableFolders</summary>
+    static List<string> FindFiles(string directory, IEnumerable<string> masks, HashSet<string> ignoreMasks, EnumerationOptions options, ref int unreadableFolders, long minimumSize = 0)
+    {
+        var found = new List<string>();
+        using var finder = new HiveFinder(directory, masks, options);
+        while (finder.MoveNext())
+        {
+            found.Add(finder.Current);
+        }
+
+        foreach (var (folder, reason) in finder.Unreadable)
+        {
+            Log.Error("Unable to read folder {Folder}: {Reason}", folder ?? directory, reason);
+        }
+
+        unreadableFolders += finder.Unreadable.Count;
+
+        return found.Where(file => Keep(file, ignoreMasks, minimumSize)).ToList();
+    }
+
+    private static bool Keep(string file, HashSet<string> ignoreMasks, long minimumSize)
+    {
+        var fi = new FileInfo(file);
+        if (fi.Length < minimumSize)
+        {
+            Log.Debug("Skipping {File} with size {Length:N0}",file,fi.Length);
+            return false;
+        }
+
+        var ext = Path.GetExtension(file);
+        if (ignoreMasks.Contains(ext))
+        {
+            Log.Debug("Skipping {File} since its extension ({Ext}) is in ignoreMasks",file,ext);
+            return false;
+        }
+
+        return true;
     }
 #endif
     
@@ -740,12 +814,19 @@ internal class Program
                     }
                 },
                 RecursionFilter = entryInfo => !entryInfo.IsMountPoint && !entryInfo.IsSymbolicLink,
-                ErrorFilter = (errorCode, errorMessage, pathProcessed) => true
+                //a folder that can't be read is reported and counted (exit code 1), then the search goes on
+                ErrorFilter = (errorCode, errorMessage, pathProcessed) =>
+                {
+                    Log.Error("Unable to read folder {Folder}: {Reason}", pathProcessed, errorMessage);
+                    errors++;
+                    return true;
+                }
             };
 
+            //no ContinueOnException: with it AlphaFS skips folders it can't read without calling ErrorFilter
             var dirEnumOptions =
                 DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive |
-                DirectoryEnumerationOptions.SkipReparsePoints | DirectoryEnumerationOptions.ContinueOnException |
+                DirectoryEnumerationOptions.SkipReparsePoints |
                 DirectoryEnumerationOptions.BasicSearch;
 
             Log.Information("Searching {D} for hives...",d);
@@ -757,7 +838,8 @@ internal class Program
             
             var enumerationOptions = new EnumerationOptions
             {
-                IgnoreInaccessible = true,
+                //folders that can't be read are reported (HiveFinder), not skipped silently
+                IgnoreInaccessible = false,
                 MatchCasing = MatchCasing.CaseInsensitive,
                 RecurseSubdirectories = true,
                 AttributesToSkip = 0
@@ -794,7 +876,7 @@ internal class Program
                 ".ini"
             };
 
-            files2 = FindFiles(d, mask, ignoreExt, enumerationOptions, 4);
+            files2 = FindFiles(d, mask, ignoreExt, enumerationOptions, ref errors, 4);
             
             
             #endif
@@ -832,7 +914,7 @@ internal class Program
 
                     #if NET6_0_OR_GREATER
 
-                        files2 = FindFiles(target, mask, ignoreExt, enumerationOptions, 4);
+                        files2 = FindFiles(target, mask, ignoreExt, enumerationOptions, ref errors, 4);
 
                     #else
                         files2 =
@@ -896,7 +978,8 @@ internal class Program
 
         var hiveInfoWithHits = new List<string>();
         var failed = 0;
-        //hives that could not be read (access denied, in use and the raw read failed, IO errors), or whose output could not be written
+        //hives that could not be read (access denied, in use and the raw read failed, IO errors), dirty ones without their logs
+        //(no --nl), or whose output could not be written
         var accessFailed = 0;
         var hiveRead = false;
 
@@ -1776,8 +1859,9 @@ internal class Program
 
                 failed++;
 
-                //exit code 1 only when the hive (or its logs, or an output file) could not be read or written; a hive that is damaged is reported and exits 0
-                if (hiveRead == false || IsAccessFailure(ex))
+                //exit code 1 when the hive (or its logs, or an output file) could not be read or written, or it is dirty and its logs
+                //are missing (give them, or use --nl); a hive that is damaged is reported and exits 0
+                if (hiveRead == false || IsAccessFailure(ex) || ex.Message.Contains("Sequence numbers do not match and transaction"))
                 {
                     accessFailed++;
                 }

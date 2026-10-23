@@ -65,11 +65,38 @@ Keys:
     {
         var hive = Hive(false);
 
-        //reported as a hive that could not be processed, but a dirty hive is not a failure of the tool: exit code 0
+        //reported as a hive that could not be processed; the hive is not bad, its logs are missing (give them, or use --nl): exit code 1
         var (code, output) = Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation");
-        code.Should().Be(0, output);
+        code.Should().Be(1, output);
         output.Should().Contain("could not be processed");
         Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation", "--nl").ExitCode.Should().Be(0);
+    }
+
+    [Test]
+    public void UnreadableSubfolder()
+    {
+        if (!System.OperatingSystem.IsWindows())
+        {
+            Assert.Ignore("Folder permissions are set with Windows ACLs");
+            return;
+        }
+
+        Hive();
+        var locked = Path.Combine(Dir, "hives", "locked");
+        var bn = Path.Combine(Dir, "test.reb");
+        File.WriteAllText(bn, Batch);
+
+        int code;
+        string output;
+        using (Unreadable(locked))
+        {
+            (code, output) = Run("RECmd", "-d", Path.Combine(Dir, "hives"), "--bn", bn, "--csv", Path.Combine(Dir, "out"), "--csvf", "a.csv");
+        }
+
+        //the folder is reported and the run goes on: the hive next to it is processed, exit code 1
+        code.Should().Be(1, output);
+        output.Should().Contain($"Unable to read folder {locked}");
+        File.ReadAllLines(Path.Combine(Dir, "out", "a.csv")).Should().HaveCount(2);
     }
 
     [Test]

@@ -51,9 +51,38 @@ public class RlaTests : ToolTests
         Run("rla", "-f", hive, "--out", @out).ExitCode.Should().Be(0);
         Directory.GetFiles(@out, "*", SearchOption.AllDirectories).Should().ContainSingle();
 
+        //--ca false skips it; the hive is not bad, its logs are missing: exit code 1
         var out2 = Path.Combine(Dir, "out2");
-        Run("rla", "-f", hive, "--out", out2, "--ca", "false").ExitCode.Should().Be(0);
+        var (code, output) = Run("rla", "-f", hive, "--out", out2, "--ca", "false");
+        code.Should().Be(1, output);
+        output.Should().Contain("could not be processed");
         Directory.Exists(out2).Should().BeFalse();
+    }
+
+    [Test]
+    public void UnreadableSubfolder()
+    {
+        if (!System.OperatingSystem.IsWindows())
+        {
+            Assert.Ignore("Folder permissions are set with Windows ACLs");
+            return;
+        }
+
+        Hive();
+        var locked = Path.Combine(Dir, "hives", "locked");
+        var @out = Path.Combine(Dir, "out");
+
+        int code;
+        string output;
+        using (Unreadable(locked))
+        {
+            (code, output) = Run("rla", "-d", Path.Combine(Dir, "hives"), "--out", @out, "--nop", "true");
+        }
+
+        //the folder is reported and the run goes on: the hive next to it is saved, exit code 1
+        code.Should().Be(1, output);
+        output.Should().Contain($"Unable to read folder {locked}");
+        Directory.GetFiles(@out).Select(Path.GetFileName).Should().BeEquivalentTo("SYSTEM");
     }
 
     [Test]
