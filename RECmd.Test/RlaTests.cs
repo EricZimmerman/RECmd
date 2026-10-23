@@ -64,6 +64,14 @@ public class RlaTests : ToolTests
         Run("rla").ExitCode.Should().Be(1);
 
         File.WriteAllText(Path.Combine(Dir, "notahive"), "not a hive at all");
-        Run("rla", "-f", Path.Combine(Dir, "notahive"), "--out", Path.Combine(Dir, "out")).ExitCode.Should().Be(1);
+        //a damaged hive is reported and exits 0
+        var (code, output) = Run("rla", "-f", Path.Combine(Dir, "notahive"), "--out", Path.Combine(Dir, "out"));
+        code.Should().Be(0, output);
+        output.Should().Contain("could not be processed");
+
+        //output that can't be written: --out is a file
+        var outFile = Path.Combine(Dir, "afile");
+        File.WriteAllText(outFile, "");
+        Run("rla", "-f", Hive(), "--out", outFile).ExitCode.Should().Be(1);
     }
 }

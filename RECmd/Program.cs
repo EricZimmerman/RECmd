@@ -85,6 +85,10 @@ internal class Program
 
     private static readonly HashSet<string> _seenHashes = new();
 
+    //batch mode: plugins that threw or whose output could not be written, and plugins that could not be loaded (exit code 1)
+    private static int _pluginErrors;
+    private static int _pluginLoadErrors;
+
    
 
     private static void LoadPlugins()
@@ -125,6 +129,7 @@ internal class Program
             catch (Exception ex)
             {
                 Log.Error(ex, "Error loading plugin: {Dll}",dll);
+                _pluginLoadErrors++;
             }
         }
     }
@@ -883,8 +888,17 @@ internal class Program
 
         LoadPlugins();
 
+        if (bn.IsNullOrEmpty() == false && _pluginLoadErrors > 0)
+        {
+            //plugins are used only in batch mode
+            errors++;
+        }
+
         var hiveInfoWithHits = new List<string>();
         var failed = 0;
+        //hives that could not be read (access denied, in use and the raw read failed, IO errors), or whose output could not be written
+        var accessFailed = 0;
+        var hiveRead = false;
 
         foreach (var hiveToProcess in hivesToProcess)
         {
@@ -916,6 +930,7 @@ internal class Program
                 var hiveBase = Path.GetFileName(hiveToProcess);
 
                 List<RawCopyReturn> rawFiles = null;
+                hiveRead = false;
 
                 try
                 {
@@ -937,7 +952,10 @@ internal class Program
 
                     fs.Seek(0, SeekOrigin.Begin);
 
-                    reg = new RegistryHive(fs.ReadFully(), hiveToProcess)
+                    var hiveBytes = fs.ReadFully();
+                    hiveRead = true;
+
+                    reg = new RegistryHive(hiveBytes, hiveToProcess)
                     {
                         RecoverDeleted = recover
                     };
@@ -981,6 +999,7 @@ internal class Program
                     }
 
                     var bb = rawFiles.First().FileStream.ReadFully();
+                    hiveRead = true;
 
                     reg = new RegistryHive(bb, rawFiles.First().InputFilename)
                     {
@@ -1756,6 +1775,12 @@ internal class Program
                 }
 
                 failed++;
+
+                //exit code 1 only when the hive (or its logs, or an output file) could not be read or written; a hive that is damaged is reported and exits 0
+                if (hiveRead == false || IsAccessFailure(ex))
+                {
+                    accessFailed++;
+                }
             }
 
             _sw.Stop();
@@ -1894,7 +1919,13 @@ internal class Program
             Console.WriteLine();
         }
 
-        return failed > 0 || errors > 0 ? 1 : 0;
+        return accessFailed > 0 || errors > 0 || _pluginErrors > 0 ? 1 : 0;
+    }
+
+    /// <summary>A file that could not be opened, read or written, as opposed to one whose contents are bad (EndOfStreamException is a short read of data that was read fine)</summary>
+    private static bool IsAccessFailure(Exception ex)
+    {
+        return ex is UnauthorizedAccessException || ex is IOException && ex is not EndOfStreamException;
     }
 
     /// <summary>
@@ -2309,9 +2340,19 @@ internal class Program
             {
                 var pig = (IRegistryPluginGrid)registryPluginBase;
 
-                pig.ProcessValues(regKey);
+                string pluginDetailsFile;
+                try
+                {
+                    pig.ProcessValues(regKey);
 
-                var pluginDetailsFile = DumpPluginValues(pig, hivePath, d, f, csv, csvf, json, jsonf);
+                    pluginDetailsFile = DumpPluginValues(pig, hivePath, d, f, csv, csvf, json, jsonf);
+                }
+                catch (Exception)
+                {
+                    //a plugin that throws, or whose output can't be written, is a failure of the tool (exit code 1); the hive is still reported as before
+                    _pluginErrors++;
+                    throw;
+                }
 
                 var path = hivePath;
 

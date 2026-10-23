@@ -451,6 +451,9 @@ internal class Program
 
         var outputNames = new OutputNames();
         var failed = 0;
+        //hives that could not be read (access denied, in use and the raw read failed, IO errors), or whose output could not be written
+        var accessFailed = 0;
+        var hiveRead = false;
 
         foreach (var hiveToProcess in hivesToProcess)
         {
@@ -474,11 +477,14 @@ internal class Program
                 var hiveBase = Path.GetFileName(hiveToProcess);
 
                 List<RawCopyReturn> rawFiles = null;
+                hiveRead = false;
 
                 try
                 {
                     using var fs = new FileStream(hiveToProcess, FileMode.Open, FileAccess.Read);
-                    reg = new RegistryHive(fs.ReadFully(), hiveToProcess);
+                    var hiveBytes = fs.ReadFully();
+                    hiveRead = true;
+                    reg = new RegistryHive(hiveBytes, hiveToProcess);
                 }
                 catch (IOException)
                 {
@@ -505,6 +511,7 @@ internal class Program
                     }
 
                     var bb = rawFiles.First().FileStream.ReadFully();
+                    hiveRead = true;
 
                     reg = new RegistryHive(bb, rawFiles.First().InputFilename);
                 }
@@ -565,6 +572,10 @@ internal class Program
                             //it used to be skipped without a word
                             Log.Error("\tTransaction logs for {HiveToProcess} could not be applied: {Message}", hiveToProcess, ex.Message);
                             failed++;
+                            if (IsAccessFailure(ex))
+                            {
+                                accessFailed++;
+                            }
                             continue;
                         }
                     }
@@ -631,6 +642,12 @@ internal class Program
                 }
 
                 failed++;
+
+                //exit code 1 only when the hive (or its logs, or the output) could not be read or written; a hive that is damaged is reported and exits 0
+                if (hiveRead == false || IsAccessFailure(ex))
+                {
+                    accessFailed++;
+                }
             }
         }
 
@@ -646,7 +663,13 @@ internal class Program
             Console.WriteLine();
         }
 
-        return failed > 0 || enumerationFailed ? 1 : 0;
+        return accessFailed > 0 || enumerationFailed ? 1 : 0;
+    }
+
+    /// <summary>A file that could not be opened, read or written, as opposed to one whose contents are bad (EndOfStreamException is a short read of data that was read fine)</summary>
+    private static bool IsAccessFailure(Exception ex)
+    {
+        return ex is UnauthorizedAccessException || ex is IOException && ex is not EndOfStreamException;
     }
     
     private class CustomHelpAction : SynchronousCommandLineAction

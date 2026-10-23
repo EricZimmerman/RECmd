@@ -65,7 +65,10 @@ Keys:
     {
         var hive = Hive(false);
 
-        Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation").ExitCode.Should().Be(1, "the hive is dirty and has no logs");
+        //reported as a hive that could not be processed, but a dirty hive is not a failure of the tool: exit code 0
+        var (code, output) = Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation");
+        code.Should().Be(0, output);
+        output.Should().Contain("could not be processed");
         Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation", "--nl").ExitCode.Should().Be(0);
     }
 
@@ -75,6 +78,19 @@ Keys:
         Run("RECmd", "-f", Path.Combine(Dir, "missing"), "--kn", "x").ExitCode.Should().Be(1);
         Run("RECmd").ExitCode.Should().Be(1);
         Run("RECmd", "-f", Hive(), "--bn", Path.Combine(Dir, "missing.reb"), "--csv", Dir).ExitCode.Should().Be(1);
+
+        //a damaged hive is reported and exits 0
+        File.WriteAllText(Path.Combine(Dir, "notahive"), "not a hive at all");
+        var (code, output) = Run("RECmd", "-f", Path.Combine(Dir, "notahive"), "--kn", "x");
+        code.Should().Be(0, output);
+        output.Should().Contain("could not be processed");
+
+        //output that can't be written: --csv is a file
+        var bn = Path.Combine(Dir, "test.reb");
+        File.WriteAllText(bn, Batch);
+        var csvFile = Path.Combine(Dir, "afile");
+        File.WriteAllText(csvFile, "");
+        Run("RECmd", "-f", Hive(), "--bn", bn, "--csv", csvFile).ExitCode.Should().Be(1);
     }
 
     [Test]
