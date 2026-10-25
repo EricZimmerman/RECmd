@@ -140,14 +140,14 @@ Keys:
     [Test]
     public void ConsoleLog()
     {
-        //Issues #259: --co saves the console messages to <yyyyMMddHHmmss>_RECmd_<version>_ConsoleLog.txt in the first output directory given
+        //Issues #259: --co (on by default) saves the console messages to <yyyyMMddHHmmss>_RECmd_<version>_ConsoleLog.txt in the first output directory given
         var hive = Hive();
         var bn = Path.Combine(Dir, "test.reb");
         File.WriteAllText(bn, Batch);
         var csv = Path.Combine(Dir, "out");
         var json = Path.Combine(Dir, "json");
 
-        var (code, output) = Run("RECmd", "-f", hive, "--bn", bn, "--csv", csv, "--co");
+        var (code, output) = Run("RECmd", "-f", hive, "--bn", bn, "--csv", csv);
         code.Should().Be(0, output);
         var log = Directory.GetFiles(csv, "*_ConsoleLog.txt").Should().ContainSingle().Subject;
         Path.GetFileName(log).Should().MatchRegex(@"^\d{14}_RECmd_\d+\.\d+\.\d+_ConsoleLog\.txt$");
@@ -159,26 +159,26 @@ Keys:
         text.Should().Contain("Command line: -f ");
 
         //--json (a key's JSON)
-        (code, output) = Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation", "--json", json, "--co");
+        (code, output) = Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation", "--json", json);
         code.Should().Be(0, output);
         Directory.GetFiles(json, "*_RECmd_*_ConsoleLog.txt").Should().ContainSingle();
 
         //--saveTo: its folder
         var saved = Path.Combine(Dir, "saved");
-        (code, output) = Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation", "--vn", "TimeZoneKeyName", "--saveTo", Path.Combine(saved, "value.bin"), "--co");
+        (code, output) = Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation", "--vn", "TimeZoneKeyName", "--saveTo", Path.Combine(saved, "value.bin"));
         code.Should().Be(0, output);
         Directory.GetFiles(saved, "*_RECmd_*_ConsoleLog.txt").Should().ContainSingle();
 
-        //without --co, none
+        //--co false: none
         var other = Path.Combine(Dir, "other");
-        (code, output) = Run("RECmd", "-f", hive, "--bn", bn, "--csv", other);
+        (code, output) = Run("RECmd", "-f", hive, "--bn", bn, "--csv", other, "--co", "false");
         code.Should().Be(0, output);
         Directory.GetFiles(other, "*_ConsoleLog.txt").Should().BeEmpty();
         output.Should().NotContain("Console log:");
 
-        //no output directory: a warning
-        (code, output) = Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation", "--co");
+        //no output directory: no log, and no warning (--co is on by default)
+        (code, output) = Run("RECmd", "-f", hive, "--kn", @"ControlSet001\Control\TimeZoneInformation");
         code.Should().Be(0, output);
-        output.Should().Contain("--co: no output directory was given");
+        output.Should().NotContain("--co:").And.NotContain("Console log:");
     }
 }

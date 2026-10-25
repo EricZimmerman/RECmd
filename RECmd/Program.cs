@@ -255,8 +255,8 @@ internal class Program
         };
         var coOpt = new Option<bool>("--co")
         {
-            Description = "Save all console messages to <timestamp>_RECmd_<version>_ConsoleLog.txt in the output directory (the first of --csv, --json given, else the folder of --saveTo)",
-            DefaultValueFactory = _ => false
+            Description = "When true, save all console messages to <timestamp>_RECmd_<version>_ConsoleLog.txt in the output directory (the first of --csv, --json given, else the folder of --saveTo). Use --co false to turn it off",
+            DefaultValueFactory = _ => true
         };
 
         var vssOpt = new Option<bool>("--vss")
@@ -624,11 +624,6 @@ internal class Program
         if (consoleLog != null)
         {
             Log.Information("Console log: {Path}",consoleLog);
-            Console.WriteLine();
-        }
-        else if (co)
-        {
-            Log.Warning("--co: no output directory was given, so the console messages are not saved");
             Console.WriteLine();
         }
 

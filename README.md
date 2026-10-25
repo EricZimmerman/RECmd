@@ -56,7 +56,7 @@ Options:
   --sync               If true, the latest batch files from https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples are downloaded and local files updated
   --debug              Show debug information during processing
   --trace              Show trace information during processing
-  --co                 Save all console messages to <timestamp>_RECmd_<version>_ConsoleLog.txt in the output directory (the first of --csv, --json given, else the folder of --saveTo)
+  --co                 When true, save all console messages to <timestamp>_RECmd_<version>_ConsoleLog.txt in the output directory (the first of --csv, --json given, else the folder of --saveTo). Use --co false to turn it off
   -?, -h, --help       Show help and usage information
   --version            Show version information
 ```
@@ -128,7 +128,7 @@ Options:
   --nop           When true, save hives directly in --out. When false, save them under their original path in --out (C:\Windows\System32\config\SAM as <out>\C\Windows\System32\config\SAM)
   --debug         Show debug information during processing
   --trace         Show trace information during processing
-  --co            Save all console messages to <timestamp>_rla_<version>_ConsoleLog.txt in the --out directory
+  --co            When true, save all console messages to <timestamp>_rla_<version>_ConsoleLog.txt in the --out directory. Use --co false to turn it off
   -?, -h, --help  Show help and usage information
   --version       Show version information
 ```
@@ -160,7 +160,7 @@ instead of overwriting it.
 
 ## What's new in 2026.10
 
-- RECmd 2026.10.2, rla 2026.10.1: `--co` saves everything written to the console to
+- RECmd 2026.10.2, rla 2026.10.1: `--co` (on by default; `--co false` turns it off) saves everything written to the console to
   `<timestamp>_<tool>_<version>_ConsoleLog.txt` in the output directory (Issues #259). RECmd: with `--debug` or `--trace`
   each message shows its time (`HH:mm:ss.fff`) instead of the full date.
 - RECmd 2026.10.1: the LastVisitedPidlMRU, OpenSavePidlMRU, RecentDocs and Taskband plugins read 0x2E root folder items with extension blocks after the GUID (a known folder such as Downloads) are read, and zip contents with data in bytes 4-9 (RegistryPluginBase 2026.10.6, ExtensionBlocks 2026.10.8).

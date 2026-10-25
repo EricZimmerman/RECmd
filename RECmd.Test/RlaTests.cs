@@ -14,7 +14,7 @@ public class RlaTests : ToolTests
         var hive = Hive();
         var @out = Path.Combine(Dir, "out");
 
-        var (code, output) = Run("rla", "-f", hive, "--out", @out);
+        var (code, output) = Run("rla", "-f", hive, "--out", @out, "--co", "false");
 
         code.Should().Be(0, output);
         IsClean(hive).Should().BeFalse();
@@ -33,7 +33,7 @@ public class RlaTests : ToolTests
         Hive(folder: "b");
         var @out = Path.Combine(Dir, "out");
 
-        var (code, output) = Run("rla", "-d", Dir, "--out", @out, "--nop", "true");
+        var (code, output) = Run("rla", "-d", Dir, "--out", @out, "--nop", "true", "--co", "false");
 
         code.Should().Be(0, output);
         //two SYSTEM hives: the second one used to overwrite the first
@@ -48,12 +48,12 @@ public class RlaTests : ToolTests
         var @out = Path.Combine(Dir, "out");
 
         //--ca (the default) copies it as it is
-        Run("rla", "-f", hive, "--out", @out).ExitCode.Should().Be(0);
+        Run("rla", "-f", hive, "--out", @out, "--co", "false").ExitCode.Should().Be(0);
         Directory.GetFiles(@out, "*", SearchOption.AllDirectories).Should().ContainSingle();
 
         //--ca false skips it; the hive is not bad, its logs are missing: exit code 1
         var out2 = Path.Combine(Dir, "out2");
-        var (code, output) = Run("rla", "-f", hive, "--out", out2, "--ca", "false");
+        var (code, output) = Run("rla", "-f", hive, "--out", out2, "--ca", "false", "--co", "false");
         code.Should().Be(1, output);
         output.Should().Contain("could not be processed");
         Directory.Exists(out2).Should().BeFalse();
@@ -76,7 +76,7 @@ public class RlaTests : ToolTests
         string output;
         using (Unreadable(locked))
         {
-            (code, output) = Run("rla", "-d", Path.Combine(Dir, "hives"), "--out", @out, "--nop", "true");
+            (code, output) = Run("rla", "-d", Path.Combine(Dir, "hives"), "--out", @out, "--nop", "true", "--co", "false");
         }
 
         //the folder is reported and the run goes on: the hive next to it is saved, exit code 1
@@ -106,11 +106,11 @@ public class RlaTests : ToolTests
     [Test]
     public void ConsoleLog()
     {
-        //Issues #259: --co saves the console messages to <yyyyMMddHHmmss>_rla_<version>_ConsoleLog.txt in --out
+        //Issues #259: --co (on by default) saves the console messages to <yyyyMMddHHmmss>_rla_<version>_ConsoleLog.txt in --out
         var hive = Hive();
         var @out = Path.Combine(Dir, "out");
 
-        var (code, output) = Run("rla", "-f", hive, "--out", @out, "--co");
+        var (code, output) = Run("rla", "-f", hive, "--out", @out);
         code.Should().Be(0, output);
         var log = Directory.GetFiles(@out, "*_ConsoleLog.txt").Should().ContainSingle().Subject;
         Path.GetFileName(log).Should().MatchRegex(@"^\d{14}_rla_\d+\.\d+\.\d+_ConsoleLog\.txt$");
@@ -120,7 +120,7 @@ public class RlaTests : ToolTests
         text.Should().Contain("Command line: -f ");
 
         var other = Path.Combine(Dir, "other");
-        (code, output) = Run("rla", "-f", hive, "--out", other);
+        (code, output) = Run("rla", "-f", hive, "--out", other, "--co", "false");
         code.Should().Be(0, output);
         Directory.GetFiles(other, "*_ConsoleLog.txt", SearchOption.AllDirectories).Should().BeEmpty();
         output.Should().NotContain("Console log:");
