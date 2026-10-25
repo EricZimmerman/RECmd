@@ -1657,7 +1657,7 @@ internal class Program
                             {
                                 Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
                             }
-                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime);
+                            Log.Information("\tLast write time: {LastWriteTime}",key.LastWriteTime);
 
                             Console.WriteLine();
 
@@ -1675,13 +1675,13 @@ internal class Program
                                 {
                                     Log.Information("\t------------ Subkey #{I:N0} (Deleted: {Del}) ------------",i,true);
                                     Log.Information(
-                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {ValuesCount:N0}",registryKey.KeyName,registryKey.LastWriteTime,registryKey.Values.Count);
+                                        "\tName: {KeyName} (Last write: {LastWriteTime}) Value count: {ValuesCount:N0}",registryKey.KeyName,registryKey.LastWriteTime,registryKey.Values.Count);
                                 }
                                 else
                                 {
                                     Log.Information("\t------------ Subkey #{I:N0} ------------",i);
                                     Log.Information(
-                                        "\tName: {KeyName} (Last write: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}) Value count: {Count:N0}",registryKey.KeyName,registryKey.LastWriteTime,registryKey.Values.Count);
+                                        "\tName: {KeyName} (Last write: {LastWriteTime}) Value count: {Count:N0}",registryKey.KeyName,registryKey.LastWriteTime,registryKey.Values.Count);
                                 }
                                 
                                 Console.WriteLine();
@@ -1738,7 +1738,7 @@ internal class Program
                         if (keyIsDeleted)
                         {
                             Log.Information("\tKey path: {Path} (Deleted: {Deleted})",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath),true);
-                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime);
+                            Log.Information("\tLast write time: {LastWriteTime}",key.LastWriteTime);
                            
 
                             Console.WriteLine();
@@ -1755,7 +1755,7 @@ internal class Program
                         else
                         {
                             Log.Information("\tKey path: {Path}",Helpers.StripRootKeyNameFromKeyPath(key.KeyPath));
-                            Log.Information("\tLast write time: {LastWriteTime:yyyy-MM-dd HH:mm:ss.ffffff}",key.LastWriteTime);
+                            Log.Information("\tLast write time: {LastWriteTime}",key.LastWriteTime);
 
                             Console.WriteLine();
 
