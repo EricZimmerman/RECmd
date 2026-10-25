@@ -89,6 +89,11 @@ internal class Program
             Description = "Show trace information during processing",
             DefaultValueFactory = _ => false
         };
+        var coOpt = new Option<bool>("--co")
+        {
+            Description = "Save all console messages to <timestamp>_rla_<version>_ConsoleLog.txt in the --out directory",
+            DefaultValueFactory = _ => false
+        };
         
         _rootCommand = new RootCommand
         {
@@ -99,14 +104,15 @@ internal class Program
            cnOpt,
            nopOpt,
            debugOpt,
-           traceOpt
+           traceOpt,
+           coOpt
         };
 
         _rootCommand.Description = Header + "\r\n\r\n" + Footer;
 
         _rootCommand.SetAction(result => DoWork(result.GetValue(fOpt), result.GetValue(dOpt), result.GetValue(outOpt),
             result.GetValue(caOpt), result.GetValue(cnOpt), result.GetValue(nopOpt), result.GetValue(debugOpt),
-            result.GetValue(traceOpt)));
+            result.GetValue(traceOpt), result.GetValue(coOpt)));
             
         var exitCode = await _rootCommand.Parse(args).InvokeAsync();
 
@@ -237,7 +243,7 @@ internal class Program
 #endif
 
     /// <returns>0, or 1 when the arguments are bad, the -d folder could not be searched, or a hive could not be processed</returns>
-    private static int DoWork(string f, string d, string @out, bool ca, bool cn, bool nop, bool debug, bool trace)
+    private static int DoWork(string f, string d, string @out, bool ca, bool cn, bool nop, bool debug, bool trace, bool co)
     {
         var levelSwitch = new LoggingLevelSwitch();
 
@@ -258,6 +264,12 @@ internal class Program
         var conf = new LoggerConfiguration()
             .WriteTo.Console(outputTemplate: template)
             .MinimumLevel.ControlledBy(levelSwitch);
+
+        var consoleLog = co ? ConsoleLog.GetPath(DateTimeOffset.UtcNow, @out) : null;
+        if (consoleLog != null)
+        {
+            conf.WriteTo.File(consoleLog, outputTemplate: ConsoleLog.Template);
+        }
 
         Log.Logger = conf.CreateLogger();
 
@@ -285,6 +297,12 @@ internal class Program
 
         Log.Information("Command line: {Args}", string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
         Console.WriteLine();
+
+        if (consoleLog != null)
+        {
+            Log.Information("Console log: {Path}", consoleLog);
+            Console.WriteLine();
+        }
 
         if (f?.Length > 0)
         {

@@ -7,7 +7,7 @@ don't apply transaction logs themselves.
 
 | | |
 |---|---|
-| **Version** | RECmd 2026.10.1 &middot; rla 2026.10.0 |
+| **Version** | RECmd 2026.10.2 &middot; rla 2026.10.1 |
 | **Download** | RECmd: [.NET 10](https://download.ericzimmermanstools.com/net/RECmd.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/RECmd.zip)<br>rla: [.NET 10](https://download.ericzimmermanstools.com/net/rla.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/rla.zip) |
 | **All tools** | [ericzimmerman.github.io](https://ericzimmerman.github.io) or [Get-ZimmermanTools](https://download.ericzimmermanstools.com/Get-ZimmermanTools.zip), which downloads them all and keeps them current |
 | **Changes** | [ChangeLog](https://ericzimmerman.github.io/changelog/) |
@@ -56,6 +56,7 @@ Options:
   --sync               If true, the latest batch files from https://github.com/EricZimmerman/RECmd/tree/master/BatchExamples are downloaded and local files updated
   --debug              Show debug information during processing
   --trace              Show trace information during processing
+  --co                 Save all console messages to <timestamp>_RECmd_<version>_ConsoleLog.txt in the output directory (the first of --csv, --json given, else the folder of --saveTo)
   -?, -h, --help       Show help and usage information
   --version            Show version information
 ```
@@ -127,6 +128,7 @@ Options:
   --nop           When true, save hives directly in --out. When false, save them under their original path in --out (C:\Windows\System32\config\SAM as <out>\C\Windows\System32\config\SAM)
   --debug         Show debug information during processing
   --trace         Show trace information during processing
+  --co            Save all console messages to <timestamp>_rla_<version>_ConsoleLog.txt in the --out directory
   -?, -h, --help  Show help and usage information
   --version       Show version information
 ```
@@ -158,6 +160,9 @@ instead of overwriting it.
 
 ## What's new in 2026.10
 
+- RECmd 2026.10.2, rla 2026.10.1: `--co` saves everything written to the console to
+  `<timestamp>_<tool>_<version>_ConsoleLog.txt` in the output directory (Issues #259). RECmd: with `--debug` or `--trace`
+  each message shows its time (`HH:mm:ss.fff`) instead of the full date.
 - RECmd 2026.10.1: the LastVisitedPidlMRU, OpenSavePidlMRU, RecentDocs and Taskband plugins read 0x2E root folder items with extension blocks after the GUID (a known folder such as Downloads) are read, and zip contents with data in bytes 4-9 (RegistryPluginBase 2026.10.6, ExtensionBlocks 2026.10.8).
 - Hives load about 2x faster with less memory (Registry 2026.10.0). Over the test hives, DFIRBatch finds about 9% more
   rows (logs found and replayed in full, damaged hives read, more deleted keys).

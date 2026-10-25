@@ -64,7 +64,9 @@ internal class Program
 
     private static readonly string BaseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-    private static readonly string RunTimestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
+    private static readonly DateTimeOffset RunTime = DateTimeOffset.UtcNow;
+
+    private static readonly string RunTimestamp = RunTime.ToString("yyyyMMddHHmmss");
 
     private static string _pluginsDir = string.Empty;
 
@@ -251,6 +253,11 @@ internal class Program
             Description = "Show trace information during processing",
             DefaultValueFactory = _ => false
         };
+        var coOpt = new Option<bool>("--co")
+        {
+            Description = "Save all console messages to <timestamp>_RECmd_<version>_ConsoleLog.txt in the output directory (the first of --csv, --json given, else the folder of --saveTo)",
+            DefaultValueFactory = _ => false
+        };
 
         var vssOpt = new Option<bool>("--vss")
         {
@@ -367,7 +374,8 @@ internal class Program
           dedupeOpt,
           syncOpt,
           debugOpt,
-          traceOpt
+          traceOpt,
+          coOpt
         };
 
         _rootCommand.Description = Header + "\r\n\r\n" + Footer;
@@ -377,7 +385,7 @@ internal class Program
             result.GetValue(saveToOpt),result.GetValue(jsonOpt),result.GetValue(jsonfOpt),result.GetValue(detailsOpt),result.GetValue(base64Opt),
             result.GetValue(minSizeOpt),result.GetValue(saOpt),result.GetValue(skOpt),result.GetValue(svOpt),result.GetValue(sdOpt),result.GetValue(ssOpt),result.GetValue(literalOpt),
             result.GetValue(ndOpt),result.GetValue(regexOpt),result.GetValue(dtOpt),result.GetValue(nlOpt),result.GetValue(recoverOpt),result.GetValue(vssOpt),result.GetValue(dedupeOpt),
-            result.GetValue(syncOpt),result.GetValue(debugOpt),result.GetValue(traceOpt)));
+            result.GetValue(syncOpt),result.GetValue(debugOpt),result.GetValue(traceOpt),result.GetValue(coOpt)));
             
         var exitCode = await _rootCommand.Parse(args).InvokeAsync();
 
@@ -404,8 +412,9 @@ internal class Program
         {
             if (arg is DateTimeOffset)
             {
+                //an explicit format, such as the log time stamps' HH:mm:ss.fff, is kept; time stamps in messages use --dt
                 var size = (DateTimeOffset)arg;
-                return size.ToString(ActiveDateTimeFormat);
+                return size.ToString(string.IsNullOrEmpty(format) ? ActiveDateTimeFormat : format);
             }
 
             var formattable = arg as IFormattable;
@@ -518,7 +527,7 @@ internal class Program
 #endif
     
     /// <returns>0, or 1 when the arguments are bad, a hive could not be processed, or a save or export failed</returns>
-    private static int DoWork(string d, string f, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace)
+    private static int DoWork(string d, string f, string kn, string vn, string bn, string csv, string csvf, string saveTo, string json, string jsonf, bool details, int base64, int minSize, string sa, string sk, string sv, string sd, string ss, bool literal, bool nd, bool regex, string dt, bool nl, bool recover, bool vss, bool dedupe, bool sync, bool debug, bool trace, bool co)
     {
         //files that could not be enumerated, failed saves (--saveTo) and failed exports (key JSON, batch CSV/JSON)
         var errors = 0;
@@ -551,6 +560,27 @@ internal class Program
             .WriteTo.Console(outputTemplate: template,formatProvider: formatter)
             .MinimumLevel.ControlledBy(levelSwitch);
       
+        string consoleLog = null;
+        if (co)
+        {
+            string saveToDir = null;
+            try
+            {
+                saveToDir = saveTo.IsNullOrEmpty() ? null : Path.GetDirectoryName(Path.GetFullPath(saveTo));
+            }
+            catch (Exception)
+            {
+                //reported when the value is saved
+            }
+
+            consoleLog = ConsoleLog.GetPath(RunTime, csv, json, saveToDir);
+        }
+
+        if (consoleLog != null)
+        {
+            conf.WriteTo.File(consoleLog, outputTemplate: ConsoleLog.Template, formatProvider: formatter);
+        }
+
         Log.Logger = conf.CreateLogger();
 
         if (vss & (Helper.IsAdministrator() == false))
@@ -590,6 +620,17 @@ internal class Program
         Console.WriteLine();
         Log.Information("Command line: {Args}",string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
         Console.WriteLine();
+
+        if (consoleLog != null)
+        {
+            Log.Information("Console log: {Path}",consoleLog);
+            Console.WriteLine();
+        }
+        else if (co)
+        {
+            Log.Warning("--co: no output directory was given, so the console messages are not saved");
+            Console.WriteLine();
+        }
 
         if (vss)
         {

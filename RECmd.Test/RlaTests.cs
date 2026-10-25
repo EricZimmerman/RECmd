@@ -103,4 +103,26 @@ public class RlaTests : ToolTests
         File.WriteAllText(outFile, "");
         Run("rla", "-f", Hive(), "--out", outFile).ExitCode.Should().Be(1);
     }
+    [Test]
+    public void ConsoleLog()
+    {
+        //Issues #259: --co saves the console messages to <yyyyMMddHHmmss>_rla_<version>_ConsoleLog.txt in --out
+        var hive = Hive();
+        var @out = Path.Combine(Dir, "out");
+
+        var (code, output) = Run("rla", "-f", hive, "--out", @out, "--co");
+        code.Should().Be(0, output);
+        var log = Directory.GetFiles(@out, "*_ConsoleLog.txt").Should().ContainSingle().Subject;
+        Path.GetFileName(log).Should().MatchRegex(@"^\d{14}_rla_\d+\.\d+\.\d+_ConsoleLog\.txt$");
+        output.Should().Contain("Console log: " + log);
+        var text = File.ReadAllText(log);
+        text.Should().MatchRegex(@"\[\d\d:\d\d:\d\d\.\d{3} INF\] rla version ");
+        text.Should().Contain("Command line: -f ");
+
+        var other = Path.Combine(Dir, "other");
+        (code, output) = Run("rla", "-f", hive, "--out", other);
+        code.Should().Be(0, output);
+        Directory.GetFiles(other, "*_ConsoleLog.txt", SearchOption.AllDirectories).Should().BeEmpty();
+        output.Should().NotContain("Console log:");
+    }
 }

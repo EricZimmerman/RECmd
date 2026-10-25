@@ -8,7 +8,7 @@
         <Product>rla</Product>
         <Description>Registry Transaction Log Apply</Description>
         <Copyright>Eric R. Zimmerman 2027</Copyright>
-        <Version>2026.10.0</Version>
+        <Version>2026.10.1</Version>
         <IsPackable>false</IsPackable>
         <LangVersion>10</LangVersion>
     </PropertyGroup>
@@ -40,6 +40,7 @@
         <PackageReference Include="Exceptionless" Version="6.2.0" />
         <PackageReference Include="Serilog" Version="4.4.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
         <PackageReference Include="Registry" Version="2026.10.1" />
         <PackageReference Include="ServiceStack.Text" Version="10.4.0" />
     </ItemGroup>
