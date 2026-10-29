@@ -7,7 +7,7 @@ don't apply transaction logs themselves.
 
 | | |
 |---|---|
-| **Version** | RECmd 2026.10.2 &middot; rla 2026.10.1 |
+| **Version** | RECmd 2026.10.3 &middot; rla 2026.10.1 |
 | **Download** | RECmd: [.NET 10](https://download.ericzimmermanstools.com/net/RECmd.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/RECmd.zip)<br>rla: [.NET 10](https://download.ericzimmermanstools.com/net/rla.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/rla.zip) |
 | **All tools** | [ericzimmerman.github.io](https://ericzimmerman.github.io) or [Get-ZimmermanTools](https://download.ericzimmermanstools.com/Get-ZimmermanTools.zip), which downloads them all and keeps them current |
 | **Changes** | [ChangeLog](https://ericzimmerman.github.io/changelog/) |
@@ -160,6 +160,7 @@ instead of overwriting it.
 
 ## What's new in 2026.10
 
+- RECmd 2026.10.3: RegistryPluginBase 2026.10.7 (ExtensionBlocks 2026.10.9) and the current plugins: FTP shares in OpenSavePidlMRU and LastVisitedPidlMRU (Issues #261), Office 2010 File/Place MRUs, Acrobat Reader 5.0-11.0 recent files and Windows 7 TaskCache tasks are listed (they were errors), and one bad value no longer loses the rest of its key in any plugin.
 - RECmd 2026.10.2, rla 2026.10.1: `--co` (on by default; `--co false` turns it off) saves everything written to the console to
   `<timestamp>_<tool>_<version>_ConsoleLog.txt` in the output directory (Issues #259). RECmd: with `--debug` or `--trace`
   each message shows its time (`HH:mm:ss.fff`) instead of the full date.
