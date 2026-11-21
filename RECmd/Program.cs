@@ -16,8 +16,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.TypeConversion;
 using Exceptionless;
 using FluentValidation.Results;
 using ICSharpCode.SharpZipLib.Zip;
@@ -71,6 +69,15 @@ internal class Program
     private static string _pluginsDir = string.Empty;
 
     public static string dtf = "yyyy-MM-dd HH:mm:ss.fffffff";
+
+    //CsvHelper 34 options that keep CsvHelper 33's output (True/False, fields with leading or trailing spaces quoted)
+    private static readonly CsvWriterOptions CsvOptions = new()
+    {
+        //33 quoted text that starts or ends with a space (not a tab, as CsvQuoting.WhenNeededOrWhitespace does)
+        ShouldQuote = (field, fieldType, fieldIndex, recordIndex) => field.Length > 0 && (field[0] == ' ' || field[field.Length - 1] == ' '),
+        TrueValue = "True",
+        FalseValue = "False"
+    };
 
     private static RootCommand _rootCommand;
 
@@ -1942,23 +1949,11 @@ internal class Program
                         Console.WriteLine();
                         Log.Information("Saving batch mode CSV file to {OutFile}", outFile);
 
-                        var swCsv = new StreamWriter(outFile, false, Encoding.UTF8);
-                        var csvWriter = new CsvWriter(swCsv, CultureInfo.InvariantCulture);
-
-                        var foo = csvWriter.Context.AutoMap<BatchCsvOut>();
-
-                        foo.Map(t => t.LastWriteTimestamp).Convert(t =>
-                            $"{t.Value.LastWriteTimestamp?.ToString(dt)}");
-
-                        csvWriter.Context.RegisterClassMap(foo);
-
-                        csvWriter.WriteHeader<BatchCsvOut>();
-                        csvWriter.NextRecord();
+                        //UTF-8 with a BOM, as before
+                        LastWriteTimestampConverter.Format = dt;
+                        using var csvWriter = CsvWriter.ToFile(outFile, CsvOptions with { WriteByteOrderMark = true });
 
                         csvWriter.WriteRecords(_batchCsvOutList);
-
-                        swCsv.Flush();
-                        swCsv.Close();
                     }
 
                     if (json.IsNullOrEmpty() == false)
@@ -2657,51 +2652,12 @@ internal class Program
         }
 
 
-        using var sw = new StreamWriter(outFile, true, Encoding.UTF8);
-        var csvWriter = new CsvWriter(sw, CultureInfo.InvariantCulture);
+        //appended to (the same plugin for another key of the hive): the header only in a new file; UTF-8 with a BOM
+        using var csvWriter = CsvWriter.Create(new StreamWriter(outFile, true, Encoding.UTF8),
+            CsvOptions with { HasHeader = exists == false });
 
-        var foo = csvWriter.Context.AutoMap(plugin.Values[0].GetType());
-
-        foreach (var fooMemberMap in foo.MemberMaps)
-        {
-            if (fooMemberMap.Data.Member.ToString().Contains("DateTime") ||
-                fooMemberMap.Data.Member.ToString().Contains("DateTimeOffset"))
-            {
-                fooMemberMap.Data.TypeConverter = new NullConverter();
-            }
-
-            if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueData"))
-            {
-                fooMemberMap.Ignore();
-            }
-
-            if (fooMemberMap.Data.Member.Name.StartsWith("BatchKeyPath"))
-            {
-                fooMemberMap.Index(0);
-            }
-
-            if (fooMemberMap.Data.Member.Name.StartsWith("BatchValueName"))
-            {
-                fooMemberMap.Index(1);
-            }
-        }
-
-        csvWriter.Context.RegisterClassMap(foo);
-
-        if (exists == false)
-        {
-            csvWriter.WriteHeader(plugin.Values[0].GetType());
-
-            csvWriter.NextRecord();
-        }
-
-        foreach (var pluginValue in plugin.Values)
-        {
-            csvWriter.WriteRecord(pluginValue);
-            csvWriter.NextRecord();
-        }
-
-        sw.Flush();
+        //the row types come from the plugins, so they are written by reflection, as CsvHelper 33's AutoMap did
+        csvWriter.WriteRecords(plugin.Values.Cast<object>(), new PluginCsvWriter(plugin.Values[0].GetType()));
 
 
         return outFile;
@@ -2980,22 +2936,6 @@ internal class Program
     //     }
     // }
 
-    public class NullConverter : DefaultTypeConverter
-    {
-        public override string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
-        {
-            switch (value)
-            {
-                case DateTimeOffset dto:
-                    return dto.ToString(dtf);
-                case DateTime dt:
-                    return dt.ToString(dtf);
-                default:
-                    return base.ConvertToString(value, row, memberMapData);
-            }
-        }
-    }
-    
     private class CustomHelpAction : SynchronousCommandLineAction
     {
         private readonly HelpAction _defaultHelp;

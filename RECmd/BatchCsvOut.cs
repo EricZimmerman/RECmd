@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using CsvHelper;
 
 namespace RECmd
 {
-    public class BatchCsvOut
+    [CsvRecord]
+    public partial class BatchCsvOut
     {
         public string HivePath { get; set; }
         public string HiveType { get; set; }
@@ -23,6 +25,7 @@ namespace RECmd
         public bool Recursive { get; set; }
         public bool Deleted { get; set; }
 
+        [CsvConverter(typeof(LastWriteTimestampConverter))]
         public DateTimeOffset? LastWriteTimestamp { get; set; }
 
         public string PluginDetailFile { get; set; }
@@ -43,6 +46,26 @@ namespace RECmd
                     writer.WriteLine($"{item.HivePath},{item.HiveType},{item.Description},{item.Category},{item.KeyPath},{item.ValueName},{item.ValueType},{item.ValueData},{item.ValueData2},{item.ValueData3},{item.Comment},{item.Recursive},{item.Deleted},{formattedTimestamp},{item.PluginDetailFile}");
                 }
             }
+        }
+    }
+
+    /// <summary>
+    ///     LastWriteTimestamp in the --dt format (<see cref="Format" />, set before writing), in the current culture as
+    ///     CsvHelper 33's Convert did; empty when there is none
+    /// </summary>
+    internal sealed class LastWriteTimestampConverter : ICsvConverter<DateTimeOffset?>
+    {
+        public static string Format = "yyyy-MM-dd HH:mm:ss.fffffff";
+
+        public DateTimeOffset? Read(CsvReader reader, int index)
+        {
+            var text = reader.GetString(index);
+            return text.Length == 0 ? null : DateTimeOffset.ParseExact(text, Format, CultureInfo.CurrentCulture);
+        }
+
+        public void Write(CsvWriter writer, DateTimeOffset? value)
+        {
+            writer.WriteField(value?.ToString(Format));
         }
     }
 }
