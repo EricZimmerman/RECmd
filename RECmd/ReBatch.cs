@@ -32,7 +32,25 @@ public class Key
         [Description("Binary to SID")] Sid = 4,
         [Description("128 bit Windows SYSTEMTIME")] Systemtime = 5,
         [Description("DateTime.Ticks")] DateTimeTicks = 6,
-        [Description("OLE Automation Date OLE2.0")] OLE = 7
+        [Description("OLE Automation Date OLE2.0")] OLE = 7,
+
+        //2026.11 (issue #117), as Registry Explorer's data interpreter has them; they work on any value type
+        [Description("Unix time in milliseconds")] EpochMilliseconds = 8,
+        [Description("Text, one byte per character (Windows-1252)")] Ascii = 9,
+        [Description("Text, UTF-16")] Unicode = 10,
+        [Description("Bytes as Base64")] ToBase64 = 11,
+        [Description("Base64 text decoded")] FromBase64 = 12,
+        [Description("GUID, with the folder or item it names")] Guid = 13,
+        [Description("MS-DOS time then date (as Internet Explorer stores them)")] DosTimeDate = 14,
+        [Description("MS-DOS date then time (FAT)")] DosDateTime = 15,
+        [Description("IPv6 address")] Ipv6 = 16,
+        [Description("MAC address")] MacAddress = 17,
+        [Description("ROT13 text (UserAssist names)")] Rot13 = 18,
+        [Description("WebKit/Chrome time (microseconds since 1601)")] WebKit = 19,
+        [Description("Mac absolute time (seconds since 2001, a double)")] MacAbsolute = 20,
+        [Description("Big-endian number (2, 4 or 8 bytes)")] BigEndian = 21,
+        [Description("Product key from DigitalProductId (Windows 8 and later)")] ProductKey = 22,
+        [Description("Product key from DigitalProductId (Windows 7 and earlier)")] ProductKeyOld = 23
     }
 
     public enum HiveType_

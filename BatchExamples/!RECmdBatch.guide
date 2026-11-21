@@ -34,6 +34,35 @@ Keys:
         Recursive: false
         Comment: "Current OS install date"
 
+# BinaryConvert values (names are not case sensitive). They work on any value type (from RECmd 2026.11): binary and
+# number values are read from their bytes; string values as text, and as a number (decimal or 0x hex) for the time
+# conversions. Data that doesn't fit a conversion is shown as it is, with a warning. Binary values still need
+# IncludeBinary: true.
+#
+#   FILETIME            64 bit Windows FILETIME
+#   EPOCH               Unix time in seconds (DWORD)
+#   EpochMilliseconds   Unix time in milliseconds (QWORD)
+#   SYSTEMTIME          128 bit Windows SYSTEMTIME
+#   DateTimeTicks       .NET DateTime ticks
+#   OLE                 OLE Automation date (a double)
+#   WebKit              WebKit/Chrome time (microseconds since 1601)
+#   MacAbsolute         Mac absolute time (seconds since 2001-01-01, a double)
+#   DosTimeDate         MS-DOS time then date (as Internet Explorer stores them)
+#   DosDateTime         MS-DOS date then time (FAT)
+#   IP                  IPv4 address
+#   Ipv6                IPv6 address
+#   MacAddress          MAC address (6 bytes)
+#   SID                 Binary SID (S-1-5-21-...)
+#   Guid                GUID, with the folder or item it names when it is a known one
+#   Ascii               Text, one byte per character (Windows-1252)
+#   Unicode             Text, UTF-16
+#   ToBase64            The bytes as Base64
+#   FromBase64          Base64 text decoded (as text when it is text, else as hex)
+#   Rot13               ROT13 text (as UserAssist names are stored)
+#   BigEndian           A big-endian number (2, 4 or 8 bytes)
+#   ProductKey          Product key from DigitalProductId (Windows 8 and later)
+#   ProductKeyOld       Product key from DigitalProductId (Windows 7 and earlier)
+
 # SYSTEM hive with KeyPath wildcard (explained) example
 
     -

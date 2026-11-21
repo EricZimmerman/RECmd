@@ -8,7 +8,7 @@
         <Product>RECmd</Product>
         <Description>Command line Registry access</Description>
         <Copyright>Eric R. Zimmerman 2027</Copyright>
-        <Version>2026.10.3</Version>
+        <Version>2026.11.0</Version>
         <IsPackable>false</IsPackable>
         <LangVersion>10</LangVersion>
     </PropertyGroup>

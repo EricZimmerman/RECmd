@@ -2737,223 +2737,39 @@ internal class Program
 
             if (key.IncludeBinary)
             {
-                switch (key.BinaryConvert)
-                {
-                    case Key.BinConvert.Filetime:
-                        try
-                        {
-                            var ft = DateTimeOffset.FromFileTime((long)BitConverter.ToUInt64(regVal.ValueDataRaw, 0));
-                            rebOut.ValueData = ft.ToUniversalTime()
-                                .ToString(dt);
-                        }
-                        catch (Exception)
-                        {
-                            Log.Warning("Error converting to FILETIME. Using bytes instead!");
-                            rebOut.ValueData = regVal.ValueData;
-                        }
-
-                        break;
-                    case Key.BinConvert.Ip:
-                        try
-                        {
-                            var ipNumeric = BitConverter.ToUInt32(regVal.ValueDataRaw, 0);
-                            var ipString = new IPAddress(ipNumeric).ToString();
-                            rebOut.ValueData = ipString;
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Warning("Error converting to IP address. Using bytes instead! Error: {Message}",e.Message);
-                            rebOut.ValueData = regVal.ValueData;
-                        }
-
-                        break;
-
-                    case Key.BinConvert.Epoch:
-                        try
-                        {
-                            var ft = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToUInt32(regVal.ValueDataRaw, 0));
-                            rebOut.ValueData = ft.ToUniversalTime()
-                                .ToString(dt);
-                        }
-                        catch (Exception)
-                        {
-                            Log.Warning("Error converting to Epoch. Using bytes instead!");
-                            rebOut.ValueData = regVal.ValueData;
-                        }
-
-                        break;
-                    case Key.BinConvert.Sid:
-                        try
-                        {
-                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                            {
-                                var sid = new SecurityIdentifier(regVal.ValueDataRaw, 0);
-
-                                rebOut.ValueData = sid.ToString();
-                            }
-                            else
-                            {
-                                rebOut.ValueData = $"<SID conversion only available on Windows. Using bytes instead>: {regVal.ValueData}";
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            Log.Warning("Error converting to SID. Using bytes instead!");
-                            rebOut.ValueData = regVal.ValueData;
-                        }
-
-                         break;
-                    case Key.BinConvert.Systemtime:
-                        try
-                        {
-                            int index = 0;
-                            int int16_1 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, index);
-                            int int16_2 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 2 + index);
-                            int int16_3 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 4 + index);
-                            int int16_4 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 6 + index);
-                            int int16_5 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 8 + index);
-                            int int16_6 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 10 + index);
-                            int int16_7 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 12 + index);
-                            int int16_8 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 14 + index);
-
-                            var st = new DateTimeOffset(new DateTime(int16_1, int16_2, int16_4, int16_5, int16_6, int16_7, int16_8, DateTimeKind.Utc));
-                            rebOut.ValueData = st.ToUniversalTime().ToString(dt);
-
-                        }
-                        catch (Exception)
-                        {
-                            Log.Warning("Error converting to SYSTEMTIME. Using bytes instead!");
-                            rebOut.ValueData = regVal.ValueData;
-                        }
-
-						break;
-                    case Key.BinConvert.DateTimeTicks:
-                        try
-                        {
-                            var dticks = BitConverter.ToInt64(regVal.ValueDataRaw, 0);
-                            var dtVal = new DateTime(dticks, DateTimeKind.Utc);
-                            rebOut.ValueData = dtVal.ToUniversalTime().ToString(dt);
-                        }
-                        catch (Exception)
-                        {
-                            Log.Warning("Error converting to DateTime.Ticks. Using bytes instead!");
-                            rebOut.ValueData = regVal.ValueData;
-                        }
-
-						break;
-                    case Key.BinConvert.OLE:
-                        try
-                        {
-                            var ft = DateTime.FromOADate(BitConverter.ToDouble(regVal.ValueDataRaw, 0));
-                            rebOut.ValueData = ft.ToString(dt);
-                        }
-                        catch (Exception)
-                        {
-                            Log.Warning("Error converting to OLE Automation Date OLE2.0. Using bytes instead!");
-                            rebOut.ValueData = regVal.ValueData;
-                        }
-
-                       break;
-                    default:
-                        rebOut.ValueData = regVal.ValueData;
-                        break;
-                }
+                rebOut.ValueData = regVal.ValueData;
+                Convert(key, regVal, rebOut, dt);
             }
         }
         else
         {
             rebOut.ValueData = regVal == null ? "" : regVal.ValueData;
 
-            switch (key.BinaryConvert)
+            if (regVal != null)
             {
-                case Key.BinConvert.Epoch:
-                    try
-                    {
-                        var ft = DateTimeOffset.FromUnixTimeSeconds(BitConverter.ToUInt32(regVal.ValueDataRaw, 0));
-                        rebOut.ValueData = ft.ToUniversalTime()
-                            .ToString(dt);
-                    }
-                    catch (Exception)
-                    {
-                        Log.Warning("Error converting to Epoch. Using bytes instead!");
-                        rebOut.ValueData = regVal.ValueData;
-                    }
-
-                    break;
-
-                case Key.BinConvert.Filetime:
-                    try
-                    {
-                        var ft = DateTimeOffset.FromFileTime((long)BitConverter.ToUInt64(regVal.ValueDataRaw, 0));
-                        rebOut.ValueData = ft.ToUniversalTime()
-                            .ToString(dt);
-                    }
-                    catch (Exception)
-                    {
-                        Log.Warning("Error converting to FILETIME. Using bytes instead!");
-                        rebOut.ValueData = regVal.ValueData;
-                    }
-                   
-                   break;
-                
-                case Key.BinConvert.Systemtime:
-                    try
-                    {
-                        int index = 0;
-                        int int16_1 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, index);
-                        int int16_2 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 2 + index);
-                        int int16_3 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 4 + index);
-                        int int16_4 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 6 + index);
-                        int int16_5 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 8 + index);
-                        int int16_6 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 10 + index);
-                        int int16_7 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 12 + index);
-                        int int16_8 = (int)BitConverter.ToInt16(regVal.ValueDataRaw, 14 + index);
-
-                        var st = new DateTimeOffset(new DateTime(int16_1, int16_2, int16_4, int16_5, int16_6, int16_7, int16_8, DateTimeKind.Utc));
-                        rebOut.ValueData = st.ToUniversalTime().ToString(dt);
-
-                    }
-                    catch (Exception)
-                    {
-                        Log.Warning("Error converting to SYSTEMTIME. Using bytes instead!");
-                        rebOut.ValueData = regVal.ValueData;
-                    }
-
-                    break;
-
-                case Key.BinConvert.DateTimeTicks:
-                    try
-                    {
-                        var dticks = BitConverter.ToInt64(regVal.ValueDataRaw, 0);
-                        var dtVal = new DateTime(dticks, DateTimeKind.Utc);
-
-                        rebOut.ValueData = dtVal.ToUniversalTime().ToString(dt);
-                    }
-                    catch (Exception)
-                    {
-                        Log.Warning("Error converting to DateTime.Ticks. Using bytes instead!");
-                        rebOut.ValueData = regVal.ValueData;
-                    }
-
-                    break;
-
-                case Key.BinConvert.OLE:
-                    try
-                    {
-                        var ft = DateTime.FromOADate(BitConverter.ToDouble(regVal.ValueDataRaw, 0));
-                        rebOut.ValueData = ft.ToString(dt);
-                    }
-                    catch (Exception)
-                    {
-                        Log.Warning("Error converting to OLE Automation Date OLE2.0. Using bytes instead!");
-                        rebOut.ValueData = regVal.ValueData;
-                    }
-
-                    break;
+                Convert(key, regVal, rebOut, dt);
             }
         }
 
         return rebOut;
+    }
+
+    /// <summary>BinaryConvert (issue #117: any value type, more conversions; ValueConverter). When it doesn't fit, the data stays as it is</summary>
+    private static void Convert(Key key, KeyValue regVal, BatchCsvOut rebOut, string dt)
+    {
+        if (key.BinaryConvert == Key.BinConvert.None)
+        {
+            return;
+        }
+
+        if (ValueConverter.TryConvert(key.BinaryConvert, regVal.ValueType, regVal.ValueDataRaw, regVal.ValueData, dt, out var converted))
+        {
+            rebOut.ValueData = converted;
+        }
+        else
+        {
+            Log.Warning("Error converting {ValueName} ({ValueType}) with {Conversion}. Using the data as it is!",regVal.ValueName,regVal.ValueType,key.BinaryConvert);
+        }
     }
 
     private static ReBatch ValidateBatchFile(string bn)

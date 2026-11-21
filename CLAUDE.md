@@ -18,6 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `--co` (Issues #259, on by default, `--co false` turns it off): the console messages also go to `<ts>_<tool>_<version>_ConsoleLog.txt` (`ConsoleLog.cs` in each project, the same file as in every EZ Tools CLI tool) with the `[HH:mm:ss.fff LVL]` template. RECmd: in the first of `--csv`, `--json`, else the folder of `--saveTo`, `ts` being `RunTime`, the UTC time of the batch and plugin output names; without an output directory there is no log file (no warning: `--co` is on by default). rla: in `--out`. RECmd's `DateTimeOffsetFormatter` uses `--dt` only when the placeholder has no format of its own (the log template's `{Timestamp:HH:mm:ss.fff}` was shown with `--dt`).
 - Value lookups use `FirstOrDefault` (a key can have the same value name twice).
 - Batch CSV columns (`BatchCsvOut`) are what KAPE and users' scripts read: keep them and their order.
+- `BinaryConvert` (issue #117, 2026.11): `ValueConverter.TryConvert` for every value type (binary only with `IncludeBinary`; before, non-binary values had only the time conversions, read from the bytes even for strings). New `Key.BinConvert` values go after the existing numbers (batch files use the names). A conversion that doesn't fit leaves the data as it is and logs a warning. The list is in `BatchExamples/!RECmdBatch.guide`; the product key decoders are Registry Explorer's. Checked: DFIRBatch and Kroll_Batch give the same rows as 2026.10 over the corpus.
 
 ## Commands
 
