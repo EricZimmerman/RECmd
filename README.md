@@ -7,7 +7,7 @@ don't apply transaction logs themselves.
 
 | | |
 |---|---|
-| **Version** | RECmd 2026.10.3 &middot; rla 2026.10.1 |
+| **Version** | RECmd 2026.11.0 &middot; rla 2026.10.1 |
 | **Download** | RECmd: [.NET 10](https://download.ericzimmermanstools.com/net/RECmd.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/RECmd.zip)<br>rla: [.NET 10](https://download.ericzimmermanstools.com/net/rla.zip) (recommended) &middot; [.NET Framework 4.7.2](https://download.ericzimmermanstools.com/rla.zip) |
 | **All tools** | [ericzimmerman.github.io](https://ericzimmerman.github.io) or [Get-ZimmermanTools](https://download.ericzimmermanstools.com/Get-ZimmermanTools.zip), which downloads them all and keeps them current |
 | **Changes** | [ChangeLog](https://ericzimmerman.github.io/changelog/) |
@@ -157,6 +157,15 @@ instead of overwriting it.
 |---|---|
 | `0` | Success. Damaged hives are reported (as could not be processed) but are not a failure, nor is nothing to do (no hives found, `--kn` or `--vn` not found) |
 | `1` | The tool failed: invalid arguments or batch file, a missing `-f` or `-d` path, a hive or its logs that can't be read, a dirty hive without its transaction logs (RECmd without `--nl`, rla with `--ca false`), output that can't be written, or (RECmd batch mode) a plugin that throws or can't be loaded. Folders under `-d` that can't be read are reported (`Unable to read folder <path>: <reason>`) and the rest is still processed |
+
+## What's new in 2026.11
+
+- More `BinaryConvert` conversions for batch files: `EpochMilliseconds`, `WebKit`, `MacAbsolute`, `DosTimeDate`,
+  `DosDateTime`, `Ipv6`, `MacAddress`, `Guid` (with the folder it names), `Ascii`, `Unicode`, `ToBase64`,
+  `FromBase64`, `Rot13`, `BigEndian`, `ProductKey` and `ProductKeyOld` (#117). The list is in
+  [!RECmdBatch.guide](BatchExamples/!RECmdBatch.guide).
+- `BinaryConvert` works on every value type: IP and SID were only converted for binary values, and a time kept as a
+  string was read from the bytes of the text. SID conversion works on Linux too.
 
 ## What's new in 2026.10
 
